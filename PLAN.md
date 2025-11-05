@@ -3,19 +3,19 @@
 ## Status Checklist
 
 - [x] Week 1: Monorepo scaffolding, core engine, validation
-- [ ] Week 2: DOM targeting and React binding
+- [x] Week 2: DOM targeting and React binding
 - [ ] Week 3: Animations, positioning, router adapters
 - [ ] Week 4: Accessibility polish, examples, tests, release
 
 ## 1. MVP Scope (solve 80% of use cases)
 
-- [ ] Target overlay highlights DOM element via selector/ref, auto-scrolls it into view, dims rest with mask
+- [x] Target overlay highlights DOM element via selector/ref, auto-scrolls it into view, dims rest with mask
 - [ ] Tooltip/popover supports arrow, title/body, primary/secondary actions
 - [ ] Step system with ids, target, content, placement, mask options, advance rules
-- [ ] Next/back/skip controls plus keyboard shortcuts (Enter/Space continue, Esc exit)
+- [x] Next/back/skip controls plus keyboard shortcuts (Enter/Space continue, Esc exit)
 - [ ] Advance triggers for manual, click, change, route change, custom predicate
 - [ ] Routing-aware steps that wait for route/element readiness and optional navigation
-- [ ] Persistence via LocalStorage with namespaced key and schema version per flow
+- [x] Persistence via LocalStorage with namespaced key and schema version per flow
 - [ ] Serializable flow state machine: idle → running → paused → completed/cancelled
 - [ ] Framer Motion animations with swappable abstraction
 - [ ] Accessibility: focus management, ARIA roles, reduce-motion, screen-reader text, tabbable controls
@@ -24,8 +24,8 @@
 ## 2. Architecture Overview (keep it portable)
 
 - [x] `@tour/core` framework-agnostic engine (flows, transitions, advance rules)
-- [ ] DOM anchoring utilities (query target, compute rect, observer hooks)
-- [ ] Scroll manager
+- [x] DOM anchoring utilities (query target, compute rect, observer hooks)
+- [x] Scroll manager
 - [x] StorageAdapter interface with LocalStorage implementation
 - [ ] RouterAdapter interface without runtime dependency
 - [x] Event bus with analytics hooks
@@ -45,7 +45,7 @@
 
 - [x] `createFlow` helper with strong typing
 - [x] `<TourProvider>`, `useTour`, and `TourRenderer`
-- [ ] Sample flow definition mirroring onboarding use case
+- [x] Sample flow definition mirroring onboarding use case
 - [ ] Optional declarative `<Flow>` / `<Step>` API behind feature flag or later roadmap
 
 ## 5. Routing and Multi-page Flows
@@ -114,7 +114,7 @@
 ## 13. Developer Experience Niceties
 
 - [ ] Zod schemas plus invariant error codes with actionable tips
-- [ ] Debug mode overlay for step diagnostics
+- [x] Debug mode overlay for step diagnostics
 - [ ] Theming tokens via CSS variables (spacing, radii, shadows)
 - [ ] Analytics hooks (`onFlowStart`, `onStepEnter`, `onStepComplete`, `onFlowComplete`)
 

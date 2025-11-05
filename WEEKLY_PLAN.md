@@ -14,14 +14,14 @@
 
 ## Week 2 – Targeting & React Binding
 
-- [ ] Build DOM anchoring utilities (querying, rect computation, observers)
-- [ ] Implement scroll manager for auto-scroll behavior
+- [x] Build DOM anchoring utilities (querying, rect computation, observers)
+- [x] Implement scroll manager for auto-scroll behavior
 - [x] Create React provider, hooks (`useTour`), and initial context wiring
-- [ ] Ship basic Overlay, Popover, and Controls components with minimal styles
-- [ ] Wire next/back/skip flows and keyboard shortcuts
+- [x] Ship basic Overlay, Popover, and Controls components with minimal styles
+- [x] Wire next/back/skip flows and keyboard shortcuts
 - [x] Integrate state machine with React layer for flow progression
-- [ ] Add dev/debug overlay toggle for step inspection
-- [ ] Smoke-test via Vite sandbox app showing a two-step flow
+- [x] Add dev/debug overlay toggle for step inspection
+- [x] Smoke-test via Vite sandbox app showing a two-step flow
 
 ## Week 3 – Motion, Positioning, Routing
 

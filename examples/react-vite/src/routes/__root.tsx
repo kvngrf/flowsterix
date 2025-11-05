@@ -1,8 +1,10 @@
+import { TanStackDevtools } from '@tanstack/react-devtools'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
+import { TourHUD, TourProvider } from '@tour/react'
 
 import Header from '../components/Header'
+import { demoFlows } from '../tour/flows'
 
 import appCss from '../styles.css?url'
 
@@ -38,19 +40,26 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <Header />
-        {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        <TourProvider
+          flows={demoFlows}
+          storageNamespace="flowster-demo"
+          defaultDebug={false}
+        >
+          <Header />
+          {children}
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+          <TourHUD />
+        </TourProvider>
         <Scripts />
       </body>
     </html>

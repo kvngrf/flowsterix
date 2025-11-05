@@ -19,4 +19,12 @@ export default [
       'import/order': 'off',
     },
   },
+  {
+    files: ['**/tsup.config.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: false,
+      },
+    },
+  },
 ]

@@ -10,14 +10,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --clean && tsc --build tsconfig.json --force",
+    "build": "tsup --config tsup.config.ts && tsc --build tsconfig.json --force",
     "lint": "eslint src --ext .ts",
     "test": "vitest run"
   },

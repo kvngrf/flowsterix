@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-import { useState } from 'react'
+import { useTour } from '@tour/react'
 import {
   ChevronDown,
   ChevronRight,
@@ -11,17 +11,29 @@ import {
   StickyNote,
   X,
 } from 'lucide-react'
+import { useState } from 'react'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [groupedExpanded, setGroupedExpanded] = useState<
     Record<string, boolean>
   >({})
+  const { startFlow, state, cancel, debugEnabled, toggleDebug } = useTour()
+  const isRunning = state?.status === 'running'
+
+  const handleStartTour = () => {
+    startFlow('demo-onboarding', { resume: true })
+  }
+
+  const handleStopTour = () => {
+    cancel('user')
+  }
 
   return (
     <>
       <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
         <button
+          data-tour-target="menu-button"
           onClick={() => setIsOpen(true)}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
           aria-label="Open menu"
@@ -37,6 +49,24 @@ export default function Header() {
             />
           </Link>
         </h1>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={isRunning ? handleStopTour : handleStartTour}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              isRunning
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+            }`}
+          >
+            {isRunning ? 'End tour' : 'Start tour'}
+          </button>
+          <button
+            onClick={toggleDebug}
+            className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors bg-slate-700 hover:bg-slate-600"
+          >
+            {debugEnabled ? 'Hide debug' : 'Show debug'}
+          </button>
+        </div>
       </header>
 
       <aside

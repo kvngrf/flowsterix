@@ -13,6 +13,8 @@
     "format:write": "prettier --write ."
   },
   "dependencies": {
+    "@tour/core": "workspace:*",
+    "@tour/react": "workspace:*",
     "@t3-oss/env-core": "^0.13.8",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.7.0",
