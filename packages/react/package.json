@@ -12,18 +12,28 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
       "default": "./dist/index.mjs"
+    },
+    "./styles.css": {
+      "default": "./dist/styles.css"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.tsx --format esm,cjs --clean && tsc --build tsconfig.json --force",
+    "build": "tsup src/index.tsx --format esm,cjs --clean && tsc --build tsconfig.json --force && pnpm run build:css",
+    "build:css": "node_modules/.bin/tailwindcss -c tailwind.config.ts -i ./src/styles.css -o ./dist/styles.css --minify",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run"
   },
   "dependencies": {
-    "@tour/core": "workspace:*"
+    "@tour/core": "workspace:*",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.16",
+    "tailwindcss": "^4.1.16"
   },
   "peerDependencies": {
     "react": ">=18",

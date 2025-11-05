@@ -2,6 +2,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TourHUD, TourProvider } from '@tour/react'
+import '@tour/react/styles.css'
 
 import Header from '../components/Header'
 import { demoFlows } from '../tour/flows'

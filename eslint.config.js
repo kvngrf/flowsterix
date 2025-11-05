@@ -27,4 +27,12 @@ export default [
       },
     },
   },
+  {
+    files: ['**/tailwind.config.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: false,
+      },
+    },
+  },
 ]
