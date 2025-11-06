@@ -1,5 +1,8 @@
+import type { CSSProperties } from 'react'
+import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 
+import { AnimatePresence, motion } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { cn } from '../utils/cn'
 import {
@@ -20,6 +23,7 @@ export interface TourOverlayProps {
   shadowClassName?: string
   zIndex?: number
   edgeBuffer?: number
+  blurAmount?: number
 }
 
 export const TourOverlay = ({
@@ -27,127 +31,218 @@ export const TourOverlay = ({
   padding = 12,
   radius = 12,
   color,
-  colorClassName = 'bg-slate-900',
-  opacity = 0.6,
+  colorClassName = 'bg-slate-900/60',
+  opacity = 1,
   shadow,
   shadowClassName,
   zIndex = 1000,
   edgeBuffer = 8,
+  blurAmount = 4,
 }: TourOverlayProps) => {
   if (!isBrowser) return null
   const host = portalHost()
   if (!host) return null
 
   const viewport = getViewportRect()
-  const highlightRect =
+  const expandedRect =
     target.isScreen || !target.rect
       ? viewport
       : expandRect(target.rect, padding)
+  const safeBuffer = Math.max(0, edgeBuffer)
 
-  const topHeight = Math.max(0, highlightRect.top)
-  const bottomHeight = Math.max(
+  const insetTop =
+    expandedRect.top <= 0
+      ? Math.min(safeBuffer, Math.max(0, expandedRect.height) / 2)
+      : 0
+  const insetLeft =
+    expandedRect.left <= 0
+      ? Math.min(safeBuffer, Math.max(0, expandedRect.width) / 2)
+      : 0
+  const insetBottom =
+    expandedRect.top + expandedRect.height >= viewport.height
+      ? Math.min(safeBuffer, Math.max(0, expandedRect.height) / 2)
+      : 0
+  const insetRight =
+    expandedRect.left + expandedRect.width >= viewport.width
+      ? Math.min(safeBuffer, Math.max(0, expandedRect.width) / 2)
+      : 0
+
+  const highlightTop = expandedRect.top + insetTop
+  const highlightLeft = expandedRect.left + insetLeft
+  const highlightWidth = Math.max(
     0,
-    viewport.height - (highlightRect.top + highlightRect.height),
+    expandedRect.width - insetLeft - insetRight,
   )
-  const leftWidth = Math.max(0, highlightRect.left)
-  const defaultInsetShadow =
-    'inset 0 0 0 2px rgba(56,189,248,0.9), inset 0 0 0 10px rgba(15,23,42,0.35)'
-  const layerClass = cn(
-    'fixed pointer-events-auto transition-[transform,width,height] duration-[120ms] ease-linear',
+  const highlightHeight = Math.max(
+    0,
+    expandedRect.height - insetTop - insetBottom,
+  )
+  const highlightRadius = Math.max(
+    0,
+    Math.min(radius, highlightWidth / 2, highlightHeight / 2),
+  )
+
+  const shouldMask =
+    target.status === 'ready' &&
+    !target.isScreen &&
+    highlightWidth > 0 &&
+    highlightHeight > 0
+
+  const maskId = useMemo(
+    () => `tour-overlay-mask-${Math.random().toString(36).slice(2, 10)}`,
+    [],
+  )
+
+  const maskUrl = shouldMask ? `url(#${maskId})` : undefined
+
+  const overlayClassName = cn(
+    'pointer-events-none absolute origin-center duration-250 inset-0 transition-[mask-position,mask-size,background-color,backdrop-filter,opacity]',
+    '[mask-mode:luminance]',
+    '[mask-repeat:no-repeat]',
+    '[mask-size:100%_100%]',
     color ? null : colorClassName,
   )
-  const highlightClass = cn(
-    'fixed pointer-events-none transition-[transform,width,height] duration-[120ms] ease-linear',
+  const ringClassName = cn(
+    'pointer-events-none absolute orirgin-center',
     shadow ? null : shadowClassName,
   )
-  const layerAppearance = color
-    ? { backgroundColor: color, opacity }
-    : { opacity }
+
+  const defaultInsetShadow =
+    'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
+
   const highlightAppearance = shadow
     ? { boxShadow: shadow }
     : shadowClassName
       ? undefined
       : { boxShadow: defaultInsetShadow }
-  const insetTop = highlightRect.top <= 0 ? edgeBuffer : 0
-  const insetLeft = highlightRect.left <= 0 ? edgeBuffer : 0
-  const insetBottom =
-    highlightRect.top + highlightRect.height >= viewport.height ? edgeBuffer : 0
-  const insetRight =
-    highlightRect.left + highlightRect.width >= viewport.width ? edgeBuffer : 0
-  const insetWidth = highlightRect.width - insetLeft - insetRight
-  const insetHeight = highlightRect.height - insetTop - insetBottom
-  const hasValidInset = insetWidth > 0 && insetHeight > 0
-  const highlightTop = hasValidInset
-    ? highlightRect.top + insetTop
-    : highlightRect.top
-  const highlightLeft = hasValidInset
-    ? highlightRect.left + insetLeft
-    : highlightRect.left
-  const highlightWidth = hasValidInset
-    ? insetWidth
-    : Math.max(0, highlightRect.width)
-  const highlightHeight = hasValidInset
-    ? insetHeight
-    : Math.max(0, highlightRect.height)
+
+  const highlightTransition = {
+    duration: 0.4,
+    ease: 'easeOut' as const,
+    type: 'spring' as const,
+    damping: 25,
+    stiffness: 300,
+    mass: 0.7,
+  }
+
+  const highlightRectAnimation = shouldMask
+    ? {
+        x: highlightLeft,
+        y: highlightTop,
+        width: highlightWidth,
+        height: highlightHeight,
+        rx: highlightRadius,
+        ry: highlightRadius,
+      }
+    : {
+        x: highlightLeft,
+        y: highlightTop,
+        width: 0,
+        height: 0,
+        rx: 0,
+        ry: 0,
+      }
+
+  const highlightRingAnimation = shouldMask
+    ? {
+        top: highlightTop,
+        left: highlightLeft,
+        width: highlightWidth,
+        height: highlightHeight,
+        borderRadius: highlightRadius,
+        opacity: 1,
+      }
+    : {
+        top: highlightTop,
+        left: highlightLeft,
+        width: 0,
+        height: 0,
+        borderRadius: 0,
+        opacity: 0,
+      }
+
+  const overlayStyle: CSSProperties = {
+    zIndex,
+    opacity,
+    backdropFilter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
+    WebkitBackdropFilter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
+    maskRepeat: 'no-repeat',
+    WebkitMaskRepeat: 'no-repeat',
+    maskSize: '100% 100%',
+    WebkitMaskSize: '100% 100%',
+  }
+
+  if (maskUrl) {
+    overlayStyle.mask = maskUrl
+    overlayStyle.WebkitMask = maskUrl
+  }
+
+  if (color) {
+    overlayStyle.backgroundColor = color
+  }
 
   return createPortal(
-    <div
+    <motion.div
       className="fixed inset-0 pointer-events-none"
       style={{ zIndex }}
       aria-hidden={target.status !== 'ready'}
     >
-      <div
-        className={layerClass}
-        style={{
-          top: 0,
-          left: 0,
-          right: 0,
-          height: topHeight,
-          ...layerAppearance,
-        }}
+      <AnimatePresence mode="popLayout">
+        {maskUrl ? (
+          <motion.svg
+            width="0"
+            height="0"
+            aria-hidden
+            focusable="false"
+            className="absolute"
+          >
+            <motion.defs>
+              <motion.mask
+                id={maskId}
+                maskUnits="userSpaceOnUse"
+                maskContentUnits="userSpaceOnUse"
+                x="0"
+                y="0"
+                animate={{ width: viewport.width, height: viewport.height }}
+                transition={highlightTransition}
+              >
+                <motion.rect
+                  x="0"
+                  y="0"
+                  animate={{
+                    width: viewport.width,
+                    height: viewport.height,
+                  }}
+                  fill="white"
+                  transition={highlightTransition}
+                />
+                <motion.rect
+                  initial={false}
+                  animate={highlightRectAnimation}
+                  transition={highlightTransition}
+                  fill="black"
+                />
+              </motion.mask>
+            </motion.defs>
+          </motion.svg>
+        ) : null}
+      </AnimatePresence>
+      <motion.div
+        className={overlayClassName || undefined}
+        style={overlayStyle}
       />
-      <div
-        className={layerClass}
+      <motion.div
+        className={ringClassName || undefined}
         style={{
-          top: highlightRect.top,
-          left: 0,
-          width: leftWidth,
-          height: Math.max(0, highlightRect.height),
-          ...layerAppearance,
-        }}
-      />
-      <div
-        className={layerClass}
-        style={{
-          top: highlightRect.top,
-          left: highlightRect.left + highlightRect.width,
-          right: 0,
-          height: Math.max(0, highlightRect.height),
-          ...layerAppearance,
-        }}
-      />
-      <div
-        className={layerClass}
-        style={{
-          top: highlightRect.top + highlightRect.height,
-          left: 0,
-          right: 0,
-          height: bottomHeight,
-          ...layerAppearance,
-        }}
-      />
-      <div
-        className={highlightClass}
-        style={{
-          top: highlightTop,
-          left: highlightLeft,
-          width: Math.max(0, highlightWidth),
-          height: Math.max(0, highlightHeight),
-          borderRadius: radius,
+          position: 'absolute',
+          zIndex: zIndex + 1,
           ...highlightAppearance,
         }}
+        initial={false}
+        animate={highlightRingAnimation}
+        transition={highlightTransition}
       />
-    </div>,
+    </motion.div>,
     host,
   )
 }

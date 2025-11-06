@@ -10,7 +10,7 @@
 ## 1. MVP Scope (solve 80% of use cases)
 
 - [x] Target overlay highlights DOM element via selector/ref, auto-scrolls it into view, dims rest with mask
-- [ ] Tooltip/popover supports arrow, title/body, primary/secondary actions
+- [x] Tooltip/popover supports arrow, title/body, primary/secondary actions
 - [ ] Step system with ids, target, content, placement, mask options, advance rules
 - [x] Next/back/skip controls plus keyboard shortcuts (Enter/Space continue, Esc exit)
 - [ ] Advance triggers for manual, click, change, route change, custom predicate
