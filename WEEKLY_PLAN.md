@@ -26,7 +26,7 @@
 ## Week 3 – Motion, Positioning, Routing
 
 - [ ] Introduce AnimationAdapter interface and Framer Motion default implementation
-- [ ] Integrate Floating UI (or interim positioning math) for Popover placement
+- [x] Integrate Floating UI (or interim positioning math) for Popover placement
 - [ ] Implement highlight mask with clip-path hole and fallback strategy
 - [ ] Add router adapters for React Router and Next.js with route gating
 - [ ] Support `waitFor` logic for async elements with timeout handling

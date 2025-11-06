@@ -1,13 +1,21 @@
 import type { ReactNode } from 'react'
-import { useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import type { VirtualElement } from '@floating-ui/dom'
+import {
+  computePosition,
+  flip,
+  offset as floatingOffset,
+  shift,
+} from '@floating-ui/dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTour } from '../context'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { cn } from '../utils/cn'
 import { getViewportRect, isBrowser, portalHost } from '../utils/dom'
 
+const FLOATING_OFFSET = 8
 export interface TourPopoverProps {
   target: TourTargetInfo
   children: ReactNode
@@ -57,8 +65,69 @@ export const TourPopover = ({
     className,
   )
 
+  const fallbackPosition = useMemo(
+    () => ({
+      top,
+      left,
+      transform: target.isScreen
+        ? 'translate(-50%, -50%)'
+        : 'translate(-50%, 0)',
+    }),
+    [left, target.isScreen, top],
+  )
+
+  const floatingRef = useRef<HTMLDivElement | null>(null)
+  const [floatingPosition, setFloatingPosition] = useState(fallbackPosition)
+
+  useLayoutEffect(() => {
+    setFloatingPosition(fallbackPosition)
+  }, [fallbackPosition])
+
+  useLayoutEffect(() => {
+    if (!isBrowser) return
+    const floatingEl = floatingRef.current
+    const rectInfo = target.rect
+    if (!floatingEl) return
+    if (!rectInfo || target.isScreen) return
+
+    let cancelled = false
+
+    const virtualReference: VirtualElement = {
+      contextElement: target.element ?? undefined,
+      getBoundingClientRect: () =>
+        DOMRectReadOnly.fromRect({
+          width: rectInfo.width,
+          height: rectInfo.height,
+          x: rectInfo.left,
+          y: rectInfo.top,
+        }),
+    }
+
+    const updatePosition = async () => {
+      const { x, y } = await computePosition(virtualReference, floatingEl, {
+        placement: 'bottom',
+        strategy: 'fixed',
+        middleware: [
+          floatingOffset(offset),
+          flip({ padding: FLOATING_OFFSET }),
+          shift({ padding: FLOATING_OFFSET }),
+        ],
+      })
+
+      if (cancelled) return
+      setFloatingPosition({ top: y, left: x, transform: 'translate3d(0,0,0)' })
+    }
+
+    void updatePosition()
+
+    return () => {
+      cancelled = true
+    }
+  }, [offset, target.isScreen, target.lastUpdated])
+
   return createPortal(
     <motion.div
+      ref={floatingRef}
       transition={{
         duration: 0.4,
         ease: 'easeOut' as const,
@@ -73,11 +142,9 @@ export const TourPopover = ({
         maxWidth,
       }}
       animate={{
-        top,
-        left,
-        transform: target.isScreen
-          ? 'translate(-50%, -50%)'
-          : 'translate(-50%, 0)',
+        top: floatingPosition.top,
+        left: floatingPosition.left,
+        transform: floatingPosition.transform,
       }}
       role="dialog"
       aria-live="polite"

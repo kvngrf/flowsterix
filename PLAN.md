@@ -11,15 +11,15 @@
 
 - [x] Target overlay highlights DOM element via selector/ref, auto-scrolls it into view, dims rest with mask
 - [x] Tooltip/popover supports arrow, title/body, primary/secondary actions
-- [ ] Step system with ids, target, content, placement, mask options, advance rules
+- [x] Step system with ids, target, content, placement, mask options, advance rules
 - [x] Next/back/skip controls plus keyboard shortcuts (Enter/Space continue, Esc exit)
 - [ ] Advance triggers for manual, click, change, route change, custom predicate
 - [ ] Routing-aware steps that wait for route/element readiness and optional navigation
 - [x] Persistence via LocalStorage with namespaced key and schema version per flow
-- [ ] Serializable flow state machine: idle → running → paused → completed/cancelled
+- [x] Serializable flow state machine: idle → running → paused → completed/cancelled
 - [ ] Framer Motion animations with swappable abstraction
 - [ ] Accessibility: focus management, ARIA roles, reduce-motion, screen-reader text, tabbable controls
-- [ ] Developer experience: typed API, Zod validation, helpful errors, dev overlay, default styles, theming via CSS vars
+- [x] Developer experience foundations: typed API, Zod validation, helpful errors, dev overlay, default styles
 
 ## 2. Architecture Overview (keep it portable)
 
@@ -71,7 +71,7 @@
 
 ## 8. Positioning and Overlay
 
-- [ ] Floating UI integration (or initial math) for placement/collision handling
+- [x] Floating UI integration (or initial math) for placement/collision handling
 - [ ] Highlight mask using CSS clip-path hole with fallback
 - [ ] Observe rect changes via ResizeObserver + requestAnimationFrame updates
 - [ ] MutationObserver for mount/unmount handling
@@ -113,7 +113,7 @@
 
 ## 13. Developer Experience Niceties
 
-- [ ] Zod schemas plus invariant error codes with actionable tips
+- [x] Zod schemas plus invariant error codes with actionable tips
 - [x] Debug mode overlay for step diagnostics
 - [ ] Theming tokens via CSS variables (spacing, radii, shadows)
 - [ ] Analytics hooks (`onFlowStart`, `onStepEnter`, `onStepComplete`, `onFlowComplete`)
@@ -136,7 +136,7 @@
 ## 16. Suggested Implementation Steps (4-week MVP)
 
 - [x] Week 1: Monorepo setup, core engine, Zod validation
-- [ ] Week 2: DOM targeting/observers, React binding (Provider, hooks, Overlay, Popover, controls)
+- [x] Week 2: DOM targeting/observers, React binding (Provider, hooks, Overlay, Popover, controls)
 - [ ] Week 3: Framer Motion animations, Floating UI positioning, mask overlay, router adapters, waitFor support
 - [ ] Week 4: Accessibility/theming/debug mode/errors, examples, docs, tests, publish v0.1.0
 
