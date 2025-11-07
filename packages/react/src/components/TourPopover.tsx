@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { VirtualElement } from '@floating-ui/dom'
@@ -10,7 +10,6 @@ import {
   shift,
 } from '@floating-ui/dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { useTour } from '../context'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { cn } from '../utils/cn'
 import { getViewportRect, isBrowser, portalHost } from '../utils/dom'
@@ -37,19 +36,16 @@ export const TourPopover = ({
   const host = portalHost()
   if (!host) return null
 
-  const { state } = useTour()
-  const stepIndex = state?.stepIndex ?? -1
-  const previousStepIndexRef = useRef(stepIndex)
-  const directionRef = useRef<1 | -1>(1)
+  const hasPresentedRef = useRef(false)
+  const isOpening = target.status === 'ready' && !hasPresentedRef.current
 
-  if (stepIndex !== previousStepIndexRef.current) {
-    directionRef.current = stepIndex >= previousStepIndexRef.current ? 1 : -1
-    previousStepIndexRef.current = stepIndex
-  }
-
-  const direction = directionRef.current
-  const enterOffset = direction === 1 ? '50px' : '-50px'
-  const exitOffset = direction === 1 ? '-50px' : '50px'
+  useEffect(() => {
+    if (target.status === 'ready') {
+      hasPresentedRef.current = true
+    } else if (target.status === 'idle') {
+      hasPresentedRef.current = false
+    }
+  }, [target.status])
 
   const viewport = getViewportRect()
   const rect = target.rect ?? viewport
@@ -74,6 +70,15 @@ export const TourPopover = ({
         : 'translate(-50%, 0)',
     }),
     [left, target.isScreen, top],
+  )
+
+  const centerInitialPosition = useMemo(
+    () => ({
+      top: viewport.height / 2,
+      left: viewport.width / 2,
+      transform: 'translate(-50%, -50%)',
+    }),
+    [viewport.height, viewport.width],
   )
 
   const floatingRef = useRef<HTMLDivElement | null>(null)
@@ -141,7 +146,23 @@ export const TourPopover = ({
         zIndex,
         maxWidth,
       }}
+      initial={
+        isOpening
+          ? {
+              opacity: 0,
+              top: centerInitialPosition.top,
+              left: centerInitialPosition.left,
+              transform: centerInitialPosition.transform,
+            }
+          : {
+              opacity: 0,
+              top: fallbackPosition.top,
+              left: fallbackPosition.left,
+              transform: fallbackPosition.transform,
+            }
+      }
       animate={{
+        opacity: target.status === 'ready' ? 1 : 0,
         top: floatingPosition.top,
         left: floatingPosition.left,
         transform: floatingPosition.transform,
@@ -149,13 +170,13 @@ export const TourPopover = ({
       role="dialog"
       aria-live="polite"
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         <motion.div
           key={target.stepId}
-          initial={{ opacity: 0, translateX: enterOffset, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, translateX: '0px', filter: 'blur(0)' }}
-          exit={{ opacity: 0, translateX: exitOffset, filter: 'blur(4px)' }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          initial={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, translateX: 0, filter: 'blur(0)' }}
+          exit={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           {children}
         </motion.div>

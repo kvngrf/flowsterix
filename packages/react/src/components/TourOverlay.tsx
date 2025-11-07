@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 import { AnimatePresence, motion } from 'motion/react'
@@ -43,6 +43,19 @@ export const TourOverlay = ({
   const host = portalHost()
   if (!host) return null
 
+  const hasShownRef = useRef(false)
+
+  const isOpening = target.status === 'ready' && !hasShownRef.current
+
+  useEffect(() => {
+    if (target.status === 'ready') {
+      hasShownRef.current = true
+    }
+    if (target.status === 'idle') {
+      hasShownRef.current = false
+    }
+  }, [target.status])
+
   const viewport = getViewportRect()
   const expandedRect =
     target.isScreen || !target.rect
@@ -81,6 +94,9 @@ export const TourOverlay = ({
     0,
     Math.min(radius, highlightWidth / 2, highlightHeight / 2),
   )
+
+  const highlightCenterX = highlightLeft + highlightWidth / 2
+  const highlightCenterY = highlightTop + highlightHeight / 2
 
   const shouldMask =
     target.status === 'ready' &&
@@ -125,6 +141,11 @@ export const TourOverlay = ({
     mass: 0.7,
   }
 
+  const overlayTransition = {
+    duration: 0.35,
+    ease: 'easeOut' as const,
+  }
+
   const highlightRectAnimation = shouldMask
     ? {
         x: highlightLeft,
@@ -135,37 +156,63 @@ export const TourOverlay = ({
         ry: highlightRadius,
       }
     : {
-        x: highlightLeft,
-        y: highlightTop,
+        x: highlightCenterX,
+        y: highlightCenterY,
         width: 0,
         height: 0,
         rx: 0,
         ry: 0,
       }
 
+  const highlightRectInitial =
+    isOpening && shouldMask
+      ? {
+          x: highlightCenterX,
+          y: highlightCenterY,
+          width: 0,
+          height: 0,
+          rx: 0,
+          ry: 0,
+        }
+      : false
+
   const highlightRingAnimation = shouldMask
     ? {
-        top: highlightTop,
-        left: highlightLeft,
+        top: highlightCenterY,
+        left: highlightCenterX,
         width: highlightWidth,
         height: highlightHeight,
         borderRadius: highlightRadius,
         opacity: 1,
+        transform: 'translate(-50%, -50%)',
       }
     : {
-        top: highlightTop,
-        left: highlightLeft,
+        top: highlightCenterY,
+        left: highlightCenterX,
         width: 0,
         height: 0,
         borderRadius: 0,
         opacity: 0,
+        transform: 'translate(-50%, -50%)',
       }
+
+  const highlightRingInitial =
+    isOpening && shouldMask
+      ? {
+          width: 0,
+          height: 0,
+          borderRadius: 0,
+          opacity: 0,
+          transform: 'translate(-50%, -50%)',
+        }
+      : false
+
+  const blurValue = blurAmount > 0 ? `${blurAmount}px` : '0px'
 
   const overlayStyle: CSSProperties = {
     zIndex,
-    opacity,
-    backdropFilter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
-    WebkitBackdropFilter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
+    backdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
+    WebkitBackdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
     maskRepeat: 'no-repeat',
     WebkitMaskRepeat: 'no-repeat',
     maskSize: '100% 100%',
@@ -217,7 +264,11 @@ export const TourOverlay = ({
                   transition={highlightTransition}
                 />
                 <motion.rect
-                  initial={false}
+                  initial={
+                    highlightRectInitial === false
+                      ? false
+                      : highlightRectInitial
+                  }
                   animate={highlightRectAnimation}
                   transition={highlightTransition}
                   fill="black"
@@ -230,6 +281,14 @@ export const TourOverlay = ({
       <motion.div
         className={overlayClassName || undefined}
         style={overlayStyle}
+        initial={
+          isOpening ? { opacity: 0, '--tour-overlay-blur': '0px' } : false
+        }
+        animate={{
+          opacity: target.status === 'ready' ? opacity : 0,
+          '--tour-overlay-blur': blurValue,
+        }}
+        transition={overlayTransition}
       />
       <motion.div
         className={ringClassName || undefined}
@@ -238,7 +297,7 @@ export const TourOverlay = ({
           zIndex: zIndex + 1,
           ...highlightAppearance,
         }}
-        initial={false}
+        initial={highlightRingInitial === false ? false : highlightRingInitial}
         animate={highlightRingAnimation}
         transition={highlightTransition}
       />
