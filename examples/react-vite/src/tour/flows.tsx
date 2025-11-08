@@ -10,6 +10,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       id: 'welcome',
       target: 'screen',
       placement: 'bottom',
+      advance: [{ type: 'manual' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
@@ -26,6 +27,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       id: 'menu',
       target: { selector: '[data-tour-target="menu-button"]' },
       placement: 'right',
+      advance: [{ type: 'event', event: 'click', on: 'target' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
@@ -35,21 +37,45 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
             Open the menu to explore example routes, SSR demos, and API samples.
             The drawer is a great place to plug in contextual tour steps.
           </p>
+          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+            Click the menu button to continue.
+          </p>
         </div>
       ),
     },
     {
-      id: 'hero',
-      target: { selector: '#hero-section' },
-      placement: 'bottom',
+      id: 'ssr-toggle',
+      target: { selector: '[data-tour-target="ssr-toggle"]' },
+      placement: 'right',
+      advance: [{ type: 'event', event: 'click', on: 'target' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Hero Section
+            Route Groups
           </h2>
           <p style={{ margin: 0, lineHeight: 1.5 }}>
-            The hero highlights TanStack Start. Tours often anchor to headline
-            messaging or key calls to action to help orient new users.
+            Nested toggles are perfect for progressive disclosure. Here we tuck
+            the SSR demos behind a secondary control.
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+            Tap this toggle to expand the SSR demos.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'cta',
+      target: { selector: '[data-tour-target="cta-button"]' },
+      placement: 'bottom',
+      advance: [{ type: 'delay', ms: 2400 }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Call to Action
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            Highlight primary CTAs to orient new users. We&apos;ll linger here
+            for a moment, then keep moving.
           </p>
         </div>
       ),
@@ -58,6 +84,17 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       id: 'feature-grid',
       target: { selector: '#feature-grid' },
       placement: 'top',
+      advance: [
+        {
+          type: 'predicate',
+          pollMs: 200,
+          timeoutMs: 15000,
+          check: () =>
+            typeof window !== 'undefined' && typeof window.scrollY === 'number'
+              ? window.scrollY > 120
+              : false,
+        },
+      ],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
@@ -67,6 +104,77 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
             These cards recap the major capabilities. Use tours to point
             visitors to detailed resources, documentation links, or funnel next
             steps.
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+            Scroll the page a bit to continue.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'api-link',
+      target: { selector: '[data-tour-target="api-link"]' },
+      placement: 'right',
+      advance: [{ type: 'route', to: '/demo/start/api-request' }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Deeper Dives
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            Tours can guide users into feature-specific routes. Let&apos;s jump
+            to the API Request demo next.
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+            Click this link—the tour will follow the navigation.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'api-demo',
+      target: { selector: '[data-tour-target="api-demo-title"]' },
+      placement: 'bottom',
+      advance: [
+        {
+          type: 'predicate',
+          pollMs: 200,
+          timeoutMs: 8000,
+          check: () =>
+            typeof document !== 'undefined'
+              ? document.querySelectorAll('[data-tour-target="api-name-item"]')
+                  .length > 0
+              : false,
+        },
+      ],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Data Arrived
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            We waited for the names API to resolve before advancing. Predicates
+            are great for async readiness checks.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'finish',
+      target: 'screen',
+      placement: 'bottom',
+      advance: [{ type: 'manual' }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+            That&apos;s the tour!
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            You just saw manual, event, delay, predicate, and route triggers in
+            action. Add or tweak rules per step to match your onboarding flow.
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+            Choose Finish to close or back up to revisit any step.
           </p>
         </div>
       ),

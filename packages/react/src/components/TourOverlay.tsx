@@ -44,23 +44,30 @@ export const TourOverlay = ({
   if (!host) return null
 
   const hasShownRef = useRef(false)
-
-  const isOpening = target.status === 'ready' && !hasShownRef.current
+  const lastReadyTargetRef = useRef<TourTargetInfo | null>(null)
 
   useEffect(() => {
     if (target.status === 'ready') {
       hasShownRef.current = true
+      lastReadyTargetRef.current = target
     }
     if (target.status === 'idle') {
       hasShownRef.current = false
     }
-  }, [target.status])
+  }, [target, target.status])
 
   const viewport = getViewportRect()
+
+  const highlightTarget =
+    target.status === 'ready' ? target : lastReadyTargetRef.current
+
+  const resolvedRect = highlightTarget?.rect ?? target.rect
+  const resolvedIsScreen = highlightTarget?.isScreen ?? target.isScreen
+
   const expandedRect =
-    target.isScreen || !target.rect
+    resolvedIsScreen || !resolvedRect
       ? viewport
-      : expandRect(target.rect, padding)
+      : expandRect(resolvedRect, padding)
   const safeBuffer = Math.max(0, edgeBuffer)
 
   const insetTop =
@@ -99,8 +106,8 @@ export const TourOverlay = ({
   const highlightCenterY = highlightTop + highlightHeight / 2
 
   const shouldMask =
-    target.status === 'ready' &&
-    !target.isScreen &&
+    !!highlightTarget &&
+    !resolvedIsScreen &&
     highlightWidth > 0 &&
     highlightHeight > 0
 
@@ -111,8 +118,10 @@ export const TourOverlay = ({
 
   const maskUrl = shouldMask ? `url(#${maskId})` : undefined
 
+  const isActive = target.status === 'ready'
+
   const overlayClassName = cn(
-    'pointer-events-none absolute origin-center duration-250 inset-0 transition-[mask-position,mask-size,background-color,backdrop-filter,opacity]',
+    'pointer-events-none absolute origin-center inset-0',
     '[mask-mode:luminance]',
     '[mask-repeat:no-repeat]',
     '[mask-size:100%_100%]',
@@ -164,18 +173,6 @@ export const TourOverlay = ({
         ry: 0,
       }
 
-  const highlightRectInitial =
-    isOpening && shouldMask
-      ? {
-          x: highlightCenterX,
-          y: highlightCenterY,
-          width: 0,
-          height: 0,
-          rx: 0,
-          ry: 0,
-        }
-      : false
-
   const highlightRingAnimation = shouldMask
     ? {
         top: highlightCenterY,
@@ -195,17 +192,6 @@ export const TourOverlay = ({
         opacity: 0,
         transform: 'translate(-50%, -50%)',
       }
-
-  const highlightRingInitial =
-    isOpening && shouldMask
-      ? {
-          width: 0,
-          height: 0,
-          borderRadius: 0,
-          opacity: 0,
-          transform: 'translate(-50%, -50%)',
-        }
-      : false
 
   const blurValue = blurAmount > 0 ? `${blurAmount}px` : '0px'
 
@@ -235,13 +221,18 @@ export const TourOverlay = ({
       aria-hidden={target.status !== 'ready'}
     >
       <AnimatePresence mode="popLayout">
-        {maskUrl ? (
+        {shouldMask ? (
           <motion.svg
+            key="tour-mask"
             width="0"
             height="0"
             aria-hidden
             focusable="false"
             className="absolute"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             <motion.defs>
               <motion.mask
@@ -262,14 +253,15 @@ export const TourOverlay = ({
                   }}
                   fill="white"
                   transition={highlightTransition}
+                  exit={{ opacity: 0 }}
                 />
                 <motion.rect
-                  initial={
-                    highlightRectInitial === false
-                      ? false
-                      : highlightRectInitial
-                  }
+                  initial={false}
                   animate={highlightRectAnimation}
+                  exit={{
+                    x: highlightCenterX,
+                    y: highlightCenterY,
+                  }}
                   transition={highlightTransition}
                   fill="black"
                 />
@@ -278,29 +270,49 @@ export const TourOverlay = ({
           </motion.svg>
         ) : null}
       </AnimatePresence>
-      <motion.div
-        className={overlayClassName || undefined}
-        style={overlayStyle}
-        initial={
-          isOpening ? { opacity: 0, '--tour-overlay-blur': '0px' } : false
-        }
-        animate={{
-          opacity: target.status === 'ready' ? opacity : 0,
-          '--tour-overlay-blur': blurValue,
-        }}
-        transition={overlayTransition}
-      />
-      <motion.div
-        className={ringClassName || undefined}
-        style={{
-          position: 'absolute',
-          zIndex: zIndex + 1,
-          ...highlightAppearance,
-        }}
-        initial={highlightRingInitial === false ? false : highlightRingInitial}
-        animate={highlightRingAnimation}
-        transition={highlightTransition}
-      />
+      <AnimatePresence mode="popLayout">
+        {isActive ? (
+          <motion.div
+            key="tour-overlay"
+            className={overlayClassName || undefined}
+            style={overlayStyle}
+            initial={{
+              opacity: 0,
+              '--tour-overlay-blur': '0px',
+              transition: { ease: 'easeOut', duration: 0.35 },
+            }}
+            animate={{
+              opacity,
+              '--tour-overlay-blur': blurValue,
+            }}
+            exit={{ opacity: 0, '--tour-overlay-blur': '0px' }}
+            transition={overlayTransition}
+          />
+        ) : null}
+      </AnimatePresence>
+      <AnimatePresence mode="popLayout">
+        {isActive && shouldMask ? (
+          <motion.div
+            key="tour-ring"
+            className={ringClassName || undefined}
+            style={{
+              position: 'absolute',
+              zIndex: zIndex + 1,
+              ...highlightAppearance,
+            }}
+            initial={false}
+            animate={highlightRingAnimation}
+            exit={{
+              opacity: 0,
+              transition: {
+                duration: 0.35,
+                ease: 'easeOut',
+              },
+            }}
+            transition={highlightTransition}
+          />
+        ) : null}
+      </AnimatePresence>
     </motion.div>,
     host,
   )

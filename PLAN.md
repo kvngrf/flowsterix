@@ -13,7 +13,7 @@
 - [x] Tooltip/popover supports arrow, title/body, primary/secondary actions
 - [x] Step system with ids, target, content, placement, mask options, advance rules
 - [x] Next/back/skip controls plus keyboard shortcuts (Enter/Space continue, Esc exit)
-- [ ] Advance triggers for manual, click, change, route change, custom predicate
+- [x] Advance triggers for manual, click, change, route change, custom predicate
 - [ ] Routing-aware steps that wait for route/element readiness and optional navigation
 - [x] Persistence via LocalStorage with namespaced key and schema version per flow
 - [x] Serializable flow state machine: idle → running → paused → completed/cancelled

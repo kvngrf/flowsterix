@@ -122,6 +122,7 @@ export default function Header() {
               className:
                 'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
             }}
+            data-tour-target="api-link"
           >
             <Network size={20} />
             <span className="font-medium">Start - API Request</span>
@@ -148,6 +149,7 @@ export default function Header() {
                   StartSSRDemo: !prev.StartSSRDemo,
                 }))
               }
+              data-tour-target="ssr-toggle"
             >
               {groupedExpanded.StartSSRDemo ? (
                 <ChevronDown size={20} />

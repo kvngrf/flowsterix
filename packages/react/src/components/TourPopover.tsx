@@ -37,7 +37,6 @@ export const TourPopover = ({
   if (!host) return null
 
   const hasPresentedRef = useRef(false)
-  const isOpening = target.status === 'ready' && !hasPresentedRef.current
 
   useEffect(() => {
     if (target.status === 'ready') {
@@ -134,38 +133,31 @@ export const TourPopover = ({
     <motion.div
       ref={floatingRef}
       transition={{
-        duration: 0.4,
-        ease: 'easeOut' as const,
-        type: 'spring' as const,
-        damping: 25,
-        stiffness: 300,
-        mass: 0.7,
+        duration: 0.25,
+        ease: 'easeOut',
       }}
       className={cn(baseClass, 'overflow-hidden')}
       style={{
         zIndex,
         maxWidth,
       }}
-      initial={
-        isOpening
-          ? {
-              opacity: 0,
-              top: centerInitialPosition.top,
-              left: centerInitialPosition.left,
-              transform: centerInitialPosition.transform,
-            }
-          : {
-              opacity: 0,
-              top: fallbackPosition.top,
-              left: fallbackPosition.left,
-              transform: fallbackPosition.transform,
-            }
-      }
+      initial={{
+        filter: 'blur(4px)',
+        opacity: 0,
+        top: centerInitialPosition.top,
+        left: centerInitialPosition.left,
+        transform: centerInitialPosition.transform,
+      }}
       animate={{
-        opacity: target.status === 'ready' ? 1 : 0,
+        filter: 'blur(0)',
+        opacity: 1,
         top: floatingPosition.top,
         left: floatingPosition.left,
         transform: floatingPosition.transform,
+      }}
+      exit={{
+        filter: 'blur(4px)',
+        opacity: 0,
       }}
       role="dialog"
       aria-live="polite"

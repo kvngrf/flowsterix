@@ -1,9 +1,11 @@
 import type { FlowState, Step } from '@tour/core'
 import type { ReactNode } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { AnimatePresence } from 'motion/react'
 import { useTour } from '../context'
+import { useAdvanceRules } from '../hooks/useAdvanceRules'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
 import { isBrowser, portalHost } from '../utils/dom'
@@ -34,10 +36,39 @@ export const TourHUD = ({
 }: TourHUDProps) => {
   const { state, activeStep } = useTour()
   const target = useTourTarget()
+  useAdvanceRules(target)
 
-  if (!state || state.status !== 'running' || !activeStep) {
+  const isRunning = state?.status === 'running'
+  const runningState = isRunning ? state : null
+  const runningStep = runningState && activeStep ? activeStep : null
+  const [shouldRender, setShouldRender] = useState(Boolean(runningStep))
+
+  useEffect(() => {
+    if (isRunning) {
+      setShouldRender(true)
+    }
+  }, [isRunning])
+
+  useEffect(() => {
+    if (!shouldRender) return
+    if (isRunning) return
+    if (target.status !== 'idle') return
+
+    const EXIT_BUFFER_MS = 450
+    const timeoutId = window.setTimeout(() => {
+      setShouldRender(false)
+    }, EXIT_BUFFER_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [isRunning, shouldRender, target.status])
+
+  if (!shouldRender) {
     return null
   }
+
+  const canRenderStep = Boolean(runningStep && runningState)
 
   return (
     <>
@@ -48,14 +79,18 @@ export const TourHUD = ({
         radius={overlayRadius}
         zIndex={zIndex}
       />
-      {renderStep ? (
-        renderStep({ step: activeStep, state, target })
-      ) : (
-        <TourPopover target={target} zIndex={zIndex + 1}>
-          {activeStep.content}
-          {showControls ? <TourControls /> : null}
-        </TourPopover>
-      )}
+      <AnimatePresence>
+        {canRenderStep && runningStep && runningState ? (
+          renderStep ? (
+            renderStep({ step: runningStep, state: runningState, target })
+          ) : (
+            <TourPopover target={target} zIndex={zIndex + 1}>
+              {runningStep.content}
+              {showControls ? <TourControls /> : null}
+            </TourPopover>
+          )
+        ) : null}
+      </AnimatePresence>
       <TourDebugPanel target={target} zIndex={zIndex + 2} />
     </>
   )
