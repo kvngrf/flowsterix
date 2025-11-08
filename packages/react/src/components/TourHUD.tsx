@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence } from 'motion/react'
 import { useTour } from '../context'
 import { useAdvanceRules } from '../hooks/useAdvanceRules'
+import { useTourControls } from '../hooks/useTourControls'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
 import { isBrowser, portalHost } from '../utils/dom'
@@ -101,15 +102,14 @@ interface TourKeyboardShortcutsProps {
 }
 
 const TourKeyboardShortcuts = ({ target }: TourKeyboardShortcutsProps) => {
-  const { state, next, back, cancel, complete, activeFlowId, flows } = useTour()
-  const definition = activeFlowId ? flows.get(activeFlowId) : null
-  const totalSteps = definition?.steps.length ?? 0
-  const isLast =
-    state && totalSteps > 0 ? state.stepIndex >= totalSteps - 1 : false
+  const { state } = useTour()
+  const { cancel, canGoBack, goBack, canGoNext, goNext, isActive } =
+    useTourControls()
 
   useEffect(() => {
     if (!isBrowser) return
     if (!state || state.status !== 'running') return
+    if (!isActive) return
 
     const handler = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return
@@ -121,29 +121,27 @@ const TourKeyboardShortcuts = ({ target }: TourKeyboardShortcutsProps) => {
       }
 
       if (event.key === 'ArrowLeft') {
-        back()
-        event.preventDefault()
+        if (canGoBack) {
+          goBack()
+          event.preventDefault()
+        }
         return
       }
 
       if (event.key === 'ArrowRight') {
-        if (isLast) {
-          complete()
-        } else {
-          next()
+        if (canGoNext) {
+          goNext()
+          event.preventDefault()
         }
-        event.preventDefault()
         return
       }
 
       if (event.key === 'Enter' || event.key === ' ') {
         if (target.status !== 'ready') return
-        if (isLast) {
-          complete()
-        } else {
-          next()
+        if (canGoNext) {
+          goNext()
+          event.preventDefault()
         }
-        event.preventDefault()
       }
     }
 
@@ -151,7 +149,16 @@ const TourKeyboardShortcuts = ({ target }: TourKeyboardShortcutsProps) => {
     return () => {
       window.removeEventListener('keydown', handler)
     }
-  }, [back, cancel, complete, isLast, next, state, target.status])
+  }, [
+    cancel,
+    canGoBack,
+    canGoNext,
+    goBack,
+    goNext,
+    isActive,
+    state,
+    target.status,
+  ])
 
   return null
 }
