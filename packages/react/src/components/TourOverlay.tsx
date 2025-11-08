@@ -49,17 +49,21 @@ export const TourOverlay = ({
   useEffect(() => {
     if (target.status === 'ready') {
       hasShownRef.current = true
-      lastReadyTargetRef.current = target
+      lastReadyTargetRef.current = {
+        ...target,
+        rect: target.rect ? { ...target.rect } : null,
+      }
     }
     if (target.status === 'idle') {
       hasShownRef.current = false
+      lastReadyTargetRef.current = null
     }
-  }, [target, target.status])
+  }, [target])
 
   const viewport = getViewportRect()
 
-  const highlightTarget =
-    target.status === 'ready' ? target : lastReadyTargetRef.current
+  const cachedTarget = lastReadyTargetRef.current
+  const highlightTarget = target.status === 'ready' ? target : cachedTarget
 
   const resolvedRect = highlightTarget?.rect ?? target.rect
   const resolvedIsScreen = highlightTarget?.isScreen ?? target.isScreen
@@ -118,7 +122,9 @@ export const TourOverlay = ({
 
   const maskUrl = shouldMask ? `url(#${maskId})` : undefined
 
-  const isActive = target.status === 'ready'
+  const isActive =
+    target.status === 'ready' ||
+    (target.status === 'resolving' && cachedTarget !== null)
 
   const overlayClassName = cn(
     'pointer-events-none absolute origin-center inset-0',
