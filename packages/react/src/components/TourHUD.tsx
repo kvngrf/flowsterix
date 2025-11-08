@@ -85,7 +85,7 @@ export const TourHUD = ({
           renderStep ? (
             renderStep({ step: runningStep, state: runningState, target })
           ) : (
-            <TourPopover target={target} zIndex={zIndex + 1}>
+            <TourPopover target={target} zIndex={zIndex + 1} offset={20}>
               {runningStep.content}
               {showControls ? <TourControls /> : null}
             </TourPopover>
