@@ -159,7 +159,7 @@ export default function Header() {
             </button>
           </div>
           {groupedExpanded.StartSSRDemo && (
-            <div className="flex flex-col ml-4">
+            <div data-tour-target="ssr-submenu" className="flex flex-col ml-4">
               <Link
                 to="/demo/start/ssr/spa-mode"
                 onClick={() => setIsOpen(false)}

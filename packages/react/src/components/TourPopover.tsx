@@ -12,6 +12,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { cn } from '../utils/cn'
+import type { ClientRectLike } from '../utils/dom'
 import { getViewportRect, isBrowser, portalHost } from '../utils/dom'
 
 const FLOATING_OFFSET = 8
@@ -37,24 +38,47 @@ export const TourPopover = ({
   if (!host) return null
 
   const hasPresentedRef = useRef(false)
+  const lastReadyTargetRef = useRef<{
+    rect: ClientRectLike
+    isScreen: boolean
+  } | null>(null)
 
   useEffect(() => {
     if (target.status === 'ready') {
       hasPresentedRef.current = true
+      if (target.rect) {
+        lastReadyTargetRef.current = {
+          rect: { ...target.rect },
+          isScreen: target.isScreen,
+        }
+      }
     } else if (target.status === 'idle') {
       hasPresentedRef.current = false
+      lastReadyTargetRef.current = null
     }
-  }, [target.status])
+  }, [target.rect, target.isScreen, target.status])
 
   const viewport = getViewportRect()
-  const rect = target.rect ?? viewport
-  const baseTop = target.isScreen
+  const resolvedInfo =
+    target.status === 'ready' && target.rect
+      ? { rect: target.rect, isScreen: target.isScreen }
+      : lastReadyTargetRef.current
+
+  const fallbackRect = resolvedInfo?.rect ?? target.rect ?? viewport
+  const fallbackIsScreen = resolvedInfo?.isScreen ?? target.isScreen
+
+  const baseTop = fallbackIsScreen
     ? viewport.height / 2
-    : rect.top + rect.height + offset
-  const top = target.isScreen
+    : fallbackRect.top + fallbackRect.height + offset
+  const top = fallbackIsScreen
     ? viewport.height / 2
     : Math.min(viewport.height - 24, Math.max(24, baseTop))
-  const left = target.isScreen ? viewport.width / 2 : rect.left + rect.width / 2
+  const left = fallbackIsScreen
+    ? viewport.width / 2
+    : fallbackRect.left + fallbackRect.width / 2
+  const fallbackTransform = fallbackIsScreen
+    ? 'translate(-50%, -50%)'
+    : 'translate(-50%, 0)'
   const baseClass = cn(
     'fixed w-max pointer-events-auto rounded-xl bg-white px-6 py-5 text-slate-900 shadow-[0_20px_45px_-20px_rgba(15,23,42,0.35)]',
     className,
@@ -64,11 +88,9 @@ export const TourPopover = ({
     () => ({
       top,
       left,
-      transform: target.isScreen
-        ? 'translate(-50%, -50%)'
-        : 'translate(-50%, 0)',
+      transform: fallbackTransform,
     }),
-    [left, target.isScreen, top],
+    [fallbackTransform, left, top],
   )
 
   const centerInitialPosition = useMemo(
@@ -84,14 +106,18 @@ export const TourPopover = ({
   const [floatingPosition, setFloatingPosition] = useState(fallbackPosition)
 
   useLayoutEffect(() => {
+    if (target.status !== 'ready' && lastReadyTargetRef.current) {
+      return
+    }
     setFloatingPosition(fallbackPosition)
-  }, [fallbackPosition])
+  }, [fallbackPosition, target.status])
 
   useLayoutEffect(() => {
     if (!isBrowser) return
     const floatingEl = floatingRef.current
     const rectInfo = target.rect
     if (!floatingEl) return
+    if (target.status !== 'ready') return
     if (!rectInfo || target.isScreen) return
 
     let cancelled = false
@@ -127,7 +153,7 @@ export const TourPopover = ({
     return () => {
       cancelled = true
     }
-  }, [offset, target.isScreen, target.lastUpdated])
+  }, [offset, target.isScreen, target.lastUpdated, target.status])
 
   return createPortal(
     <motion.div

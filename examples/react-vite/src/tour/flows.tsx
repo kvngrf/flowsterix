@@ -65,17 +65,17 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'cta',
-      target: { selector: '[data-tour-target="cta-button"]' },
-      placement: 'bottom',
-      advance: [{ type: 'delay', ms: 2400 }],
+      target: { selector: '[data-tour-target="ssr-submenu"]' },
+      placement: 'right',
+      advance: [{ type: 'manual' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Call to Action
+            Nice Work!
           </h2>
           <p style={{ margin: 0, lineHeight: 1.5 }}>
-            Highlight primary CTAs to orient new users. We&apos;ll linger here
-            for a moment, then keep moving.
+            Subentries are great for organizing related routes. Let&apos;s move
+            on to the feature grid.
           </p>
         </div>
       ),
@@ -91,7 +91,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
           timeoutMs: 15000,
           check: () =>
             typeof window !== 'undefined' && typeof window.scrollY === 'number'
-              ? window.scrollY > 120
+              ? window.scrollY > 20
               : false,
         },
       ],
@@ -162,6 +162,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     {
       id: 'finish',
       target: 'screen',
+      controls: { back: 'hidden' },
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (

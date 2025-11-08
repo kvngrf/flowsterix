@@ -61,6 +61,7 @@ export const useTourTarget = (): TourTargetInfo => {
   const [targetInfo, setTargetInfo] =
     useState<TourTargetInfo>(INITIAL_TARGET_INFO)
   const lastAutoScrollIdRef = useRef<string | null>(null)
+  const lastRectRef = useRef<ClientRectLike | null>(null)
 
   useEffect(() => {
     if (!activeStep || !state || state.status !== 'running') {
@@ -87,22 +88,106 @@ export const useTourTarget = (): TourTargetInfo => {
     let resizeObserver: ResizeObserver | null = null
     const cleanupFns: Array<() => void> = []
     let element: Element | null = null
+    let rafId: number | null = null
+    let lastStatus: TourTargetInfo['status'] = 'idle'
+    let lastElement: Element | null = null
+    let hasEmitted = false
 
-    const commitInfo = (status: 'resolving' | 'ready') => {
+    lastRectRef.current = null
+
+    const rectHasMeaningfulSize = (rect: ClientRectLike | null) =>
+      !!rect &&
+      rect.width > 0 &&
+      rect.height > 0 &&
+      Number.isFinite(rect.top) &&
+      Number.isFinite(rect.left)
+
+    const rectChanged = (nextRect: ClientRectLike | null) => {
+      const previous = lastRectRef.current
+      if (!previous || !nextRect) {
+        return previous !== nextRect
+      }
+      const threshold = 0.25
+      return (
+        Math.abs(previous.top - nextRect.top) > threshold ||
+        Math.abs(previous.left - nextRect.left) > threshold ||
+        Math.abs(previous.width - nextRect.width) > threshold ||
+        Math.abs(previous.height - nextRect.height) > threshold
+      )
+    }
+
+    const updateTargetState = (
+      status: 'resolving' | 'ready',
+      rectOverride?: ClientRectLike | null,
+    ) => {
       if (cancelled) return
-      const rect = isScreen
-        ? getViewportRect()
-        : element
-          ? getClientRect(element)
-          : null
+      const rect =
+        typeof rectOverride !== 'undefined'
+          ? rectOverride
+          : isScreen
+            ? getViewportRect()
+            : element
+              ? getClientRect(element)
+              : null
+
+      const hasRect = rectHasMeaningfulSize(rect)
+      const nextStatus: TourTargetInfo['status'] =
+        status === 'ready' && (isScreen || hasRect) ? 'ready' : 'resolving'
+
+      const shouldUpdate =
+        !hasEmitted ||
+        rectChanged(rect) ||
+        lastStatus !== nextStatus ||
+        element !== lastElement
+
+      if (!shouldUpdate) {
+        return
+      }
+
+      lastRectRef.current = rect ? { ...rect } : null
+      lastStatus = nextStatus
+      hasEmitted = true
+      lastElement = element ?? null
+
       setTargetInfo({
         element: element ?? null,
         rect,
         isScreen,
-        status: rect && status === 'ready' ? 'ready' : 'resolving',
+        status: nextStatus,
         stepId: activeStep.id,
         lastUpdated: Date.now(),
       })
+    }
+
+    const commitInfo = (status: 'resolving' | 'ready') => {
+      updateTargetState(status)
+    }
+
+    const stopRaf = () => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId)
+        rafId = null
+      }
+    }
+
+    const startRafMonitor = () => {
+      if (isScreen || !isBrowser) return
+      stopRaf()
+      const tick = () => {
+        if (cancelled) return
+        if (!element) {
+          updateTargetState('resolving', null)
+          rafId = window.requestAnimationFrame(tick)
+          return
+        }
+        const rect = getClientRect(element)
+        if (rectChanged(rect)) {
+          updateTargetState('ready', rect)
+        }
+        rafId = window.requestAnimationFrame(tick)
+      }
+      rafId = window.requestAnimationFrame(tick)
+      cleanupFns.push(stopRaf)
     }
 
     const startObservers = () => {
@@ -118,7 +203,7 @@ export const useTourTarget = (): TourTargetInfo => {
         })
       } else if (element) {
         if (typeof ResizeObserver === 'function') {
-          resizeObserver = new ResizeObserver(() => commitInfo('ready'))
+          resizeObserver = new ResizeObserver(() => updateTargetState('ready'))
           resizeObserver.observe(element)
         }
         const onReposition = () => commitInfo('ready')
@@ -128,6 +213,7 @@ export const useTourTarget = (): TourTargetInfo => {
           window.removeEventListener('resize', onReposition)
           window.removeEventListener('scroll', onReposition, true)
         })
+        startRafMonitor()
       }
 
       commitInfo('ready')
@@ -169,6 +255,7 @@ export const useTourTarget = (): TourTargetInfo => {
       cancelled = true
       if (pollId) window.clearInterval(pollId)
       resizeObserver?.disconnect()
+      stopRaf()
       cleanupFns.forEach((dispose) => dispose())
     }
   }, [activeStep, state])

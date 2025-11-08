@@ -84,7 +84,6 @@ function App() {
               href="https://tanstack.com/start"
               target="_blank"
               rel="noopener noreferrer"
-              data-tour-target="cta-button"
               className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
             >
               Documentation

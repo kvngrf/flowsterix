@@ -32,6 +32,12 @@ const maskSchema = z.union([
   }),
 ])
 
+const controlStateSchema = z.union([
+  z.literal('auto'),
+  z.literal('hidden'),
+  z.literal('disabled'),
+])
+
 const advanceRuleSchema = z.union([
   z.object({ type: z.literal('manual') }),
   z.object({
@@ -100,6 +106,12 @@ const stepSchema = z.object({
     .custom<
       (...args: Array<unknown>) => unknown
     >((value) => typeof value === 'function')
+    .optional(),
+  controls: z
+    .object({
+      back: controlStateSchema.optional(),
+      next: controlStateSchema.optional(),
+    })
     .optional(),
 })
 

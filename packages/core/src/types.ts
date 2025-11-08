@@ -41,6 +41,13 @@ export type StepTarget =
       description?: string
     }
 
+export type StepControlState = 'auto' | 'hidden' | 'disabled'
+
+export interface StepControls {
+  back?: StepControlState
+  next?: StepControlState
+}
+
 export interface StepWaitFor {
   selector?: string
   timeout?: number
@@ -52,17 +59,21 @@ export interface AdvancePredicateContext<TContent = unknown> {
   step: Step<TContent>
 }
 
+interface AdvanceRuleBase {
+  lockBack?: boolean
+}
+
 export type AdvanceRule<TContent = unknown> =
-  | { type: 'manual' }
-  | { type: 'event'; event: string; on?: 'target' | string }
-  | {
+  | ({ type: 'manual' } & AdvanceRuleBase)
+  | ({ type: 'event'; event: string; on?: 'target' | string } & AdvanceRuleBase)
+  | ({
       type: 'predicate'
       check: (ctx: AdvancePredicateContext<TContent>) => boolean
       pollMs?: number
       timeoutMs?: number
-    }
-  | { type: 'delay'; ms: number }
-  | { type: 'route'; to?: string | RegExp }
+    } & AdvanceRuleBase)
+  | ({ type: 'delay'; ms: number } & AdvanceRuleBase)
+  | ({ type: 'route'; to?: string | RegExp } & AdvanceRuleBase)
 
 export interface StepHookContext<TContent = unknown> {
   flow: FlowDefinition<TContent>
@@ -85,6 +96,7 @@ export interface Step<TContent = unknown> {
   waitFor?: StepWaitFor
   onEnter?: StepHook<TContent>
   onExit?: StepHook<TContent>
+  controls?: StepControls
 }
 
 export interface FlowDefinition<TContent = unknown> {
