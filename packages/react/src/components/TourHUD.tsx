@@ -35,7 +35,7 @@ export const TourHUD = ({
   renderStep,
   zIndex = 1000,
 }: TourHUDProps) => {
-  const { state, activeStep } = useTour()
+  const { state, activeStep, activeFlowId, flows } = useTour()
   const target = useTourTarget()
   useAdvanceRules(target)
 
@@ -43,6 +43,22 @@ export const TourHUD = ({
   const runningState = isRunning ? state : null
   const runningStep = runningState && activeStep ? activeStep : null
   const [shouldRender, setShouldRender] = useState(Boolean(runningStep))
+
+  const flowHudOptions = activeFlowId ? flows.get(activeFlowId)?.hud : null
+  const overlayOptions = flowHudOptions?.overlay
+  const popoverOptions = flowHudOptions?.popover
+
+  const resolvedOverlayPadding =
+    overlayPadding ?? overlayOptions?.padding ?? undefined
+  const resolvedOverlayRadius =
+    overlayRadius ?? overlayOptions?.radius ?? undefined
+  const resolvedOverlayBlur = overlayOptions?.blur
+  const resolvedOverlayShadow = overlayOptions?.shadow
+  const resolvedOverlayShadowClass = overlayOptions?.shadowClassName
+  const resolvedOverlayColor = overlayOptions?.color
+  const resolvedOverlayColorClass = overlayOptions?.colorClassName
+
+  const resolvedPopoverOffset = popoverOptions?.offset ?? 20
 
   useEffect(() => {
     if (isRunning) {
@@ -76,8 +92,13 @@ export const TourHUD = ({
       <TourKeyboardShortcuts target={target} />
       <TourOverlay
         target={target}
-        padding={overlayPadding}
-        radius={overlayRadius}
+        padding={resolvedOverlayPadding}
+        radius={resolvedOverlayRadius}
+        blurAmount={resolvedOverlayBlur}
+        shadow={resolvedOverlayShadow}
+        shadowClassName={resolvedOverlayShadowClass ?? undefined}
+        color={resolvedOverlayColor}
+        colorClassName={resolvedOverlayColorClass}
         zIndex={zIndex}
       />
       <AnimatePresence>
@@ -85,7 +106,11 @@ export const TourHUD = ({
           renderStep ? (
             renderStep({ step: runningStep, state: runningState, target })
           ) : (
-            <TourPopover target={target} zIndex={zIndex + 1} offset={20}>
+            <TourPopover
+              target={target}
+              zIndex={zIndex + 1}
+              offset={resolvedPopoverOffset}
+            >
               {runningStep.content}
               {showControls ? <TourControls /> : null}
             </TourPopover>

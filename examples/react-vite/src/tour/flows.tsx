@@ -50,6 +50,16 @@ const DelayDemoContent = () => (
 export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   id: 'demo-onboarding',
   version: 1,
+  hud: {
+    popover: {
+      offset: 28,
+    },
+    overlay: {
+      blur: 6,
+      shadow:
+        'inset 0 0 0 2px rgba(56,189,248,0.45), inset 0 0 0 12px rgba(15,23,42,0.28)',
+    },
+  },
   steps: [
     {
       id: 'welcome',

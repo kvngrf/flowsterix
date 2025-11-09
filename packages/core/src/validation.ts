@@ -70,6 +70,25 @@ const waitForSchema = z
   })
   .partial()
 
+const hudOverlaySchema = z.object({
+  padding: z.number().nonnegative().optional(),
+  radius: z.number().nonnegative().optional(),
+  blur: z.number().nonnegative().optional(),
+  color: z.string().optional(),
+  colorClassName: z.string().optional(),
+  shadow: z.string().optional(),
+  shadowClassName: z.string().optional(),
+})
+
+const hudPopoverSchema = z.object({
+  offset: z.number().optional(),
+})
+
+const hudSchema = z.object({
+  overlay: hudOverlaySchema.optional(),
+  popover: hudPopoverSchema.optional(),
+})
+
 const placementSchema = z.union([
   z.literal('auto'),
   z.literal('top'),
@@ -119,6 +138,7 @@ export const flowDefinitionSchema = z.object({
   id: z.string().min(1),
   version: z.number().nonnegative().int(),
   steps: z.array(stepSchema).min(1),
+  hud: hudSchema.optional(),
   metadata: z.record(z.string(), z.any()).optional(),
 })
 

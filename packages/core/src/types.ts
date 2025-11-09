@@ -99,10 +99,30 @@ export interface Step<TContent = unknown> {
   controls?: StepControls
 }
 
+export interface FlowHudOverlayOptions {
+  padding?: number
+  radius?: number
+  blur?: number
+  color?: string
+  colorClassName?: string
+  shadow?: string
+  shadowClassName?: string
+}
+
+export interface FlowHudPopoverOptions {
+  offset?: number
+}
+
+export interface FlowHudOptions {
+  overlay?: FlowHudOverlayOptions
+  popover?: FlowHudPopoverOptions
+}
+
 export interface FlowDefinition<TContent = unknown> {
   id: string
   version: number
   steps: Array<Step<TContent>>
+  hud?: FlowHudOptions
   metadata?: Record<string, unknown>
 }
 
