@@ -1,14 +1,24 @@
 export { TourProvider, useTour, useTourEvents } from './context'
-export type { TourContextValue, TourProviderProps } from './context'
+export type {
+  DelayAdvanceInfo,
+  TourContextValue,
+  TourProviderProps,
+} from './context'
 
 export { useTourTarget } from './hooks/useTourTarget'
 export type { TourTargetInfo } from './hooks/useTourTarget'
+
+export { useDelayAdvance } from './hooks/useDelayAdvance'
+export type { DelayAdvanceProgress } from './hooks/useDelayAdvance'
 
 export { TourOverlay } from './components/TourOverlay'
 export type { TourOverlayProps } from './components/TourOverlay'
 
 export { TourPopover } from './components/TourPopover'
 export type { TourPopoverProps } from './components/TourPopover'
+
+export { DelayProgressBar } from './components/DelayProgressBar'
+export type { DelayProgressBarProps } from './components/DelayProgressBar'
 
 export { TourControls } from './components/TourControls'
 export type { TourControlsProps } from './components/TourControls'

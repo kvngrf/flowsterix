@@ -1,6 +1,51 @@
 import type { FlowDefinition } from '@tour/core'
 import { createFlow } from '@tour/core'
+import { DelayProgressBar, useDelayAdvance } from '@tour/react'
 import type { ReactNode } from 'react'
+
+const DelayCountdownLabel = () => {
+  const { remainingMs, totalMs, flowId } = useDelayAdvance()
+
+  if (!flowId || totalMs <= 0) {
+    return null
+  }
+
+  const seconds = Math.max(0, Math.ceil(remainingMs / 1000))
+
+  return (
+    <p
+      style={{
+        margin: 0,
+        lineHeight: 1.5,
+        fontVariantNumeric: 'tabular-nums',
+      }}
+    >
+      Advancing automatically in <strong>{seconds}s</strong>
+    </p>
+  )
+}
+
+const DelayDemoContent = () => (
+  <div style={{ display: 'grid', gap: 12 }}>
+    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+      Automatic Advance
+    </h2>
+    <p style={{ margin: 0, lineHeight: 1.5 }}>
+      Delay rules move to the next step after a timer expires. Use the{' '}
+      <code style={{ paddingLeft: 4, paddingRight: 4 }}>useDelayAdvance</code>{' '}
+      hook to present your own countdown, or drop in the default progress bar
+      below.
+    </p>
+    <DelayProgressBar />
+    <DelayCountdownLabel />
+    <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+      You can also use{' '}
+      <code style={{ paddingLeft: 4, paddingRight: 4 }}>useDelayAdvance</code>{' '}
+      inside custom UI to pause, react to, or format the remaining time however
+      fits your product.
+    </p>
+  </div>
+)
 
 export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   id: 'demo-onboarding',
@@ -79,6 +124,14 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
           </p>
         </div>
       ),
+    },
+    {
+      id: 'auto-advance-demo',
+      target: { selector: '[data-tour-target="ssr-submenu"]' },
+      placement: 'right',
+      advance: [{ type: 'delay', ms: 5000 }],
+      controls: { next: 'hidden' },
+      content: <DelayDemoContent />,
     },
     {
       id: 'feature-grid',

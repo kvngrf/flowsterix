@@ -71,7 +71,15 @@ const matchesRouteRule = (
 }
 
 export const useAdvanceRules = (target: TourTargetInfo) => {
-  const { activeFlowId, flows, activeStep, state, next, complete } = useTour()
+  const {
+    activeFlowId,
+    flows,
+    activeStep,
+    state,
+    next,
+    complete,
+    setDelayInfo,
+  } = useTour()
 
   useEffect(() => {
     if (!isBrowser) return
@@ -107,10 +115,20 @@ export const useAdvanceRules = (target: TourTargetInfo) => {
       }
     }
 
+    const clearDelayInfo = () => {
+      setDelayInfo((info) => {
+        if (!info) return null
+        if (info.flowId !== definition.id) return info
+        if (info.stepId !== activeStep.id) return info
+        return null
+      })
+    }
+
     const finish = () => {
       if (resolved) return
       resolved = true
       runCleanup()
+      clearDelayInfo()
 
       const totalSteps = definition.steps.length
       if (totalSteps > 0 && state.stepIndex >= totalSteps - 1) {
@@ -134,7 +152,22 @@ export const useAdvanceRules = (target: TourTargetInfo) => {
           break
         }
         case 'delay': {
-          const timer = window.setTimeout(finish, Math.max(0, rule.ms))
+          const totalMs = Math.max(0, rule.ms)
+          const startedAt =
+            typeof performance !== 'undefined' ? performance.now() : Date.now()
+          const endsAt = startedAt + totalMs
+
+          setDelayInfo({
+            flowId: definition.id,
+            stepId: activeStep.id,
+            totalMs,
+            startedAt,
+            endsAt,
+          })
+
+          const timer = window.setTimeout(() => {
+            finish()
+          }, totalMs)
           addCleanup(() => window.clearTimeout(timer))
           break
         }
@@ -231,6 +264,7 @@ export const useAdvanceRules = (target: TourTargetInfo) => {
     return () => {
       resolved = true
       runCleanup()
+      clearDelayInfo()
     }
   }, [
     activeFlowId,
@@ -240,6 +274,7 @@ export const useAdvanceRules = (target: TourTargetInfo) => {
     next,
     state,
     target.element,
+    setDelayInfo,
     target.lastUpdated,
     target.status,
   ])

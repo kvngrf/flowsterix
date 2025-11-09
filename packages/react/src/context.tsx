@@ -9,7 +9,12 @@ import type {
   StorageAdapter,
 } from '@tour/core'
 import { createFlowStore } from '@tour/core'
-import type { PropsWithChildren, ReactNode } from 'react'
+import type {
+  Dispatch,
+  PropsWithChildren,
+  ReactNode,
+  SetStateAction,
+} from 'react'
 import {
   createContext,
   useCallback,
@@ -19,6 +24,14 @@ import {
   useRef,
   useState,
 } from 'react'
+
+export interface DelayAdvanceInfo {
+  flowId: string
+  stepId: string
+  totalMs: number
+  startedAt: number
+  endsAt: number
+}
 
 export interface TourProviderProps {
   flows: Array<FlowDefinition<ReactNode>>
@@ -46,6 +59,9 @@ export interface TourContextValue {
   debugEnabled: boolean
   setDebugEnabled: (value: boolean) => void
   toggleDebug: () => void
+  delayInfo: DelayAdvanceInfo | null
+  /** @internal */
+  setDelayInfo: Dispatch<SetStateAction<DelayAdvanceInfo | null>>
 }
 
 const TourContext = createContext<TourContextValue | undefined>(undefined)
@@ -78,12 +94,14 @@ export const TourProvider = ({
     null,
   )
   const [debugEnabled, setDebugEnabled] = useState(defaultDebug)
+  const [delayInfo, setDelayInfo] = useState<DelayAdvanceInfo | null>(null)
 
   const teardownStore = useCallback(() => {
     unsubscribeRef.current?.()
     unsubscribeRef.current = null
     storeRef.current?.destroy()
     storeRef.current = null
+    setDelayInfo(null)
   }, [])
 
   useEffect(() => {
@@ -200,6 +218,8 @@ export const TourProvider = ({
       debugEnabled,
       setDebugEnabled,
       toggleDebug,
+      delayInfo,
+      setDelayInfo,
     }),
     [
       activeFlowId,
@@ -214,6 +234,8 @@ export const TourProvider = ({
       next,
       pause,
       resume,
+      delayInfo,
+      setDelayInfo,
       setDebugEnabled,
       startFlow,
       state,
