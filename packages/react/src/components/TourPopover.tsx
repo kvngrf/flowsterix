@@ -37,35 +37,34 @@ export const TourPopover = ({
   const host = portalHost()
   if (!host) return null
 
-  const hasPresentedRef = useRef(false)
+  const viewport = getViewportRect()
   const lastReadyTargetRef = useRef<{
     rect: ClientRectLike
     isScreen: boolean
   } | null>(null)
 
   useEffect(() => {
-    if (target.status === 'ready') {
-      hasPresentedRef.current = true
-      if (target.rect) {
-        lastReadyTargetRef.current = {
-          rect: { ...target.rect },
-          isScreen: target.isScreen,
-        }
+    if (target.status === 'ready' && target.rect) {
+      lastReadyTargetRef.current = {
+        rect: { ...target.rect },
+        isScreen: target.isScreen,
       }
     } else if (target.status === 'idle') {
-      hasPresentedRef.current = false
       lastReadyTargetRef.current = null
     }
-  }, [target.rect, target.isScreen, target.status])
+  }, [target.isScreen, target.rect, target.status])
 
-  const viewport = getViewportRect()
-  const resolvedInfo =
-    target.status === 'ready' && target.rect
-      ? { rect: target.rect, isScreen: target.isScreen }
-      : lastReadyTargetRef.current
+  const cachedTarget = lastReadyTargetRef.current
 
-  const fallbackRect = resolvedInfo?.rect ?? target.rect ?? viewport
-  const fallbackIsScreen = resolvedInfo?.isScreen ?? target.isScreen
+  const resolvedRect =
+    target.rect ?? target.lastResolvedRect ?? cachedTarget?.rect ?? null
+  const resolvedIsScreen =
+    target.status === 'ready'
+      ? target.isScreen
+      : (cachedTarget?.isScreen ?? target.isScreen)
+
+  const fallbackRect = resolvedRect ?? viewport
+  const fallbackIsScreen = resolvedIsScreen
 
   const baseTop = fallbackIsScreen
     ? viewport.height / 2
@@ -106,11 +105,8 @@ export const TourPopover = ({
   const [floatingPosition, setFloatingPosition] = useState(fallbackPosition)
 
   useLayoutEffect(() => {
-    if (target.status !== 'ready' && lastReadyTargetRef.current) {
-      return
-    }
     setFloatingPosition(fallbackPosition)
-  }, [fallbackPosition, target.status])
+  }, [fallbackPosition])
 
   useLayoutEffect(() => {
     if (!isBrowser) return
@@ -153,7 +149,16 @@ export const TourPopover = ({
     return () => {
       cancelled = true
     }
-  }, [offset, target.isScreen, target.lastUpdated, target.status])
+  }, [
+    offset,
+    target.element,
+    target.isScreen,
+    target.lastUpdated,
+    target.status,
+  ])
+
+  const shouldUseFallbackInitial =
+    Boolean(target.lastResolvedRect) || Boolean(cachedTarget)
 
   return createPortal(
     <motion.div
@@ -170,9 +175,15 @@ export const TourPopover = ({
       initial={{
         filter: 'blur(4px)',
         opacity: 0,
-        top: centerInitialPosition.top,
-        left: centerInitialPosition.left,
-        transform: centerInitialPosition.transform,
+        top: shouldUseFallbackInitial
+          ? fallbackPosition.top
+          : centerInitialPosition.top,
+        left: shouldUseFallbackInitial
+          ? fallbackPosition.left
+          : centerInitialPosition.left,
+        transform: shouldUseFallbackInitial
+          ? fallbackPosition.transform
+          : centerInitialPosition.transform,
       }}
       animate={{
         filter: 'blur(0)',

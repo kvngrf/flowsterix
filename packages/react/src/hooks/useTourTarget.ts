@@ -14,6 +14,7 @@ import {
 export interface TourTargetInfo {
   element: Element | null
   rect: ClientRectLike | null
+  lastResolvedRect: ClientRectLike | null
   isScreen: boolean
   status: 'idle' | 'resolving' | 'ready'
   stepId: string | null
@@ -23,11 +24,14 @@ export interface TourTargetInfo {
 const INITIAL_TARGET_INFO: TourTargetInfo = {
   element: null,
   rect: null,
+  lastResolvedRect: null,
   isScreen: false,
   status: 'idle',
   stepId: null,
   lastUpdated: 0,
 }
+
+const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 
 const resolveStepTarget = (
   target: Step<ReactNode>['target'],
@@ -71,9 +75,11 @@ export const useTourTarget = (): TourTargetInfo => {
     }
 
     if (!isBrowser) {
+      const storedRect = lastResolvedRectByStep.get(activeStep.id) ?? null
       setTargetInfo({
         element: null,
         rect: null,
+        lastResolvedRect: storedRect ? { ...storedRect } : null,
         isScreen: activeStep.target === 'screen',
         status: 'resolving',
         stepId: activeStep.id,
@@ -134,6 +140,8 @@ export const useTourTarget = (): TourTargetInfo => {
       const nextStatus: TourTargetInfo['status'] =
         status === 'ready' && (isScreen || hasRect) ? 'ready' : 'resolving'
 
+      const storedRect = lastResolvedRectByStep.get(activeStep.id) ?? null
+
       const shouldUpdate =
         !hasEmitted ||
         rectChanged(rect) ||
@@ -149,9 +157,23 @@ export const useTourTarget = (): TourTargetInfo => {
       hasEmitted = true
       lastElement = element ?? null
 
+      const shouldPersistRect =
+        nextStatus === 'ready' && !isScreen && rectHasMeaningfulSize(rect)
+      if (shouldPersistRect && rect) {
+        lastResolvedRectByStep.set(activeStep.id, { ...rect })
+      }
+
+      const lastResolvedRect =
+        shouldPersistRect && rect
+          ? { ...rect }
+          : storedRect
+            ? { ...storedRect }
+            : null
+
       setTargetInfo({
         element: element ?? null,
         rect,
+        lastResolvedRect,
         isScreen,
         status: nextStatus,
         stepId: activeStep.id,
