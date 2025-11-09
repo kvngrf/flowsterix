@@ -9,13 +9,27 @@ import {
   offset as floatingOffset,
   shift,
 } from '@floating-ui/dom'
-import { AnimatePresence, motion } from 'motion/react'
+import type { Transition } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
+import { useAnimationAdapter } from '../motion/animationAdapter'
 import { cn } from '../utils/cn'
 import type { ClientRectLike } from '../utils/dom'
 import { getViewportRect, isBrowser, portalHost } from '../utils/dom'
 
 const FLOATING_OFFSET = 8
+const DEFAULT_POPOVER_ENTRANCE_TRANSITION: Transition = {
+  duration: 0.25,
+  ease: 'easeOut',
+}
+const DEFAULT_POPOVER_EXIT_TRANSITION: Transition = {
+  duration: 0.2,
+  ease: 'easeOut',
+}
+const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
+  duration: 0.6,
+  ease: 'easeOut',
+}
 export interface TourPopoverProps {
   target: TourTargetInfo
   children: ReactNode
@@ -36,6 +50,7 @@ export const TourPopover = ({
   if (!isBrowser) return null
   const host = portalHost()
   if (!host) return null
+  const adapter = useAnimationAdapter()
 
   const viewport = getViewportRect()
   const lastReadyTargetRef = useRef<{
@@ -160,13 +175,18 @@ export const TourPopover = ({
   const shouldUseFallbackInitial =
     Boolean(target.lastResolvedRect) || Boolean(cachedTarget)
 
+  const { MotionDiv } = adapter.components
+  const popoverEntranceTransition =
+    adapter.transitions.popoverEntrance ?? DEFAULT_POPOVER_ENTRANCE_TRANSITION
+  const popoverExitTransition =
+    adapter.transitions.popoverExit ?? DEFAULT_POPOVER_EXIT_TRANSITION
+  const popoverContentTransition =
+    adapter.transitions.popoverContent ?? DEFAULT_POPOVER_CONTENT_TRANSITION
+
   return createPortal(
-    <motion.div
+    <MotionDiv
       ref={floatingRef}
-      transition={{
-        duration: 0.25,
-        ease: 'easeOut',
-      }}
+      transition={popoverEntranceTransition}
       className={cn(baseClass, 'overflow-hidden')}
       style={{
         zIndex,
@@ -195,22 +215,23 @@ export const TourPopover = ({
       exit={{
         filter: 'blur(4px)',
         opacity: 0,
+        transition: popoverExitTransition,
       }}
       role="dialog"
       aria-live="polite"
     >
       <AnimatePresence mode="popLayout">
-        <motion.div
+        <MotionDiv
           key={target.stepId}
           initial={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
           animate={{ opacity: 1, translateX: 0, filter: 'blur(0)' }}
           exit={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={popoverContentTransition}
         >
           {children}
-        </motion.div>
+        </MotionDiv>
       </AnimatePresence>
-    </motion.div>,
+    </MotionDiv>,
     host,
   )
 }

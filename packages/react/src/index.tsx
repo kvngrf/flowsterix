@@ -28,3 +28,18 @@ export type { TourHUDProps, TourHUDRenderContext } from './components/TourHUD'
 
 export { TourRenderer } from './components/TourRenderer'
 export type { TourRendererProps } from './components/TourRenderer'
+
+export {
+  AnimationAdapterProvider,
+  defaultAnimationAdapter,
+  reducedMotionAnimationAdapter,
+  useAnimationAdapter,
+  usePreferredAnimationAdapter,
+} from './motion/animationAdapter'
+export type {
+  AnimationAdapter,
+  AnimationAdapterComponents,
+  AnimationAdapterProviderProps,
+  AnimationAdapterTransitions,
+  UseAnimationAdapterOptions,
+} from './motion/animationAdapter'

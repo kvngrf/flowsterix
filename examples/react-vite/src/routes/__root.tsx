@@ -44,6 +44,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <TourProvider
           flows={demoFlows}
           storageNamespace="flowster-demo"
+          autoDetectReducedMotion
           defaultDebug={false}
         >
           <Header />

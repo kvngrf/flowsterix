@@ -2,8 +2,9 @@ import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
+import { useAnimationAdapter } from '../motion/animationAdapter'
 import { cn } from '../utils/cn'
 import {
   expandRect,
@@ -26,6 +27,20 @@ export interface TourOverlayProps {
   blurAmount?: number
 }
 
+const DEFAULT_HIGHLIGHT_TRANSITION = {
+  duration: 0.35,
+  ease: 'easeOut' as const,
+  type: 'spring' as const,
+  damping: 25,
+  stiffness: 300,
+  mass: 0.7,
+}
+
+const DEFAULT_OVERLAY_TRANSITION = {
+  duration: 0.35,
+  ease: 'easeOut' as const,
+}
+
 export const TourOverlay = ({
   target,
   padding = 12,
@@ -45,6 +60,7 @@ export const TourOverlay = ({
 
   const hasShownRef = useRef(false)
   const lastReadyTargetRef = useRef<TourTargetInfo | null>(null)
+  const adapter = useAnimationAdapter()
 
   useEffect(() => {
     if (target.status === 'ready') {
@@ -147,19 +163,13 @@ export const TourOverlay = ({
       ? undefined
       : { boxShadow: defaultInsetShadow }
 
-  const highlightTransition = {
-    duration: 0.35,
-    ease: 'easeOut' as const,
-    type: 'spring' as const,
-    damping: 25,
-    stiffness: 300,
-    mass: 0.7,
-  }
+  const { MotionDiv, MotionSvg, MotionDefs, MotionMask, MotionRect } =
+    adapter.components
 
-  const overlayTransition = {
-    duration: 0.35,
-    ease: 'easeOut' as const,
-  }
+  const highlightTransition =
+    adapter.transitions.overlayHighlight ?? DEFAULT_HIGHLIGHT_TRANSITION
+  const overlayTransition =
+    adapter.transitions.overlayFade ?? DEFAULT_OVERLAY_TRANSITION
 
   const highlightRectAnimation = shouldMask
     ? {
@@ -221,14 +231,14 @@ export const TourOverlay = ({
   }
 
   return createPortal(
-    <motion.div
+    <MotionDiv
       className="fixed inset-0 pointer-events-none"
       style={{ zIndex }}
       aria-hidden={target.status !== 'ready'}
     >
       <AnimatePresence mode="popLayout">
         {shouldMask ? (
-          <motion.svg
+          <MotionSvg
             key="tour-mask"
             width="0"
             height="0"
@@ -240,8 +250,8 @@ export const TourOverlay = ({
             exit={{ opacity: 0 }}
             transition={overlayTransition}
           >
-            <motion.defs>
-              <motion.mask
+            <MotionDefs>
+              <MotionMask
                 id={maskId}
                 maskUnits="userSpaceOnUse"
                 maskContentUnits="userSpaceOnUse"
@@ -250,7 +260,7 @@ export const TourOverlay = ({
                 animate={{ width: viewport.width, height: viewport.height }}
                 transition={highlightTransition}
               >
-                <motion.rect
+                <MotionRect
                   x="0"
                   y="0"
                   animate={{
@@ -261,7 +271,7 @@ export const TourOverlay = ({
                   transition={highlightTransition}
                   exit={{ opacity: 0 }}
                 />
-                <motion.rect
+                <MotionRect
                   initial={false}
                   animate={highlightRectAnimation}
                   exit={{
@@ -271,14 +281,14 @@ export const TourOverlay = ({
                   transition={highlightTransition}
                   fill="black"
                 />
-              </motion.mask>
-            </motion.defs>
-          </motion.svg>
+              </MotionMask>
+            </MotionDefs>
+          </MotionSvg>
         ) : null}
       </AnimatePresence>
       <AnimatePresence mode="popLayout">
         {isActive ? (
-          <motion.div
+          <MotionDiv
             key="tour-overlay"
             className={overlayClassName || undefined}
             style={overlayStyle}
@@ -298,7 +308,7 @@ export const TourOverlay = ({
       </AnimatePresence>
       <AnimatePresence mode="popLayout">
         {isActive && shouldMask ? (
-          <motion.div
+          <MotionDiv
             key="tour-ring"
             className={ringClassName || undefined}
             style={{
@@ -319,7 +329,7 @@ export const TourOverlay = ({
           />
         ) : null}
       </AnimatePresence>
-    </motion.div>,
+    </MotionDiv>,
     host,
   )
 }

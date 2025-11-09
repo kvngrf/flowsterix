@@ -24,6 +24,12 @@ import {
   useRef,
   useState,
 } from 'react'
+import type { AnimationAdapter } from './motion/animationAdapter'
+import {
+  AnimationAdapterProvider,
+  defaultAnimationAdapter,
+  usePreferredAnimationAdapter,
+} from './motion/animationAdapter'
 
 export interface DelayAdvanceInfo {
   flowId: string
@@ -40,6 +46,9 @@ export interface TourProviderProps {
   storageNamespace?: string
   persistOnChange?: boolean
   defaultDebug?: boolean
+  animationAdapter?: AnimationAdapter
+  reducedMotionAdapter?: AnimationAdapter
+  autoDetectReducedMotion?: boolean
 }
 
 export interface TourContextValue {
@@ -83,6 +92,9 @@ export const TourProvider = ({
   storageNamespace,
   persistOnChange = true,
   defaultDebug = false,
+  animationAdapter: animationAdapterProp = defaultAnimationAdapter,
+  reducedMotionAdapter,
+  autoDetectReducedMotion = false,
 }: PropsWithChildren<TourProviderProps>) => {
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
@@ -243,8 +255,18 @@ export const TourProvider = ({
     ],
   )
 
+  const resolvedAnimationAdapter = usePreferredAnimationAdapter({
+    defaultAdapter: animationAdapterProp,
+    reducedMotionAdapter,
+    enabled: autoDetectReducedMotion,
+  })
+
   return (
-    <TourContext.Provider value={contextValue}>{children}</TourContext.Provider>
+    <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
+      <TourContext.Provider value={contextValue}>
+        {children}
+      </TourContext.Provider>
+    </AnimationAdapterProvider>
   )
 }
 

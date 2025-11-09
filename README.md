@@ -37,6 +37,61 @@ When using the `@tour/react` package, import its bundled CSS once in your applic
 import '@tour/react/styles.css'
 ```
 
+### Customizing Animations
+
+The React bindings drive motion through an `AnimationAdapter` that ships with a Framer Motion-backed default. `TourProvider` accepts several options so you can adjust timing or respect user preferences without rewriting components:
+
+```tsx
+import { TourProvider, reducedMotionAnimationAdapter } from '@tour/react'
+
+export function App() {
+  return (
+    <TourProvider
+      flows={flows}
+      autoDetectReducedMotion
+      reducedMotionAdapter={reducedMotionAnimationAdapter}
+    >
+      {/* your app */}
+    </TourProvider>
+  )
+}
+```
+
+- `autoDetectReducedMotion` automatically switches to the provided reduced-motion adapter (defaults to the built-in one) when the OS preference is set.
+- `animationAdapter` lets you replace every motion primitive with a custom implementation.
+
+If you need more control—such as dynamically choosing between multiple animation presets—you can call `usePreferredAnimationAdapter` directly:
+
+```tsx
+import {
+  TourProvider,
+  defaultAnimationAdapter,
+  usePreferredAnimationAdapter,
+} from '@tour/react'
+
+const brandAnimationAdapter = {
+  ...defaultAnimationAdapter,
+  transitions: {
+    ...defaultAnimationAdapter.transitions,
+    overlayHighlight: { duration: 0.28, ease: 'easeInOut' },
+  },
+}
+
+export function App() {
+  const animationAdapter = usePreferredAnimationAdapter({
+    defaultAdapter: brandAnimationAdapter,
+  })
+
+  return (
+    <TourProvider flows={flows} animationAdapter={animationAdapter}>
+      {/* your app */}
+    </TourProvider>
+  )
+}
+```
+
+Adapters can provide alternative motion components (e.g. `animated.div`) and tune transitions for the overlay, popover, delay progress indicator, or any future animated surfaces.
+
 ## Linting & Formatting
 
 This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:

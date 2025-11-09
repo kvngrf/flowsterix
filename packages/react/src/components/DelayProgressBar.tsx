@@ -1,6 +1,7 @@
-import { motion } from 'motion/react'
+import type { Transition } from 'motion/react'
 
 import { useDelayAdvance } from '../hooks/useDelayAdvance'
+import { useAnimationAdapter } from '../motion/animationAdapter'
 import { cn } from '../utils/cn'
 
 export interface DelayProgressBarProps {
@@ -16,6 +17,11 @@ const defaultFormatter = (milliseconds: number) => {
   return `${seconds}s remaining`
 }
 
+const DEFAULT_DELAY_INDICATOR_TRANSITION: Transition = {
+  duration: 0.18,
+  ease: 'easeOut',
+}
+
 export const DelayProgressBar = ({
   className,
   trackClassName,
@@ -24,6 +30,10 @@ export const DelayProgressBar = ({
   formatRemaining = defaultFormatter,
 }: DelayProgressBarProps) => {
   const progress = useDelayAdvance()
+  const adapter = useAnimationAdapter()
+  const { MotionDiv } = adapter.components
+  const indicatorTransition =
+    adapter.transitions.delayIndicator ?? DEFAULT_DELAY_INDICATOR_TRANSITION
 
   if (!progress.flowId || progress.totalMs <= 0) {
     return null
@@ -52,11 +62,11 @@ export const DelayProgressBar = ({
           overflow: 'hidden',
         }}
       >
-        <motion.div
+        <MotionDiv
           className={cn('tour-delay-progress-indicator', indicatorClassName)}
           initial={{ scaleX: 1 }}
           animate={{ scaleX: remainingRatio }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={indicatorTransition}
           style={{
             position: 'absolute',
             inset: 0,
