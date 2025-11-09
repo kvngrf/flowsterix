@@ -148,7 +148,7 @@ export const TourOverlay = ({
       : { boxShadow: defaultInsetShadow }
 
   const highlightTransition = {
-    duration: 0.4,
+    duration: 0.35,
     ease: 'easeOut' as const,
     type: 'spring' as const,
     damping: 25,
@@ -238,7 +238,7 @@ export const TourOverlay = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={overlayTransition}
           >
             <motion.defs>
               <motion.mask
@@ -285,7 +285,7 @@ export const TourOverlay = ({
             initial={{
               opacity: 0,
               '--tour-overlay-blur': '0px',
-              transition: { ease: 'easeOut', duration: 0.35 },
+              transition: overlayTransition,
             }}
             animate={{
               opacity,
