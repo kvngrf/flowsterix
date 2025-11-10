@@ -43,3 +43,11 @@ export type {
   AnimationAdapterTransitions,
   UseAnimationAdapterOptions,
 } from './motion/animationAdapter'
+
+export {
+  createPathString,
+  getCurrentRoutePath,
+  notifyRouteChange,
+  subscribeToRouteChanges,
+  useTanStackRouterTourAdapter,
+} from './router'

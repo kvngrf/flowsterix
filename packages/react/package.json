@@ -13,6 +13,36 @@
       "require": "./dist/index.cjs",
       "default": "./dist/index.mjs"
     },
+    "./router": {
+      "types": "./dist/router/index.d.ts",
+      "import": "./dist/router/index.mjs",
+      "require": "./dist/router/index.cjs",
+      "default": "./dist/router/index.mjs"
+    },
+    "./router/tanstack": {
+      "types": "./dist/router/tanstackRouterAdapter.d.ts",
+      "import": "./dist/router/tanstackRouterAdapter.mjs",
+      "require": "./dist/router/tanstackRouterAdapter.cjs",
+      "default": "./dist/router/tanstackRouterAdapter.mjs"
+    },
+    "./router/react-router": {
+      "types": "./dist/router/reactRouterAdapter.d.ts",
+      "import": "./dist/router/reactRouterAdapter.mjs",
+      "require": "./dist/router/reactRouterAdapter.cjs",
+      "default": "./dist/router/reactRouterAdapter.mjs"
+    },
+    "./router/next-app": {
+      "types": "./dist/router/nextAppRouterAdapter.d.ts",
+      "import": "./dist/router/nextAppRouterAdapter.mjs",
+      "require": "./dist/router/nextAppRouterAdapter.cjs",
+      "default": "./dist/router/nextAppRouterAdapter.mjs"
+    },
+    "./router/next-pages": {
+      "types": "./dist/router/nextPagesRouterAdapter.d.ts",
+      "import": "./dist/router/nextPagesRouterAdapter.mjs",
+      "require": "./dist/router/nextPagesRouterAdapter.cjs",
+      "default": "./dist/router/nextPagesRouterAdapter.mjs"
+    },
     "./styles.css": {
       "default": "./dist/styles.css"
     }
@@ -21,7 +51,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.tsx --format esm,cjs --clean && tsc --build tsconfig.json --force && pnpm run build:css",
+  "build": "tsup --config tsup.config.ts --format esm,cjs --clean && tsc --build tsconfig.json --force && pnpm run build:css",
     "build:css": "node_modules/.bin/tailwindcss -c tailwind.config.ts -i ./src/styles.css -o ./dist/styles.css --minify",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run"
@@ -39,6 +69,20 @@
   },
   "peerDependencies": {
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "@tanstack/react-router": ">=1",
+    "next": ">=13",
+    "react-router-dom": ">=6"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-router": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    },
+    "react-router-dom": {
+      "optional": true
+    }
   }
 }

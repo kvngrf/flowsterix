@@ -7,11 +7,14 @@ import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 
 import { useTour } from '../context'
+import {
+  getCurrentRoutePath,
+  subscribeToRouteChanges,
+} from '../router/routeGating'
 import { isBrowser } from '../utils/dom'
 import type { TourTargetInfo } from './useTourTarget'
 
 const DEFAULT_POLL_MS = 250
-const ROUTE_POLL_MS = 150
 
 type ListenerTarget = EventTarget & {
   addEventListener: (
@@ -59,10 +62,8 @@ const resolveEventTarget = (
 
 const matchesRouteRule = (
   rule: Extract<AdvanceRule, { type: 'route' }>,
+  path: string,
 ): boolean => {
-  if (!isBrowser) return false
-  const path =
-    window.location.pathname + window.location.search + window.location.hash
   if (!rule.to) return true
   if (typeof rule.to === 'string') {
     return path === rule.to
@@ -214,44 +215,24 @@ export const useAdvanceRules = (target: TourTargetInfo) => {
           break
         }
         case 'route': {
-          const checkRoute = () => {
+          const checkRoute = (path: string) => {
             if (resolved) return
-            if (matchesRouteRule(rule)) {
+            if (matchesRouteRule(rule, path)) {
               finish()
             }
           }
 
-          checkRoute()
+          const initialPath = getCurrentRoutePath()
+          checkRoute(initialPath)
           if (hasResolved()) {
             break
           }
 
-          const handler = () => {
-            checkRoute()
-          }
-
-          window.addEventListener('hashchange', handler)
-          window.addEventListener('popstate', handler)
-
-          let lastPath =
-            window.location.pathname +
-            window.location.search +
-            window.location.hash
-          const pollId = window.setInterval(() => {
-            const current =
-              window.location.pathname +
-              window.location.search +
-              window.location.hash
-            if (current === lastPath) return
-            lastPath = current
-            handler()
-          }, ROUTE_POLL_MS)
-
-          addCleanup(() => {
-            window.removeEventListener('hashchange', handler)
-            window.removeEventListener('popstate', handler)
-            window.clearInterval(pollId)
+          const unsubscribe = subscribeToRouteChanges((path) => {
+            checkRoute(path)
           })
+
+          addCleanup(unsubscribe)
           break
         }
         default: {
