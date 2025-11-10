@@ -27,7 +27,7 @@
 
 - [x] Introduce AnimationAdapter interface and Framer Motion default implementation
 - [x] Integrate Floating UI (or interim positioning math) for Popover placement
-- [ ] Implement highlight mask fallback strategy for non-mask environments
+- [x] Implement highlight mask fallback strategy for non-mask environments
 - [ ] Add router adapters for React Router, tanstack router and Next.js with route gating
 - [ ] Support `waitFor` logic for async elements with timeout handling (selector support outstanding)
 - [ ] Harden observers for resize/mutation/scroll edge cases

@@ -11,6 +11,7 @@ import {
   getViewportRect,
   isBrowser,
   portalHost,
+  supportsMasking,
 } from '../utils/dom'
 
 export interface TourOverlayProps {
@@ -125,11 +126,15 @@ export const TourOverlay = ({
   const highlightCenterX = highlightLeft + highlightWidth / 2
   const highlightCenterY = highlightTop + highlightHeight / 2
 
-  const shouldMask =
+  const maskCapable = useMemo(() => supportsMasking(), [])
+
+  const hasHighlightBounds =
     !!highlightTarget &&
     !resolvedIsScreen &&
     highlightWidth > 0 &&
     highlightHeight > 0
+
+  const shouldMask = maskCapable && hasHighlightBounds
 
   const maskId = useMemo(
     () => `tour-overlay-mask-${Math.random().toString(36).slice(2, 10)}`,
@@ -144,13 +149,13 @@ export const TourOverlay = ({
 
   const overlayClassName = cn(
     'pointer-events-none absolute origin-center inset-0',
-    '[mask-mode:luminance]',
-    '[mask-repeat:no-repeat]',
-    '[mask-size:100%_100%]',
+    shouldMask ? '[mask-mode:luminance]' : null,
+    shouldMask ? '[mask-repeat:no-repeat]' : null,
+    shouldMask ? '[mask-size:100%_100%]' : null,
     color ? null : colorClassName,
   )
   const ringClassName = cn(
-    'pointer-events-none absolute orirgin-center',
+    'pointer-events-none absolute origin-center',
     shadow ? null : shadowClassName,
   )
 
@@ -189,7 +194,7 @@ export const TourOverlay = ({
         ry: 0,
       }
 
-  const highlightRingAnimation = shouldMask
+  const highlightRingAnimation = hasHighlightBounds
     ? {
         top: highlightCenterY,
         left: highlightCenterX,
@@ -215,10 +220,13 @@ export const TourOverlay = ({
     zIndex,
     backdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
     WebkitBackdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
-    maskRepeat: 'no-repeat',
-    WebkitMaskRepeat: 'no-repeat',
-    maskSize: '100% 100%',
-    WebkitMaskSize: '100% 100%',
+  }
+
+  if (shouldMask) {
+    overlayStyle.maskRepeat = 'no-repeat'
+    overlayStyle.WebkitMaskRepeat = 'no-repeat'
+    overlayStyle.maskSize = '100% 100%'
+    overlayStyle.WebkitMaskSize = '100% 100%'
   }
 
   if (maskUrl) {
@@ -229,6 +237,67 @@ export const TourOverlay = ({
   if (color) {
     overlayStyle.backgroundColor = color
   }
+
+  const fallbackSegments = useMemo(() => {
+    if (!isActive || shouldMask || !hasHighlightBounds) {
+      return null
+    }
+
+    const topEdge = Math.max(0, Math.min(highlightTop, viewport.height))
+    const bottomEdge = Math.max(
+      topEdge,
+      Math.min(highlightTop + highlightHeight, viewport.height),
+    )
+    const leftEdge = Math.max(0, Math.min(highlightLeft, viewport.width))
+    const rightEdge = Math.max(
+      leftEdge,
+      Math.min(highlightLeft + highlightWidth, viewport.width),
+    )
+    const middleHeight = Math.max(0, bottomEdge - topEdge)
+
+    return [
+      {
+        key: 'top',
+        top: 0,
+        left: 0,
+        width: viewport.width,
+        height: topEdge,
+      },
+      {
+        key: 'bottom',
+        top: bottomEdge,
+        left: 0,
+        width: viewport.width,
+        height: Math.max(0, viewport.height - bottomEdge),
+      },
+      {
+        key: 'left',
+        top: topEdge,
+        left: 0,
+        width: leftEdge,
+        height: middleHeight,
+      },
+      {
+        key: 'right',
+        top: topEdge,
+        left: rightEdge,
+        width: Math.max(0, viewport.width - rightEdge),
+        height: middleHeight,
+      },
+    ].filter((segment) => segment.width > 0 && segment.height > 0)
+  }, [
+    hasHighlightBounds,
+    highlightHeight,
+    highlightLeft,
+    highlightTop,
+    highlightWidth,
+    isActive,
+    shouldMask,
+    viewport.height,
+    viewport.width,
+  ])
+
+  const showBaseOverlay = isActive && (shouldMask || !hasHighlightBounds)
 
   return createPortal(
     <MotionDiv
@@ -287,7 +356,7 @@ export const TourOverlay = ({
         ) : null}
       </AnimatePresence>
       <AnimatePresence mode="popLayout">
-        {isActive ? (
+        {showBaseOverlay ? (
           <MotionDiv
             key="tour-overlay"
             className={overlayClassName || undefined}
@@ -307,7 +376,40 @@ export const TourOverlay = ({
         ) : null}
       </AnimatePresence>
       <AnimatePresence mode="popLayout">
-        {isActive && shouldMask ? (
+        {fallbackSegments
+          ? fallbackSegments.map((segment) => (
+              <MotionDiv
+                key={`tour-overlay-fallback-${segment.key}`}
+                className={cn(
+                  'pointer-events-none absolute origin-center',
+                  color ? null : colorClassName,
+                )}
+                style={{
+                  zIndex,
+                  top: segment.top,
+                  left: segment.left,
+                  width: segment.width,
+                  height: segment.height,
+                  backgroundColor: color ?? undefined,
+                  backdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
+                  WebkitBackdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
+                }}
+                initial={{
+                  opacity: 0,
+                  '--tour-overlay-blur': '0px',
+                }}
+                animate={{
+                  opacity,
+                  '--tour-overlay-blur': blurValue,
+                }}
+                exit={{ opacity: 0, '--tour-overlay-blur': '0px' }}
+                transition={overlayTransition}
+              />
+            ))
+          : null}
+      </AnimatePresence>
+      <AnimatePresence mode="popLayout">
+        {isActive && hasHighlightBounds ? (
           <MotionDiv
             key="tour-ring"
             className={ringClassName || undefined}

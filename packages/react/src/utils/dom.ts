@@ -89,3 +89,37 @@ export const getClientRect = (element: Element): ClientRectLike =>
   toClientRect(element.getBoundingClientRect())
 
 export const portalHost = () => (isBrowser ? document.body : null)
+
+let cachedMaskSupport: boolean | null = null
+
+const detectMaskSupport = () => {
+  if (!isBrowser) return false
+
+  if ('CSS' in window) {
+    try {
+      if (window.CSS.supports('mask-image', 'linear-gradient(#000,#000)')) {
+        return true
+      }
+      if (
+        window.CSS.supports('-webkit-mask-image', 'linear-gradient(#000,#000)')
+      ) {
+        return true
+      }
+    } catch (error) {
+      if (typeof console !== 'undefined') {
+        console.warn('Flowster: CSS.supports check failed', error)
+      }
+    }
+  }
+
+  const probe = document.createElement('div')
+  return 'maskImage' in probe.style || 'webkitMaskImage' in probe.style
+}
+
+export const supportsMasking = () => {
+  if (!isBrowser) return false
+  if (cachedMaskSupport === null) {
+    cachedMaskSupport = detectMaskSupport()
+  }
+  return cachedMaskSupport
+}
