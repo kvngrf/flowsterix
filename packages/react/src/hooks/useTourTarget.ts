@@ -108,8 +108,8 @@ export const useTourTarget = (): TourTargetInfo => {
     let hasEmitted = false
     let waitForStartedAt: number | null = null
     let waitForTimedOut = false
-  let waitForSelectorWarned = false
-  let waitForTimeoutWarned = false
+    let waitForSelectorWarned = false
+    let waitForTimeoutWarned = false
     let waitForPollId: number | null = null
 
     lastRectRef.current = null
@@ -166,7 +166,11 @@ export const useTourTarget = (): TourTargetInfo => {
               ? getClientRect(element)
               : null
 
-      if (status === 'ready' && hasWaitForSelector && waitForStartedAt === null) {
+      if (
+        status === 'ready' &&
+        hasWaitForSelector &&
+        waitForStartedAt === null
+      ) {
         waitForStartedAt = Date.now()
       }
 

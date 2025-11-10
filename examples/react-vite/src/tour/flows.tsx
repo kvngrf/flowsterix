@@ -211,9 +211,8 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
           </h2>
           <p style={{ margin: 0, lineHeight: 1.5 }}>
             We waited until the names API rendered a list item before showing
-            this step. The <code style={{ paddingLeft: 4, paddingRight: 4 }}>
-              waitFor
-            </code>{' '}
+            this step. The{' '}
+            <code style={{ paddingLeft: 4, paddingRight: 4 }}>waitFor</code>{' '}
             selector blocks the HUD until the element exists in the DOM.
           </p>
           <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
