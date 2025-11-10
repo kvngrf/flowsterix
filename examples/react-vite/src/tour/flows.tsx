@@ -196,28 +196,28 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'api-demo',
-      target: { selector: '[data-tour-target="api-demo-title"]' },
+      route: '/demo/start/api-request',
+      target: { selector: '[data-tour-target="api-name-item"]' },
+      waitFor: {
+        selector: '[data-tour-target="api-name-item"]',
+        timeout: 8000,
+      },
       placement: 'bottom',
-      advance: [
-        {
-          type: 'predicate',
-          pollMs: 200,
-          timeoutMs: 8000,
-          check: () =>
-            typeof document !== 'undefined'
-              ? document.querySelectorAll('[data-tour-target="api-name-item"]')
-                  .length > 0
-              : false,
-        },
-      ],
+      advance: [{ type: 'manual' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Data Arrived
+            Async Target Ready
           </h2>
           <p style={{ margin: 0, lineHeight: 1.5 }}>
-            We waited for the names API to resolve before advancing. Predicates
-            are great for async readiness checks.
+            We waited until the names API rendered a list item before showing
+            this step. The <code style={{ paddingLeft: 4, paddingRight: 4 }}>
+              waitFor
+            </code>{' '}
+            selector blocks the HUD until the element exists in the DOM.
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+            Once the data loads, review the highlighted name then continue.
           </p>
         </div>
       ),

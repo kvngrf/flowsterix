@@ -89,6 +89,14 @@ export const useTourTarget = (): TourTargetInfo => {
     }
 
     const isScreen = activeStep.target === 'screen'
+    const waitForSelectorRaw = activeStep.waitFor?.selector
+    const waitForSelector =
+      typeof waitForSelectorRaw === 'string'
+        ? waitForSelectorRaw.trim()
+        : undefined
+    const hasWaitForSelector = Boolean(waitForSelector)
+    const waitForTimeout = Math.max(0, activeStep.waitFor?.timeout ?? 8000)
+
     let cancelled = false
     let pollId: number | null = null
     let resizeObserver: ResizeObserver | null = null
@@ -98,6 +106,11 @@ export const useTourTarget = (): TourTargetInfo => {
     let lastStatus: TourTargetInfo['status'] = 'idle'
     let lastElement: Element | null = null
     let hasEmitted = false
+    let waitForStartedAt: number | null = null
+    let waitForTimedOut = false
+  let waitForSelectorWarned = false
+  let waitForTimeoutWarned = false
+    let waitForPollId: number | null = null
 
     lastRectRef.current = null
 
@@ -122,6 +135,23 @@ export const useTourTarget = (): TourTargetInfo => {
       )
     }
 
+    const isWaitForSatisfied = () => {
+      if (!hasWaitForSelector) return true
+      try {
+        return document.querySelector(waitForSelector!) !== null
+      } catch (error) {
+        if (!waitForSelectorWarned && typeof console !== 'undefined') {
+          console.warn(
+            '[tour][waitFor] selector lookup failed',
+            waitForSelector,
+            error,
+          )
+          waitForSelectorWarned = true
+        }
+        return false
+      }
+    }
+
     const updateTargetState = (
       status: 'resolving' | 'ready',
       rectOverride?: ClientRectLike | null,
@@ -136,9 +166,39 @@ export const useTourTarget = (): TourTargetInfo => {
               ? getClientRect(element)
               : null
 
+      if (status === 'ready' && hasWaitForSelector && waitForStartedAt === null) {
+        waitForStartedAt = Date.now()
+      }
+
+      if (
+        !waitForTimedOut &&
+        waitForTimeout > 0 &&
+        waitForStartedAt !== null &&
+        Date.now() - waitForStartedAt >= waitForTimeout
+      ) {
+        waitForTimedOut = true
+        if (!waitForTimeoutWarned && typeof console !== 'undefined') {
+          console.warn(
+            '[tour][waitFor] timeout exceeded for step',
+            activeStep.id,
+            'selector:',
+            waitForSelector,
+          )
+          waitForTimeoutWarned = true
+        }
+      }
+
       const hasRect = rectHasMeaningfulSize(rect)
+      const waitConditionMet = waitForTimedOut || isWaitForSatisfied()
       const nextStatus: TourTargetInfo['status'] =
-        status === 'ready' && (isScreen || hasRect) ? 'ready' : 'resolving'
+        status === 'ready' && (isScreen || hasRect) && waitConditionMet
+          ? 'ready'
+          : 'resolving'
+
+      if (waitConditionMet && waitForPollId !== null) {
+        window.clearInterval(waitForPollId)
+        waitForPollId = null
+      }
 
       const storedRect = lastResolvedRectByStep.get(activeStep.id) ?? null
 
@@ -238,6 +298,18 @@ export const useTourTarget = (): TourTargetInfo => {
         startRafMonitor()
       }
 
+      if (hasWaitForSelector && isScreen) {
+        const pollWaitFor = () => updateTargetState('ready')
+        pollWaitFor()
+        waitForPollId = window.setInterval(pollWaitFor, 150)
+        cleanupFns.push(() => {
+          if (waitForPollId !== null) {
+            window.clearInterval(waitForPollId)
+            waitForPollId = null
+          }
+        })
+      }
+
       commitInfo('ready')
     }
 
@@ -254,7 +326,7 @@ export const useTourTarget = (): TourTargetInfo => {
     const resolved = tryResolve()
     if (!resolved) {
       const pollInterval = 200
-      const timeout = activeStep.waitFor?.timeout ?? 8000
+      const timeout = waitForTimeout
       const startedAt = Date.now()
       pollId = window.setInterval(() => {
         if (tryResolve()) {
@@ -278,6 +350,10 @@ export const useTourTarget = (): TourTargetInfo => {
       if (pollId) window.clearInterval(pollId)
       resizeObserver?.disconnect()
       stopRaf()
+      if (waitForPollId !== null) {
+        window.clearInterval(waitForPollId)
+        waitForPollId = null
+      }
       cleanupFns.forEach((dispose) => dispose())
     }
   }, [activeStep, state])
