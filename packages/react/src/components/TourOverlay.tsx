@@ -322,6 +322,7 @@ export const TourOverlay = ({
             <MotionDefs>
               <MotionMask
                 id={maskId}
+                initial={false}
                 maskUnits="userSpaceOnUse"
                 maskContentUnits="userSpaceOnUse"
                 x="0"
@@ -332,9 +333,11 @@ export const TourOverlay = ({
                 <MotionRect
                   x="0"
                   y="0"
+                  initial={false}
                   animate={{
                     width: viewport.width,
                     height: viewport.height,
+                    opacity: 1,
                   }}
                   fill="white"
                   transition={highlightTransition}

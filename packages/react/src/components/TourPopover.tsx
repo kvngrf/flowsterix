@@ -91,8 +91,8 @@ export const TourPopover = ({
     ? viewport.width / 2
     : fallbackRect.left + fallbackRect.width / 2
   const fallbackTransform = fallbackIsScreen
-    ? 'translate(-50%, -50%)'
-    : 'translate(-50%, 0)'
+    ? 'translate3d(-50%, -50%, 0px)'
+    : 'translate3d(-50%, 0%, 0px)'
   const baseClass = cn(
     'fixed w-max pointer-events-auto rounded-xl bg-white px-6 py-5 text-slate-900 shadow-[0_20px_45px_-20px_rgba(15,23,42,0.35)]',
     className,
@@ -111,7 +111,7 @@ export const TourPopover = ({
     () => ({
       top: viewport.height / 2,
       left: viewport.width / 2,
-      transform: 'translate(-50%, -50%)',
+      transform: 'translate3d(-50%, -50%, 0px)',
     }),
     [viewport.height, viewport.width],
   )
@@ -156,7 +156,11 @@ export const TourPopover = ({
       })
 
       if (cancelled) return
-      setFloatingPosition({ top: y, left: x, transform: 'translate3d(0,0,0)' })
+      setFloatingPosition({
+        top: y,
+        left: x,
+        transform: 'translate3d(0px, 0px, 0px)',
+      })
     }
 
     void updatePosition()
@@ -206,7 +210,7 @@ export const TourPopover = ({
           : centerInitialPosition.transform,
       }}
       animate={{
-        filter: 'blur(0)',
+        filter: 'blur(0px)',
         opacity: 1,
         top: floatingPosition.top,
         left: floatingPosition.left,
@@ -224,7 +228,7 @@ export const TourPopover = ({
         <MotionDiv
           key={target.stepId}
           initial={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, translateX: 0, filter: 'blur(0)' }}
+          animate={{ opacity: 1, translateX: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
           transition={popoverContentTransition}
         >
