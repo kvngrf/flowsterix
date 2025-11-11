@@ -110,6 +110,7 @@ export const TourHUD = ({
               target={target}
               zIndex={zIndex + 1}
               offset={resolvedPopoverOffset}
+              placement={runningStep.placement}
             >
               {runningStep.content}
               {showControls ? <TourControls /> : null}

@@ -2,13 +2,15 @@ import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import type { VirtualElement } from '@floating-ui/dom'
+import type { Placement, VirtualElement } from '@floating-ui/dom'
 import {
+  autoPlacement,
   computePosition,
   flip,
   offset as floatingOffset,
   shift,
 } from '@floating-ui/dom'
+import type { StepPlacement } from '@tour/core'
 import type { Transition } from 'motion/react'
 import { AnimatePresence } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
@@ -37,6 +39,7 @@ export interface TourPopoverProps {
   maxWidth?: number
   zIndex?: number
   className?: string
+  placement?: StepPlacement
 }
 
 export const TourPopover = ({
@@ -46,6 +49,7 @@ export const TourPopover = ({
   maxWidth = 360,
   zIndex = 1001,
   className,
+  placement,
 }: TourPopoverProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -57,6 +61,16 @@ export const TourPopover = ({
     rect: ClientRectLike
     isScreen: boolean
   } | null>(null)
+
+  const resolvedPlacement: StepPlacement = placement ?? 'bottom'
+  const isAutoPlacement = resolvedPlacement.startsWith('auto')
+  const autoAlignment: 'start' | 'end' | undefined = resolvedPlacement.endsWith(
+    '-start',
+  )
+    ? 'start'
+    : resolvedPlacement.endsWith('-end')
+      ? 'end'
+      : undefined
 
   useEffect(() => {
     if (target.status === 'ready' && target.rect) {
@@ -144,15 +158,28 @@ export const TourPopover = ({
         }),
     }
 
+    const computePlacement: Placement | undefined = isAutoPlacement
+      ? undefined
+      : (resolvedPlacement as Placement)
+
+    const middleware = [
+      floatingOffset(offset),
+      ...(isAutoPlacement
+        ? [
+            autoPlacement({
+              padding: FLOATING_OFFSET,
+              alignment: autoAlignment,
+            }),
+          ]
+        : [flip({ padding: FLOATING_OFFSET })]),
+      shift({ padding: FLOATING_OFFSET }),
+    ]
+
     const updatePosition = async () => {
       const { x, y } = await computePosition(virtualReference, floatingEl, {
-        placement: 'bottom',
+        placement: computePlacement,
         strategy: 'fixed',
-        middleware: [
-          floatingOffset(offset),
-          flip({ padding: FLOATING_OFFSET }),
-          shift({ padding: FLOATING_OFFSET }),
-        ],
+        middleware,
       })
 
       if (cancelled) return
@@ -169,11 +196,14 @@ export const TourPopover = ({
       cancelled = true
     }
   }, [
+    autoAlignment,
+    isAutoPlacement,
     offset,
     target.element,
     target.isScreen,
     target.lastUpdated,
     target.status,
+    resolvedPlacement,
   ])
 
   const shouldUseFallbackInitial =
