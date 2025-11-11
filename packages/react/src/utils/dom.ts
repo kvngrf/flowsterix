@@ -88,6 +88,49 @@ export const isRectInViewport = (rect: ClientRectLike, margin = 0) => {
 export const getClientRect = (element: Element): ClientRectLike =>
   toClientRect(element.getBoundingClientRect())
 
+const SCROLLABLE_OVERFLOW = /(auto|scroll|overlay)/i
+
+const isElementScrollable = (node: Element) => {
+  if (!isBrowser) return false
+  const style = window.getComputedStyle(node)
+  if (style.position === 'fixed') return false
+  return (
+    SCROLLABLE_OVERFLOW.test(style.overflow) ||
+    SCROLLABLE_OVERFLOW.test(style.overflowX) ||
+    SCROLLABLE_OVERFLOW.test(style.overflowY)
+  )
+}
+
+export const getScrollParents = (element: Element): Array<Element> => {
+  if (!isBrowser) return []
+  const parents: Array<Element> = []
+  const seen = new Set<Element>()
+
+  let current: Element | null = element.parentElement
+  while (current && current !== document.documentElement) {
+    if (current !== document.body && isElementScrollable(current)) {
+      if (!seen.has(current)) {
+        parents.push(current)
+        seen.add(current)
+      }
+    }
+    current = current.parentElement
+  }
+
+  const scrollingElement = document.scrollingElement
+  if (
+    scrollingElement &&
+    scrollingElement instanceof Element &&
+    !seen.has(scrollingElement) &&
+    isElementScrollable(scrollingElement)
+  ) {
+    parents.push(scrollingElement)
+    seen.add(scrollingElement)
+  }
+
+  return parents
+}
+
 export const portalHost = () => (isBrowser ? document.body : null)
 
 let cachedMaskSupport: boolean | null = null

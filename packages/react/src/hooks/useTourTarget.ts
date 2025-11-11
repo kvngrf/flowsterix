@@ -6,6 +6,7 @@ import { useTour } from '../context'
 import type { ClientRectLike } from '../utils/dom'
 import {
   getClientRect,
+  getScrollParents,
   getViewportRect,
   isBrowser,
   isRectInViewport,
@@ -88,18 +89,23 @@ export const useTourTarget = (): TourTargetInfo => {
       return
     }
 
-    const isScreen = activeStep.target === 'screen'
-    const waitForSelectorRaw = activeStep.waitFor?.selector
+    const currentStep = activeStep
+
+    const isScreen = currentStep.target === 'screen'
+    const waitForSelectorRaw = currentStep.waitFor?.selector
     const waitForSelector =
       typeof waitForSelectorRaw === 'string'
         ? waitForSelectorRaw.trim()
         : undefined
     const hasWaitForSelector = Boolean(waitForSelector)
-    const waitForTimeout = Math.max(0, activeStep.waitFor?.timeout ?? 8000)
+    const waitForTimeout = Math.max(0, currentStep.waitFor?.timeout ?? 8000)
 
     let cancelled = false
-    let pollId: number | null = null
+    let resolvePollId: number | null = null
+    let waitForPollId: number | null = null
     let resizeObserver: ResizeObserver | null = null
+    let mutationObserver: MutationObserver | null = null
+    let scrollParents: Array<Element> = []
     const cleanupFns: Array<() => void> = []
     let element: Element | null = null
     let rafId: number | null = null
@@ -110,9 +116,22 @@ export const useTourTarget = (): TourTargetInfo => {
     let waitForTimedOut = false
     let waitForSelectorWarned = false
     let waitForTimeoutWarned = false
-    let waitForPollId: number | null = null
 
     lastRectRef.current = null
+
+    function clearResolvePolling() {
+      if (resolvePollId !== null) {
+        window.clearInterval(resolvePollId)
+        resolvePollId = null
+      }
+    }
+
+    function clearWaitForPoll() {
+      if (waitForPollId !== null) {
+        window.clearInterval(waitForPollId)
+        waitForPollId = null
+      }
+    }
 
     const rectHasMeaningfulSize = (rect: ClientRectLike | null) =>
       !!rect &&
@@ -184,7 +203,7 @@ export const useTourTarget = (): TourTargetInfo => {
         if (!waitForTimeoutWarned && typeof console !== 'undefined') {
           console.warn(
             '[tour][waitFor] timeout exceeded for step',
-            activeStep.id,
+            currentStep.id,
             'selector:',
             waitForSelector,
           )
@@ -199,12 +218,11 @@ export const useTourTarget = (): TourTargetInfo => {
           ? 'ready'
           : 'resolving'
 
-      if (waitConditionMet && waitForPollId !== null) {
-        window.clearInterval(waitForPollId)
-        waitForPollId = null
+      if (waitConditionMet) {
+        clearWaitForPoll()
       }
 
-      const storedRect = lastResolvedRectByStep.get(activeStep.id) ?? null
+      const storedRect = lastResolvedRectByStep.get(currentStep.id) ?? null
 
       const shouldUpdate =
         !hasEmitted ||
@@ -224,7 +242,7 @@ export const useTourTarget = (): TourTargetInfo => {
       const shouldPersistRect =
         nextStatus === 'ready' && !isScreen && rectHasMeaningfulSize(rect)
       if (shouldPersistRect && rect) {
-        lastResolvedRectByStep.set(activeStep.id, { ...rect })
+        lastResolvedRectByStep.set(currentStep.id, { ...rect })
       }
 
       const lastResolvedRect =
@@ -240,7 +258,7 @@ export const useTourTarget = (): TourTargetInfo => {
         lastResolvedRect,
         isScreen,
         status: nextStatus,
-        stepId: activeStep.id,
+        stepId: currentStep.id,
         lastUpdated: Date.now(),
       })
     }
@@ -249,26 +267,25 @@ export const useTourTarget = (): TourTargetInfo => {
       updateTargetState(status)
     }
 
-    const stopRaf = () => {
+    function stopRaf() {
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId)
         rafId = null
       }
     }
 
-    const startRafMonitor = () => {
+    function startRafMonitor() {
       if (isScreen || !isBrowser) return
       stopRaf()
       const tick = () => {
         if (cancelled) return
         if (!element) {
           updateTargetState('resolving', null)
-          rafId = window.requestAnimationFrame(tick)
-          return
-        }
-        const rect = getClientRect(element)
-        if (rectChanged(rect)) {
-          updateTargetState('ready', rect)
+        } else {
+          const rect = getClientRect(element)
+          if (rectChanged(rect)) {
+            updateTargetState('ready', rect)
+          }
         }
         rafId = window.requestAnimationFrame(tick)
       }
@@ -276,8 +293,27 @@ export const useTourTarget = (): TourTargetInfo => {
       cleanupFns.push(stopRaf)
     }
 
-    const startObservers = () => {
+    function resetObservers() {
+      cleanupFns.forEach((dispose) => dispose())
+      cleanupFns.length = 0
+      if (resizeObserver) {
+        resizeObserver.disconnect()
+        resizeObserver = null
+      }
+      if (mutationObserver) {
+        mutationObserver.disconnect()
+        mutationObserver = null
+      }
+      scrollParents = []
+      clearWaitForPoll()
+      stopRaf()
+    }
+
+    function startObservers() {
       if (cancelled) return
+
+      resetObservers()
+      clearResolvePolling()
 
       if (isScreen) {
         const onResize = () => commitInfo('ready')
@@ -287,6 +323,22 @@ export const useTourTarget = (): TourTargetInfo => {
           window.removeEventListener('resize', onResize)
           window.removeEventListener('scroll', onResize, true)
         })
+
+        if (typeof window !== 'undefined' && window.visualViewport) {
+          const onViewportChange = () => commitInfo('ready')
+          window.visualViewport.addEventListener('resize', onViewportChange)
+          window.visualViewport.addEventListener('scroll', onViewportChange)
+          cleanupFns.push(() => {
+            window.visualViewport?.removeEventListener(
+              'resize',
+              onViewportChange,
+            )
+            window.visualViewport?.removeEventListener(
+              'scroll',
+              onViewportChange,
+            )
+          })
+        }
       } else if (element) {
         if (typeof ResizeObserver === 'function') {
           resizeObserver = new ResizeObserver(() => updateTargetState('ready'))
@@ -299,27 +351,62 @@ export const useTourTarget = (): TourTargetInfo => {
           window.removeEventListener('resize', onReposition)
           window.removeEventListener('scroll', onReposition, true)
         })
+
+        const onAncestorScroll = () => commitInfo('ready')
+        scrollParents = getScrollParents(element)
+        if (scrollParents.length > 0) {
+          scrollParents.forEach((parent) =>
+            parent.addEventListener('scroll', onAncestorScroll, {
+              passive: true,
+            }),
+          )
+          cleanupFns.push(() => {
+            scrollParents.forEach((parent) =>
+              parent.removeEventListener('scroll', onAncestorScroll),
+            )
+            scrollParents = []
+          })
+        }
+
         startRafMonitor()
+
+        if (typeof MutationObserver === 'function') {
+          mutationObserver = new MutationObserver(() => {
+            if (cancelled) return
+            if (element && document.documentElement.contains(element)) {
+              return
+            }
+            resetObservers()
+            element = null
+            commitInfo('resolving')
+            startResolvePolling()
+          })
+          mutationObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+          })
+          cleanupFns.push(() => {
+            mutationObserver?.disconnect()
+            mutationObserver = null
+          })
+        }
       }
 
-      if (hasWaitForSelector && isScreen) {
+      if (hasWaitForSelector) {
         const pollWaitFor = () => updateTargetState('ready')
         pollWaitFor()
+        clearWaitForPoll()
         waitForPollId = window.setInterval(pollWaitFor, 150)
-        cleanupFns.push(() => {
-          if (waitForPollId !== null) {
-            window.clearInterval(waitForPollId)
-            waitForPollId = null
-          }
-        })
+        cleanupFns.push(clearWaitForPoll)
       }
 
       commitInfo('ready')
     }
 
-    const tryResolve = () => {
-      element = resolveStepTarget(activeStep.target)
-      if (isScreen || element) {
+    function attemptAttach(): boolean {
+      const nextElement = resolveStepTarget(currentStep.target)
+      if (isScreen || nextElement) {
+        element = nextElement
         startObservers()
         return true
       }
@@ -327,38 +414,31 @@ export const useTourTarget = (): TourTargetInfo => {
       return false
     }
 
-    const resolved = tryResolve()
-    if (!resolved) {
+    function startResolvePolling() {
+      clearResolvePolling()
       const pollInterval = 200
       const timeout = waitForTimeout
       const startedAt = Date.now()
-      pollId = window.setInterval(() => {
-        if (tryResolve()) {
-          if (pollId) {
-            window.clearInterval(pollId)
-            pollId = null
-          }
+      resolvePollId = window.setInterval(() => {
+        if (attemptAttach()) {
+          clearResolvePolling()
           return
         }
         if (timeout > 0 && Date.now() - startedAt >= timeout) {
-          if (pollId) {
-            window.clearInterval(pollId)
-            pollId = null
-          }
+          clearResolvePolling()
         }
       }, pollInterval)
     }
 
+    if (!attemptAttach()) {
+      startResolvePolling()
+    }
+
     return () => {
       cancelled = true
-      if (pollId) window.clearInterval(pollId)
-      resizeObserver?.disconnect()
-      stopRaf()
-      if (waitForPollId !== null) {
-        window.clearInterval(waitForPollId)
-        waitForPollId = null
-      }
-      cleanupFns.forEach((dispose) => dispose())
+      clearResolvePolling()
+      clearWaitForPoll()
+      resetObservers()
     }
   }, [activeStep, state])
 
