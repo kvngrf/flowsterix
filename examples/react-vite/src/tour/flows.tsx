@@ -139,25 +139,14 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       id: 'auto-advance-demo',
       target: { selector: '[data-tour-target="ssr-submenu"]' },
       placement: 'right',
-      advance: [{ type: 'delay', ms: 5000 }],
-      controls: { next: 'hidden' },
+      advance: [{ type: 'delay', ms: 2000 }],
       content: <DelayDemoContent />,
     },
     {
       id: 'feature-grid',
       target: { selector: '#feature-grid' },
       placement: 'top',
-      advance: [
-        {
-          type: 'predicate',
-          pollMs: 200,
-          timeoutMs: 15000,
-          check: () =>
-            typeof window !== 'undefined' && typeof window.scrollY === 'number'
-              ? window.scrollY > 20
-              : false,
-        },
-      ],
+      advance: [{ type: 'event', event: 'keydown', on: 'document' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>

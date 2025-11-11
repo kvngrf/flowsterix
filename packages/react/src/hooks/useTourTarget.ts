@@ -9,7 +9,6 @@ import {
   getScrollParents,
   getViewportRect,
   isBrowser,
-  isRectInViewport,
 } from '../utils/dom'
 
 export interface TourTargetInfo {
@@ -65,13 +64,34 @@ export const useTourTarget = (): TourTargetInfo => {
   const { activeStep, state } = useTour()
   const [targetInfo, setTargetInfo] =
     useState<TourTargetInfo>(INITIAL_TARGET_INFO)
-  const lastAutoScrollIdRef = useRef<string | null>(null)
+  const autoScrollStateRef = useRef<{
+    stepId: string | null
+    attempts: number
+    done: boolean
+  }>({ stepId: null, attempts: 0, done: false })
+  const autoScrollRafRef = useRef<number | null>(null)
+  const autoScrollTimeoutRef = useRef<ReturnType<
+    typeof window.setTimeout
+  > | null>(null)
   const lastRectRef = useRef<ClientRectLike | null>(null)
+
+  const cancelAutoScrollLoop = () => {
+    if (!isBrowser) return
+    if (autoScrollTimeoutRef.current !== null) {
+      window.clearTimeout(autoScrollTimeoutRef.current)
+      autoScrollTimeoutRef.current = null
+    }
+    if (autoScrollRafRef.current !== null) {
+      window.cancelAnimationFrame(autoScrollRafRef.current)
+      autoScrollRafRef.current = null
+    }
+  }
 
   useEffect(() => {
     if (!activeStep || !state || state.status !== 'running') {
       setTargetInfo(INITIAL_TARGET_INFO)
-      lastAutoScrollIdRef.current = null
+      autoScrollStateRef.current = { stepId: null, attempts: 0, done: false }
+      cancelAutoScrollLoop()
       return
     }
 
@@ -444,21 +464,85 @@ export const useTourTarget = (): TourTargetInfo => {
 
   useEffect(() => {
     if (!isBrowser) return
-    if (!activeStep) return
-    if (targetInfo.status !== 'ready') return
-    if (targetInfo.isScreen) return
-    if (!targetInfo.element || !targetInfo.rect) return
-    if (lastAutoScrollIdRef.current === activeStep.id) return
-
-    lastAutoScrollIdRef.current = activeStep.id
-
-    if (!isRectInViewport(targetInfo.rect, 32)) {
-      targetInfo.element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-        inline: 'center',
-      })
+    if (!activeStep) {
+      cancelAutoScrollLoop()
+      return
     }
+    if (targetInfo.status !== 'ready') {
+      cancelAutoScrollLoop()
+      return
+    }
+    if (targetInfo.isScreen) {
+      cancelAutoScrollLoop()
+      return
+    }
+    if (!targetInfo.element) {
+      cancelAutoScrollLoop()
+      return
+    }
+
+    const autoState = autoScrollStateRef.current
+    if (autoState.stepId !== activeStep.id) {
+      autoState.stepId = activeStep.id
+      autoState.attempts = 0
+      autoState.done = false
+      cancelAutoScrollLoop()
+    } else if (autoState.done) {
+      cancelAutoScrollLoop()
+      return
+    }
+
+    const { element } = targetInfo
+
+    const runCheck = () => {
+      autoScrollRafRef.current = null
+
+      if (!isBrowser) return
+      if (autoState.stepId !== activeStep.id) return
+      if (!element.isConnected) return
+
+      const rect = getClientRect(element)
+      const viewport = getViewportRect()
+      const margin = 16
+
+      const fitsHeight = rect.height <= viewport.height
+      const fitsWidth = rect.width <= viewport.width
+
+      const verticalSatisfied = fitsHeight
+        ? rect.top >= margin && rect.bottom <= viewport.height - margin
+        : rect.top <= margin && rect.bottom >= viewport.height - margin
+
+      const horizontalSatisfied = fitsWidth
+        ? rect.left >= margin && rect.right <= viewport.width - margin
+        : rect.left <= margin && rect.right >= viewport.width - margin
+
+      if (verticalSatisfied && horizontalSatisfied) {
+        autoState.done = true
+        return
+      }
+
+      if (autoState.attempts >= 6) {
+        autoState.done = true
+        return
+      }
+
+      autoState.attempts += 1
+
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: fitsHeight ? 'center' : 'nearest',
+        inline: fitsWidth ? 'center' : 'nearest',
+      })
+
+      autoScrollTimeoutRef.current = window.setTimeout(() => {
+        autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
+      }, 120)
+    }
+
+    cancelAutoScrollLoop()
+    autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
+
+    return cancelAutoScrollLoop
   }, [activeStep, targetInfo])
 
   return targetInfo
