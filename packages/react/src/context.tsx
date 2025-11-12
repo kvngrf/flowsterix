@@ -8,7 +8,7 @@ import type {
   Step,
   StorageAdapter,
 } from '@tour/core'
-import { createFlowStore } from '@tour/core'
+import { createFlowStore, createLocalStorageAdapter } from '@tour/core'
 import type {
   Dispatch,
   PropsWithChildren,
@@ -30,6 +30,7 @@ import {
   defaultAnimationAdapter,
   usePreferredAnimationAdapter,
 } from './motion/animationAdapter'
+import { isBrowser } from './utils/dom'
 
 export interface DelayAdvanceInfo {
   flowId: string
@@ -99,6 +100,8 @@ export const TourProvider = ({
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
+  const fallbackStorageRef = useRef<StorageAdapter | undefined>(undefined)
+  const pendingResumeRef = useRef<Set<string>>(new Set())
 
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null)
   const [state, setState] = useState<FlowState | null>(null)
@@ -114,6 +117,7 @@ export const TourProvider = ({
     storeRef.current?.destroy()
     storeRef.current = null
     setDelayInfo(null)
+    pendingResumeRef.current.clear()
   }, [])
 
   useEffect(() => {
@@ -150,8 +154,16 @@ export const TourProvider = ({
         throw new Error(`Flow with id "${flowId}" is not registered.`)
       }
 
+      if (!storageAdapter && !fallbackStorageRef.current && isBrowser) {
+        fallbackStorageRef.current = createLocalStorageAdapter()
+      }
+
+      const resolvedStorageAdapter = storageAdapter
+        ? storageAdapter
+        : fallbackStorageRef.current
+
       const store = createFlowStore(definition, {
-        storageAdapter,
+        storageAdapter: resolvedStorageAdapter,
         storageKey: storageNamespace
           ? `${storageNamespace}:${definition.id}`
           : undefined,
@@ -176,13 +188,94 @@ export const TourProvider = ({
     return store
   }, [])
 
+  const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      typeof (value as PromiseLike<unknown>).then === 'function'
+    )
+  }
+
+  const invokeStepHook = useCallback(
+    (
+      hook: Step<ReactNode>['onResume'] | Step<ReactNode>['onExit'],
+      context: {
+        flow: FlowDefinition<ReactNode>
+        state: FlowState
+        step: Step<ReactNode>
+      },
+      phase: 'resume' | 'exit',
+    ) => {
+      if (!hook) return
+      try {
+        const result = hook(context)
+        if (isPromiseLike(result)) {
+          result.then(undefined, (error: unknown) => {
+            console.warn(`[tour][step] ${phase} hook rejected`, error)
+          })
+        }
+      } catch (error) {
+        console.warn(`[tour][step] ${phase} hook failed`, error)
+      }
+    },
+    [],
+  )
+
+  const runResumeHooks = useCallback(
+    (definition: FlowDefinition<ReactNode>, flowState: FlowState) => {
+      if (flowState.status !== 'running') return
+      const maxIndex = Math.min(
+        flowState.stepIndex,
+        definition.steps.length - 1,
+      )
+      if (maxIndex < 0) return
+      for (let index = 0; index <= maxIndex; index += 1) {
+        const step = definition.steps[index]
+        if (!step.onResume) continue
+        invokeStepHook(
+          step.onResume,
+          {
+            flow: definition,
+            state: flowState,
+            step,
+          },
+          'resume',
+        )
+      }
+    },
+    [invokeStepHook],
+  )
+
   const startFlow = useCallback(
     (flowId: string, options?: StartFlowOptions) => {
       const store = ensureStore(flowId)
+      const previousState = store.getState()
       setActiveFlowId(flowId)
-      return store.start(options)
+
+      if (options?.resume) {
+        pendingResumeRef.current.add(flowId)
+      } else {
+        pendingResumeRef.current.delete(flowId)
+      }
+
+      const nextState = store.start(options)
+
+      if (!options?.resume) {
+        return nextState
+      }
+
+      if (previousState.stepIndex >= 0 && nextState.status === 'running') {
+        pendingResumeRef.current.delete(flowId)
+        if (nextState.stepIndex > 0) {
+          runResumeHooks(store.definition, nextState)
+        }
+      } else if (nextState.status !== 'idle' && nextState.stepIndex <= 0) {
+        pendingResumeRef.current.delete(flowId)
+      }
+
+      return nextState
     },
-    [ensureStore],
+    [ensureStore, runResumeHooks],
   )
 
   const next = useCallback(() => getActiveStore().next(), [getActiveStore])
@@ -192,7 +285,27 @@ export const TourProvider = ({
     [getActiveStore],
   )
   const pause = useCallback(() => getActiveStore().pause(), [getActiveStore])
-  const resume = useCallback(() => getActiveStore().resume(), [getActiveStore])
+  const resume = useCallback(() => {
+    const store = getActiveStore()
+    const previousState = store.getState()
+
+    if (previousState.status === 'paused') {
+      pendingResumeRef.current.add(store.definition.id)
+    }
+
+    const nextState = store.resume()
+
+    if (
+      previousState.status === 'paused' &&
+      nextState.status === 'running' &&
+      nextState.stepIndex > 0
+    ) {
+      pendingResumeRef.current.delete(store.definition.id)
+      runResumeHooks(store.definition, nextState)
+    }
+
+    return nextState
+  }, [getActiveStore, runResumeHooks])
   const cancel = useCallback(
     (reason?: string) => getActiveStore().cancel(reason),
     [getActiveStore],
@@ -211,6 +324,22 @@ export const TourProvider = ({
     if (state.stepIndex < 0) return null
     return storeRef.current.definition.steps[state.stepIndex] ?? null
   }, [state])
+
+  useEffect(() => {
+    if (!activeFlowId) return
+    if (!pendingResumeRef.current.has(activeFlowId)) return
+    if (!state || state.status !== 'running') return
+    if (state.stepIndex <= 0) {
+      pendingResumeRef.current.delete(activeFlowId)
+      return
+    }
+
+    const definition = flowMap.get(activeFlowId)
+    if (!definition) return
+
+    pendingResumeRef.current.delete(activeFlowId)
+    runResumeHooks(definition, state)
+  }, [activeFlowId, flowMap, runResumeHooks, state])
 
   const contextValue: TourContextValue = useMemo(
     () => ({

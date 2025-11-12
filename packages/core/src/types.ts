@@ -94,7 +94,7 @@ export interface Step<TContent = unknown> {
   content: TContent
   advance?: Array<AdvanceRule<TContent>>
   waitFor?: StepWaitFor
-  onEnter?: StepHook<TContent>
+  onResume?: StepHook<TContent>
   onExit?: StepHook<TContent>
   controls?: StepControls
 }

@@ -93,6 +93,29 @@ export const createFlowStore = <TContent>(
   let destroyed = false
   let unsubscribeStorage: (() => void) | null = null
   let isHydrating = false
+  let hasHydrated = !storageAdapter
+  let pendingStartOptions: StartFlowOptions | undefined
+
+  const scheduleMicrotask = (fn: () => void) => {
+    if (typeof queueMicrotask === 'function') {
+      queueMicrotask(fn)
+      return
+    }
+    Promise.resolve()
+      .then(fn)
+      .catch((error) => {
+        console.warn('[tour][flow] async scheduling failed', error)
+      })
+  }
+
+  const runPendingStart = () => {
+    if (!pendingStartOptions) return
+    const pending = pendingStartOptions
+    pendingStartOptions = undefined
+    scheduleMicrotask(() => {
+      start(pending)
+    })
+  }
 
   const notifySubscribers = () => {
     for (const listener of Array.from(subscribers)) {
@@ -102,6 +125,7 @@ export const createFlowStore = <TContent>(
 
   const persistState = (nextState: FlowState) => {
     if (!storageAdapter || !persistOnChange) return
+    if (isHydrating) return
     const result = storageAdapter.set(storageKey, snapshotFromState(nextState))
     if (result instanceof Promise) {
       result.catch((error) => {
@@ -225,6 +249,8 @@ export const createFlowStore = <TContent>(
       console.warn('[tour][storage] failed to hydrate flow state', error)
     } finally {
       isHydrating = false
+      hasHydrated = true
+      runPendingStart()
     }
   }
 
@@ -238,6 +264,13 @@ export const createFlowStore = <TContent>(
   }
 
   const start = (startConfig?: StartFlowOptions) => {
+    if (!hasHydrated) {
+      pendingStartOptions = startConfig ?? {}
+      if (!isHydrating) {
+        void hydrateFromStorage()
+      }
+      return state
+    }
     const { fromStepId, fromStepIndex, resume } = startConfig ?? {}
 
     if (resume && (state.status === 'paused' || state.status === 'running')) {

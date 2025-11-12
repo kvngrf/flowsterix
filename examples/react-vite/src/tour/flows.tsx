@@ -2,6 +2,7 @@ import type { FlowDefinition } from '@tour/core'
 import { createFlow } from '@tour/core'
 import { DelayProgressBar, useDelayAdvance } from '@tour/react'
 import type { ReactNode } from 'react'
+import { getTourRouter } from './routerBridge'
 
 const DelayCountdownLabel = () => {
   const { remainingMs, totalMs, flowId } = useDelayAdvance()
@@ -47,6 +48,29 @@ const DelayDemoContent = () => (
   </div>
 )
 
+const ensureMenuOpen = () => {
+  if (typeof document === 'undefined') return
+  const panel = document.querySelector('[data-tour-target="menu-panel"]')
+  if (!(panel instanceof HTMLElement)) return
+  const isClosed = panel.classList.contains('-translate-x-full')
+  if (!isClosed) return
+  const trigger = document.querySelector('[data-tour-target="menu-button"]')
+  if (trigger instanceof HTMLElement) {
+    trigger.click()
+  }
+}
+
+const ensureSsrGroupExpanded = () => {
+  if (typeof document === 'undefined') return
+  ensureMenuOpen()
+  const submenu = document.querySelector('[data-tour-target="ssr-submenu"]')
+  if (submenu) return
+  const toggle = document.querySelector('[data-tour-target="ssr-toggle"]')
+  if (toggle instanceof HTMLElement) {
+    toggle.click()
+  }
+}
+
 export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   id: 'demo-onboarding',
   version: 1,
@@ -83,6 +107,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       target: { selector: '[data-tour-target="menu-button"]' },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
+      onResume: () => ensureMenuOpen(),
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
@@ -103,6 +128,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       target: { selector: '[data-tour-target="ssr-toggle"]' },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
+      onResume: () => ensureSsrGroupExpanded(),
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
@@ -158,7 +184,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
             steps.
           </p>
           <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
-            Scroll the page a bit to continue.
+            Press a keyboard key to continue.
           </p>
         </div>
       ),
@@ -190,6 +216,29 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       waitFor: {
         selector: '[data-tour-target="api-name-item"]',
         timeout: 8000,
+      },
+      onResume: () => {
+        const targetPath = '/demo/start/api-request'
+        const router = getTourRouter()
+
+        if (router) {
+          const currentPath = router.state.location.pathname
+          if (currentPath === targetPath) {
+            return
+          }
+          router.navigate({ to: targetPath }).catch((error) => {
+            console.warn('[tour][demo] failed to navigate', error)
+          })
+          return
+        }
+
+        if (typeof window === 'undefined') {
+          return
+        }
+        if (window.location.pathname === targetPath) {
+          return
+        }
+        window.location.assign(targetPath)
       },
       placement: 'bottom',
       advance: [{ type: 'manual' }],

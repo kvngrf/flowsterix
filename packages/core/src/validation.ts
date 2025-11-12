@@ -116,7 +116,7 @@ const stepSchema = z.object({
   content: z.any(),
   advance: z.array(advanceRuleSchema).optional(),
   waitFor: waitForSchema.optional(),
-  onEnter: z
+  onResume: z
     .custom<
       (...args: Array<unknown>) => unknown
     >((value) => typeof value === 'function')
