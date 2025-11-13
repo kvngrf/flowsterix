@@ -46,7 +46,11 @@ Every custom property falls back to the previous visual design, so existing inst
 :root {
   --tour-popover-background: color-mix(in srgb, var(--popover) 95%, black 5%);
   --tour-button-primary-bg: var(--brand-primary);
-  --tour-button-primary-hover-bg: color-mix(in srgb, var(--brand-primary) 80%, black 20%);
+  --tour-button-primary-hover-bg: color-mix(
+    in srgb,
+    var(--brand-primary) 80%,
+    black 20%
+  );
   --tour-overlay-background: rgba(13, 34, 64, 0.7);
 }
 ```
@@ -55,20 +59,20 @@ Every custom property falls back to the previous visual design, so existing inst
 
 Components expose targeted `data-tour-*` attributes so you can layer utility classes or author more specific selectors when variables are not enough.
 
-| Attribute | Applies to |
-| --- | --- |
-| `data-tour-popover` | Popover surface (portal root) |
-| `data-tour-popover-content` | Animated content wrapper per step |
-| `data-tour-popover-shell` | Popover container used for the drag handle |
-| `data-tour-popover-handle` | Drag handle button when docked/manual |
-| `data-tour-controls` | Controls container (Back/Skip + Next) |
-| `data-tour-controls-group` | The secondary button group (Back/Skip) |
-| `data-tour-button="secondary"` | Back and Skip buttons |
-| `data-tour-button="primary"` | Next/Finish button |
-| `data-tour-overlay` | Overlay portal wrapper |
-| `data-tour-overlay-layer="backdrop"` | Masked backdrop around the target |
-| `data-tour-overlay-layer="segment"` | Fallback rectangles when masking is unavailable |
-| `data-tour-overlay-layer="highlight-ring"` | Highlight border around the active target |
+| Attribute                                  | Applies to                                      |
+| ------------------------------------------ | ----------------------------------------------- |
+| `data-tour-popover`                        | Popover surface (portal root)                   |
+| `data-tour-popover-content`                | Animated content wrapper per step               |
+| `data-tour-popover-shell`                  | Popover container used for the drag handle      |
+| `data-tour-popover-handle`                 | Drag handle button when docked/manual           |
+| `data-tour-controls`                       | Controls container (Back/Skip + Next)           |
+| `data-tour-controls-group`                 | The secondary button group (Back/Skip)          |
+| `data-tour-button="secondary"`             | Back and Skip buttons                           |
+| `data-tour-button="primary"`               | Next/Finish button                              |
+| `data-tour-overlay`                        | Overlay portal wrapper                          |
+| `data-tour-overlay-layer="backdrop"`       | Masked backdrop around the target               |
+| `data-tour-overlay-layer="segment"`        | Fallback rectangles when masking is unavailable |
+| `data-tour-overlay-layer="highlight-ring"` | Highlight border around the active target       |
 
 With Tailwind&nbsp;CSS v4, you can author utility hooks directly:
 

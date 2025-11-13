@@ -93,16 +93,9 @@ code {
     var(--foreground) 75%,
     transparent
   );
-  --tour-overlay-ring-shadow: inset 0 0 0 2px color-mix(
-      in srgb,
-      var(--primary) 60%,
-      transparent
-    ),
-    inset 0 0 0 8px color-mix(
-      in srgb,
-      var(--foreground) 35%,
-      transparent
-    );
+  --tour-overlay-ring-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--primary) 60%, transparent),
+    inset 0 0 0 8px color-mix(in srgb, var(--foreground) 35%, transparent);
   --tour-focus-ring-color: var(--ring);
   --tour-focus-ring-offset-color: var(--popover);
 }
@@ -177,16 +170,9 @@ code {
     var(--foreground) 65%,
     transparent
   );
-  --tour-overlay-ring-shadow: inset 0 0 0 2px color-mix(
-      in srgb,
-      var(--primary) 50%,
-      transparent
-    ),
-    inset 0 0 0 8px color-mix(
-      in srgb,
-      var(--foreground) 30%,
-      transparent
-    );
+  --tour-overlay-ring-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--primary) 50%, transparent),
+    inset 0 0 0 8px color-mix(in srgb, var(--foreground) 30%, transparent);
   --tour-focus-ring-color: var(--ring);
   --tour-focus-ring-offset-color: color-mix(
     in srgb,
