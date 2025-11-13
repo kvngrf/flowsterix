@@ -82,6 +82,10 @@ const hudOverlaySchema = z.object({
 
 const hudPopoverSchema = z.object({
   offset: z.number().optional(),
+  role: z.string().optional(),
+  ariaLabel: z.string().optional(),
+  ariaDescribedBy: z.string().optional(),
+  ariaModal: z.boolean().optional(),
 })
 
 const hudSchema = z.object({

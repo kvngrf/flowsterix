@@ -95,7 +95,7 @@ export const TourProvider = ({
   defaultDebug = false,
   animationAdapter: animationAdapterProp = defaultAnimationAdapter,
   reducedMotionAdapter,
-  autoDetectReducedMotion = false,
+  autoDetectReducedMotion = true,
 }: PropsWithChildren<TourProviderProps>) => {
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)

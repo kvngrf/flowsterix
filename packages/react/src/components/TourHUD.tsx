@@ -11,8 +11,17 @@ import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
 import { isBrowser, portalHost } from '../utils/dom'
 import { TourControls } from './TourControls'
+import { TourFocusManager } from './TourFocusManager'
 import { TourOverlay } from './TourOverlay'
 import { TourPopover } from './TourPopover'
+
+const sanitizeForId = (value: string) => {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return normalized.length > 0 ? normalized : 'step'
+}
 
 export interface TourHUDRenderContext {
   step: Step<ReactNode>
@@ -43,6 +52,7 @@ export const TourHUD = ({
   const runningState = isRunning ? state : null
   const runningStep = runningState && activeStep ? activeStep : null
   const [shouldRender, setShouldRender] = useState(Boolean(runningStep))
+  const [popoverNode, setPopoverNode] = useState<HTMLDivElement | null>(null)
 
   const flowHudOptions = activeFlowId ? flows.get(activeFlowId)?.hud : null
   const overlayOptions = flowHudOptions?.overlay
@@ -59,6 +69,10 @@ export const TourHUD = ({
   const resolvedOverlayColorClass = overlayOptions?.colorClassName
 
   const resolvedPopoverOffset = popoverOptions?.offset ?? 20
+  const resolvedPopoverRole = popoverOptions?.role ?? 'dialog'
+  const resolvedPopoverAriaLabel = popoverOptions?.ariaLabel
+  const resolvedPopoverAriaDescribedBy = popoverOptions?.ariaDescribedBy
+  const resolvedPopoverAriaModal = popoverOptions?.ariaModal ?? false
 
   useEffect(() => {
     if (isRunning) {
@@ -86,9 +100,28 @@ export const TourHUD = ({
   }
 
   const canRenderStep = Boolean(runningStep && runningState)
+  const focusTrapActive = canRenderStep
+  const targetDescription =
+    runningStep && typeof runningStep.target === 'object'
+      ? (runningStep.target.description ?? null)
+      : null
+
+  const descriptionId =
+    targetDescription && runningStep
+      ? `tour-step-${sanitizeForId(runningStep.id)}-description`
+      : undefined
+
+  const combinedAriaDescribedBy =
+    [resolvedPopoverAriaDescribedBy, descriptionId].filter(Boolean).join(' ') ||
+    undefined
 
   return (
     <>
+      <TourFocusManager
+        active={focusTrapActive}
+        target={target}
+        popoverNode={popoverNode}
+      />
       <TourKeyboardShortcuts target={target} />
       <TourOverlay
         target={target}
@@ -111,6 +144,13 @@ export const TourHUD = ({
               zIndex={zIndex + 1}
               offset={resolvedPopoverOffset}
               placement={runningStep.placement}
+              role={resolvedPopoverRole}
+              ariaLabel={resolvedPopoverAriaLabel}
+              ariaDescribedBy={combinedAriaDescribedBy}
+              ariaModal={resolvedPopoverAriaModal}
+              descriptionId={descriptionId}
+              descriptionText={targetDescription ?? undefined}
+              onContainerChange={setPopoverNode}
             >
               {runningStep.content}
               {showControls ? <TourControls /> : null}

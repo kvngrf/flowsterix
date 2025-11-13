@@ -79,8 +79,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     overlay: {
       blur: 6,
-      shadow:
-        'inset 0 0 0 2px rgba(56,189,248,0.45), inset 0 0 0 12px rgba(15,23,42,0.28)',
+      shadow: 'inset 0 0 0 2px rgba(56,189,248,0.45)',
     },
   },
   steps: [
@@ -103,7 +102,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'menu',
-      target: { selector: '[data-tour-target="menu-button"]' },
+      target: {
+        selector: '[data-tour-target="menu-button"]',
+        description: 'Navigation menu toggle button',
+      },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
       onResume: () => ensureMenuOpen(),
@@ -124,7 +126,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'ssr-toggle',
-      target: { selector: '[data-tour-target="ssr-toggle"]' },
+      target: {
+        selector: '[data-tour-target="ssr-toggle"]',
+        description: 'SSR examples accordion toggle',
+      },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
       onResume: () => ensureSsrGroupExpanded(),
@@ -145,7 +150,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'cta',
-      target: { selector: '[data-tour-target="ssr-submenu"]' },
+      target: {
+        selector: '[data-tour-target="ssr-submenu"]',
+        description: 'SSR examples submenu links',
+      },
       placement: 'right',
       advance: [{ type: 'manual' }],
       content: (
@@ -162,14 +170,20 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'auto-advance-demo',
-      target: { selector: '[data-tour-target="ssr-submenu"]' },
+      target: {
+        selector: '[data-tour-target="ssr-submenu"]',
+        description: 'SSR examples submenu links',
+      },
       placement: 'right',
       advance: [{ type: 'delay', ms: 2000 }],
       content: <DelayDemoContent />,
     },
     {
       id: 'feature-grid',
-      target: { selector: '#feature-grid' },
+      target: {
+        selector: '#feature-grid',
+        description: 'Feature highlight card grid',
+      },
       placement: 'top',
       advance: [{ type: 'event', event: 'keydown', on: 'document' }],
       content: (
@@ -190,7 +204,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     },
     {
       id: 'api-link',
-      target: { selector: '[data-tour-target="api-link"]' },
+      target: {
+        selector: '[data-tour-target="api-link"]',
+        description: 'Link to the API request demo route',
+      },
       placement: 'right',
       advance: [{ type: 'route', to: '/demo/start/api-request' }],
       content: (
@@ -211,7 +228,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     {
       id: 'api-demo',
       route: '/demo/start/api-request',
-      target: { selector: '[data-tour-target="api-name-item"]' },
+      target: {
+        selector: '[data-tour-target="api-name-item"]',
+        description: 'First result rendered by the names API demo',
+      },
       waitFor: {
         selector: '[data-tour-target="api-name-item"]',
         timeout: 8000,

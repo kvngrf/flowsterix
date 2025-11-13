@@ -111,6 +111,10 @@ export interface FlowHudOverlayOptions {
 
 export interface FlowHudPopoverOptions {
   offset?: number
+  role?: string
+  ariaLabel?: string
+  ariaDescribedBy?: string
+  ariaModal?: boolean
 }
 
 export interface FlowHudOptions {

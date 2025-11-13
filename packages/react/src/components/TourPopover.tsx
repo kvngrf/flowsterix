@@ -41,6 +41,13 @@ export interface TourPopoverProps {
   zIndex?: number
   className?: string
   placement?: StepPlacement
+  role?: string
+  ariaLabel?: string
+  ariaDescribedBy?: string
+  ariaModal?: boolean
+  descriptionId?: string
+  descriptionText?: string
+  onContainerChange?: (node: HTMLDivElement | null) => void
 }
 
 export const TourPopover = ({
@@ -51,6 +58,13 @@ export const TourPopover = ({
   zIndex = 1001,
   className,
   placement,
+  role,
+  ariaLabel,
+  ariaDescribedBy,
+  ariaModal,
+  descriptionId,
+  descriptionText,
+  onContainerChange,
 }: TourPopoverProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -146,6 +160,14 @@ export const TourPopover = ({
 
   const floatingRef = useRef<HTMLDivElement | null>(null)
   const [floatingPosition, setFloatingPosition] = useState(fallbackPosition)
+
+  useLayoutEffect(() => {
+    if (!onContainerChange) return
+    onContainerChange(floatingRef.current)
+    return () => {
+      onContainerChange(null)
+    }
+  }, [onContainerChange])
 
   useLayoutEffect(() => {
     if (layoutMode !== 'floating') return
@@ -322,7 +344,6 @@ export const TourPopover = ({
     }
     dragStateRef.current = null
     setIsDragging(false)
-    console.log('stop drag')
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', handlePointerEnd)
     window.removeEventListener('pointercancel', handlePointerEnd)
@@ -394,6 +415,12 @@ export const TourPopover = ({
         layoutMode === 'docked' ? 'tour-popover--docked' : null,
         layoutMode === 'manual' ? 'tour-popover--manual' : null,
       )}
+      role={role ?? 'dialog'}
+      aria-modal={ariaModal ?? false}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      tabIndex={-1}
+      data-tour-popover=""
       data-layout={layoutMode}
       style={{
         zIndex,
@@ -425,10 +452,14 @@ export const TourPopover = ({
         opacity: 0,
         transition: popoverExitTransition,
       }}
-      role="dialog"
       aria-live="polite"
     >
       <div className="">
+        {descriptionText && descriptionId ? (
+          <span id={descriptionId} className="sr-only">
+            {descriptionText}
+          </span>
+        ) : null}
         <div className="relative">
           {layoutMode === 'docked' || layoutMode === 'manual' ? (
             <button

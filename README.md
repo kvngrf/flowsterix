@@ -92,6 +92,10 @@ export function App() {
 
 Adapters can provide alternative motion components (e.g. `animated.div`) and tune transitions for the overlay, popover, delay progress indicator, or any future animated surfaces.
 
+## Accessibility
+
+Flows auto-detect `prefers-reduced-motion`, trap keyboard focus within the popover and highlighted target, and expose hooks for extra ARIA metadata. See `docs/guides/accessibility.md` for details on overriding popover roles, adding custom descriptions, or excluding controls from the focus loop.
+
 ## Linting & Formatting
 
 This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
