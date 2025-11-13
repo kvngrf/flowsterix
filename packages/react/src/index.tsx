@@ -45,9 +45,14 @@ export type {
 } from './motion/animationAdapter'
 
 export {
+  TanStackRouterSync,
   createPathString,
   getCurrentRoutePath,
+  getTanStackRouter,
+  getTourRouter,
   notifyRouteChange,
+  setTanStackRouter,
+  setTourRouter,
   subscribeToRouteChanges,
   useTanStackRouterTourAdapter,
 } from './router'

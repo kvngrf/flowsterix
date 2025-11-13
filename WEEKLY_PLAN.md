@@ -32,7 +32,7 @@
 - [x] Support `waitFor` logic for async elements with timeout handling (selector support outstanding)
 - [x] Harden observers for resize/mutation/scroll edge cases
 - [x] Ensure persistence resumes correct step across navigations and reloads
-- [ ] Document integration patterns for routing and async content
+- [x] Document integration patterns for routing and async content
 
 ## Week 4 – Polish, QA, Release Prep
 

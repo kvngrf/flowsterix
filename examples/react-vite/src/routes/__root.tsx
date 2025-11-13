@@ -1,37 +1,14 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import {
-  HeadContent,
-  Scripts,
-  createRootRoute,
-  useRouter,
-} from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import {
-  TourHUD,
-  TourProvider,
-  useTanStackRouterTourAdapter,
-} from '@tour/react'
+import { TanStackRouterSync, TourHUD, TourProvider } from '@tour/react'
 import '@tour/react/styles.css'
 import type { ReactNode } from 'react'
-import { useEffect } from 'react'
 
 import Header from '../components/Header'
 import { demoFlows } from '../tour/flows'
-import { setTourRouter } from '../tour/routerBridge'
 
 import appCss from '../styles.css?url'
-
-function RouteSync() {
-  const router = useRouter()
-  useTanStackRouterTourAdapter()
-  useEffect(() => {
-    setTourRouter(router)
-    return () => {
-      setTourRouter(null)
-    }
-  }, [router])
-  return null
-}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -71,7 +48,7 @@ function RootDocument({ children }: { children: ReactNode }) {
           autoDetectReducedMotion
           defaultDebug={false}
         >
-          <RouteSync />
+          <TanStackRouterSync />
           <Header />
           {children}
           <TanStackDevtools

@@ -1,8 +1,7 @@
 import type { FlowDefinition } from '@tour/core'
 import { createFlow } from '@tour/core'
-import { DelayProgressBar, useDelayAdvance } from '@tour/react'
+import { DelayProgressBar, getTourRouter, useDelayAdvance } from '@tour/react'
 import type { ReactNode } from 'react'
-import { getTourRouter } from './routerBridge'
 
 const DelayCountdownLabel = () => {
   const { remainingMs, totalMs, flowId } = useDelayAdvance()
@@ -226,7 +225,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
           if (currentPath === targetPath) {
             return
           }
-          router.navigate({ to: targetPath }).catch((error) => {
+          router.navigate({ to: targetPath }).catch((error: unknown) => {
             console.warn('[tour][demo] failed to navigate', error)
           })
           return
