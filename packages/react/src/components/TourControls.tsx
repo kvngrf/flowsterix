@@ -1,5 +1,4 @@
 import { useTourControls } from '../hooks/useTourControls'
-import { cn } from '../utils/cn'
 
 export interface TourControlsProps {
   hideSkip?: boolean
@@ -23,20 +22,19 @@ export const TourControls = ({ hideSkip, labels }: TourControlsProps) => {
     cancel,
   } = useTourControls()
 
-  const layoutClassName = cn(
-    'mt-6 flex items-center gap-3',
-    showNextButton ? 'justify-between' : 'justify-start',
-  )
-
   return (
-    <div className={layoutClassName}>
-      <div className="flex gap-2">
+    <div
+      data-tour-controls=""
+      data-has-next={showNextButton ? 'true' : 'false'}
+    >
+      <div data-tour-controls-group="secondary">
         {showBackButton ? (
           <button
             type="button"
             onClick={() => goBack()}
             disabled={backDisabled}
-            className="rounded-lg border border-slate-200 bg-transparent px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-transparent"
+            data-tour-button="secondary"
+            data-role="back"
           >
             {labels?.back ?? 'Back'}
           </button>
@@ -45,7 +43,8 @@ export const TourControls = ({ hideSkip, labels }: TourControlsProps) => {
           <button
             type="button"
             onClick={() => cancel('skipped')}
-            className="rounded-lg border border-slate-200 bg-transparent px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            data-tour-button="secondary"
+            data-role="skip"
           >
             {labels?.skip ?? 'Skip tour'}
           </button>
@@ -56,7 +55,8 @@ export const TourControls = ({ hideSkip, labels }: TourControlsProps) => {
           type="button"
           onClick={() => goNext()}
           disabled={nextDisabled}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-slate-900"
+          data-tour-button="primary"
+          data-role={isLast ? 'finish' : 'next'}
         >
           {isLast ? (labels?.finish ?? 'Finish') : (labels?.next ?? 'Next')}
         </button>

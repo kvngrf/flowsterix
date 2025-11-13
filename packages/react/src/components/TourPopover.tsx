@@ -135,10 +135,7 @@ export const TourPopover = ({
   const fallbackTransform = fallbackIsScreen
     ? 'translate3d(-50%, -50%, 0px)'
     : 'translate3d(-50%, 0%, 0px)'
-  const baseClass = cn(
-    'fixed w-max pointer-events-auto rounded-xl bg-white px-6 py-5 text-slate-900 shadow-[0_20px_45px_-20px_rgba(15,23,42,0.35)]',
-    className,
-  )
+  const baseClass = cn('fixed w-max pointer-events-auto', className)
 
   const fallbackPosition = useMemo(
     () => ({
@@ -454,61 +451,59 @@ export const TourPopover = ({
       }}
       aria-live="polite"
     >
-      <div className="">
-        {descriptionText && descriptionId ? (
-          <span id={descriptionId} className="sr-only">
-            {descriptionText}
-          </span>
-        ) : null}
-        <div className="relative">
-          {layoutMode === 'docked' || layoutMode === 'manual' ? (
-            <button
-              type="button"
+      {descriptionText && descriptionId ? (
+        <span id={descriptionId} className="sr-only">
+          {descriptionText}
+        </span>
+      ) : null}
+      <div className="relative" data-tour-popover-shell="">
+        {layoutMode === 'docked' || layoutMode === 'manual' ? (
+          <button
+            type="button"
+            className={cn(
+              'group absolute z-10 -right-3 -top-3 flex h-8 w-8 select-none items-center justify-center rounded-full bg-transparent transition-colors',
+              isDragging ? 'cursor-grabbing' : 'cursor-grab',
+              'hover:bg-slate-100/40',
+            )}
+            onPointerDown={startDrag}
+            aria-label="Move tour popover"
+            style={{ touchAction: 'none' }}
+            data-tour-popover-handle=""
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               className={cn(
-                'group absolute z-10 -right-3 -top-3 flex h-8 w-8 select-none items-center justify-center rounded-full bg-transparent transition-colors',
-                isDragging ? 'cursor-grabbing' : 'cursor-grab',
-                'hover:bg-slate-100/40',
+                'h-4 w-4 text-slate-400 transition-colors',
+                isDragging ? 'text-slate-400' : 'group-hover:text-slate-400/90',
               )}
-              onPointerDown={startDrag}
-              aria-label="Move tour popover"
-              style={{ touchAction: 'none' }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={cn(
-                  'h-4 w-4 text-slate-400 transition-colors',
-                  isDragging
-                    ? 'text-slate-400'
-                    : 'group-hover:text-slate-400/90',
-                )}
-              >
-                <path d="M12 2v20" />
-                <path d="m15 19-3 3-3-3" />
-                <path d="m19 9 3 3-3 3" />
-                <path d="M2 12h20" />
-                <path d="m5 9-3 3 3 3" />
-                <path d="m9 5 3-3 3 3" />
-              </svg>
-            </button>
-          ) : null}
-          <AnimatePresence mode="popLayout">
-            <MotionDiv
-              key={target.stepId}
-              initial={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, translateX: 0, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
-              transition={popoverContentTransition}
-            >
-              {children}
-            </MotionDiv>
-          </AnimatePresence>
-        </div>
+              <path d="M12 2v20" />
+              <path d="m15 19-3 3-3-3" />
+              <path d="m19 9 3 3-3 3" />
+              <path d="M2 12h20" />
+              <path d="m5 9-3 3 3 3" />
+              <path d="m9 5 3-3 3 3" />
+            </svg>
+          </button>
+        ) : null}
+        <AnimatePresence mode="popLayout">
+          <MotionDiv
+            key={target.stepId}
+            data-tour-popover-content=""
+            initial={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, translateX: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
+            transition={popoverContentTransition}
+          >
+            {children}
+          </MotionDiv>
+        </AnimatePresence>
       </div>
     </MotionDiv>,
     host,

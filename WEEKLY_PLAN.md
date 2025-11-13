@@ -37,7 +37,7 @@
 ## Week 4 – Polish, QA, Release Prep
 
 - [x] Deliver accessibility polish (focus trap, aria semantics, reduced motion)
-- [ ] Finalize theming via CSS variables and token documentation
+- [x] Finalize theming via CSS variables and token documentation
 - [ ] Expand analytics hooks (`onFlowStart`, `onStepEnter`, etc.) and error surface
 - [ ] Implement robust edge-case handling (missing elements, hidden targets, mobile layout)
 - [ ] Author comprehensive unit tests (Vitest) and begin Playwright scenarios

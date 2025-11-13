@@ -37,6 +37,8 @@ When using the `@tour/react` package, import its bundled CSS once in your applic
 import '@tour/react/styles.css'
 ```
 
+See `docs/guides/theming.md` for the full list of CSS variables and `data-tour-*` hooks you can override to match your design system.
+
 ### Customizing Animations
 
 The React bindings drive motion through an `AnimationAdapter` that ships with a Framer Motion-backed default. `TourProvider` accepts several options so you can adjust timing or respect user preferences without rewriting components:

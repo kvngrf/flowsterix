@@ -47,7 +47,7 @@ export const TourOverlay = ({
   padding = 12,
   radius = 12,
   color,
-  colorClassName = 'bg-slate-900/60',
+  colorClassName,
   opacity = 1,
   shadow,
   shadowClassName,
@@ -166,7 +166,7 @@ export const TourOverlay = ({
     ? { boxShadow: shadow }
     : shadowClassName
       ? undefined
-      : { boxShadow: defaultInsetShadow }
+      : { boxShadow: `var(--tour-overlay-ring-shadow, ${defaultInsetShadow})` }
 
   const { MotionDiv, MotionSvg, MotionDefs, MotionMask, MotionRect } =
     adapter.components
@@ -304,6 +304,7 @@ export const TourOverlay = ({
       className="fixed inset-0 pointer-events-none"
       style={{ zIndex }}
       aria-hidden={target.status !== 'ready'}
+      data-tour-overlay=""
     >
       <AnimatePresence mode="popLayout">
         {shouldMask ? (
@@ -363,7 +364,11 @@ export const TourOverlay = ({
           <MotionDiv
             key="tour-overlay"
             className={overlayClassName || undefined}
-            style={overlayStyle}
+            data-tour-overlay-layer="backdrop"
+            style={{
+              ...overlayStyle,
+              backgroundColor: color ?? undefined,
+            }}
             initial={{
               opacity: 0,
               '--tour-overlay-blur': '0px',
@@ -387,6 +392,7 @@ export const TourOverlay = ({
                   'pointer-events-none absolute origin-center',
                   color ? null : colorClassName,
                 )}
+                data-tour-overlay-layer="segment"
                 style={{
                   zIndex,
                   top: segment.top,
@@ -421,6 +427,7 @@ export const TourOverlay = ({
               zIndex: zIndex + 1,
               ...highlightAppearance,
             }}
+            data-tour-overlay-layer="highlight-ring"
             initial={false}
             animate={highlightRingAnimation}
             exit={{
