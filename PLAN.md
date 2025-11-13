@@ -4,7 +4,7 @@
 
 - [x] Week 1: Monorepo scaffolding, core engine, validation
 - [x] Week 2: DOM targeting and React binding
-- [ ] Week 3: Animations, positioning, router adapters
+- [x] Week 3: Animations, positioning, router adapters
 - [ ] Week 4: Accessibility polish, examples, tests, release
 
 ## 1. MVP Scope (solve 80% of use cases)
@@ -14,10 +14,10 @@
 - [x] Step system with ids, target, content, placement, mask options, advance rules
 - [x] Next/back/skip controls plus keyboard shortcuts (Enter/Space continue, Esc exit)
 - [x] Advance triggers for manual, click, change, route change, custom predicate
-- [ ] Routing-aware steps that wait for route/element readiness and optional navigation
+- [x] Routing-aware steps that wait for route/element readiness and optional navigation
 - [x] Persistence via LocalStorage with namespaced key and schema version per flow
 - [x] Serializable flow state machine: idle → running → paused → completed/cancelled
-- [ ] Framer Motion animations with swappable abstraction
+- [x] Framer Motion animations with swappable abstraction
 - [ ] Accessibility: focus management, ARIA roles, reduce-motion, screen-reader text, tabbable controls
 - [x] Developer experience foundations: typed API, Zod validation, helpful errors, dev overlay, default styles
 
@@ -27,11 +27,11 @@
 - [x] DOM anchoring utilities (query target, compute rect, observer hooks)
 - [x] Scroll manager
 - [x] StorageAdapter interface with LocalStorage implementation
-- [ ] RouterAdapter interface without runtime dependency
+- [x] RouterAdapter interface without runtime dependency
 - [x] Event bus with analytics hooks
 - [x] `@tour/react` bindings (Provider, hooks, components)
-- [ ] AnimationAdapter using Framer Motion
-- [ ] Router adapters (`@tour/react-router-adapter`, `@tour/next-adapter`)
+- [x] AnimationAdapter using Framer Motion
+- [x] Router adapters (`@tour/react-router-adapter`, `@tour/next-adapter`)
 - [ ] Optional packages (`@tour/themes`, example apps)
 
 ## 3. Core Types and DSL
@@ -50,12 +50,12 @@
 
 ## 5. Routing and Multi-page Flows
 
-- [ ] RouterAdapter interface (`onRouteChange`, `getPath`)
-- [ ] React Router and Next.js adapters
-- [ ] Step route gating with route + element readiness waiting
-- [ ] `onEnter` hooks with optional navigation support
-- [ ] `waitFor` handling for lazy-loaded content
-- [ ] Persistence across reloads resumes next ready step
+- [x] RouterAdapter interface (`onRouteChange`, `getPath`)
+- [x] React Router and Next.js adapters
+- [x] Step route gating with route + element readiness waiting
+- [x] `onEnter` hooks with optional navigation support
+- [x] `waitFor` handling for lazy-loaded content
+- [x] Persistence across reloads resumes next ready step
 
 ## 6. Persistence
 
@@ -65,17 +65,17 @@
 
 ## 7. Animations (smooth by default, swappable later)
 
-- [ ] AnimationAdapter interface for enter/exit transitions and highlight morphs
-- [ ] Framer Motion default implementation (overlay, panel, reposition transitions)
-- [ ] Respect `prefers-reduced-motion` and expose duration tokens
+- [x] AnimationAdapter interface for enter/exit transitions and highlight morphs
+- [x] Framer Motion default implementation (overlay, panel, reposition transitions)
+- [x] Respect `prefers-reduced-motion` and expose duration tokens
 
 ## 8. Positioning and Overlay
 
 - [x] Floating UI integration (or initial math) for placement/collision handling
-- [ ] Highlight mask using CSS clip-path hole with fallback
-- [ ] Observe rect changes via ResizeObserver + requestAnimationFrame updates
-- [ ] MutationObserver for mount/unmount handling
-- [ ] Scroll listeners for scrollable containers and window
+- [x] Highlight mask using CSS clip-path hole with fallback
+- [x] Observe rect changes via ResizeObserver + requestAnimationFrame updates
+- [x] MutationObserver for mount/unmount handling
+- [x] Scroll listeners for scrollable containers and window
 
 ## 9. Accessibility and UX
 
@@ -137,7 +137,7 @@
 
 - [x] Week 1: Monorepo setup, core engine, Zod validation
 - [x] Week 2: DOM targeting/observers, React binding (Provider, hooks, Overlay, Popover, controls)
-- [ ] Week 3: Framer Motion animations, Floating UI positioning, mask overlay, router adapters, waitFor support
+- [x] Week 3: Framer Motion animations, Floating UI positioning, mask overlay, router adapters, waitFor support
 - [ ] Week 4: Accessibility/theming/debug mode/errors, examples, docs, tests, publish v0.1.0
 
 ## 17. Open Questions
