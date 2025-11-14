@@ -172,6 +172,15 @@ const TourKeyboardShortcuts = ({ target }: TourKeyboardShortcutsProps) => {
   const { cancel, canGoBack, goBack, canGoNext, goNext, isActive } =
     useTourControls()
 
+  const isInteractiveElement = (node: Element | null) => {
+    if (!node) return false
+    if (node.getAttribute('role') === 'button') return true
+    if (node.hasAttribute('contenteditable')) return true
+    const interactiveSelector =
+      'button, a[href], input, textarea, select, summary, [role="button"], [data-tour-prevent-shortcut="true"]'
+    return Boolean(node.closest(interactiveSelector))
+  }
+
   useEffect(() => {
     if (!isBrowser) return
     if (!state || state.status !== 'running') return
@@ -204,6 +213,17 @@ const TourKeyboardShortcuts = ({ target }: TourKeyboardShortcutsProps) => {
 
       if (event.key === 'Enter' || event.key === ' ') {
         if (target.status !== 'ready') return
+        if (event.target instanceof Element) {
+          if (target.element && target.element.contains(event.target)) {
+            return
+          }
+          if (event.target.closest('[data-tour-popover]')) {
+            return
+          }
+          if (isInteractiveElement(event.target)) {
+            return
+          }
+        }
         if (canGoNext) {
           goNext()
           event.preventDefault()
