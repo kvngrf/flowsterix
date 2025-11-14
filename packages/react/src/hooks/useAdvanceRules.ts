@@ -182,6 +182,23 @@ export const useAdvanceRules = (target: TourTargetInfo) => {
           addCleanup(() => {
             eventTarget.removeEventListener(rule.event, handler)
           })
+
+          if (rule.event === 'click') {
+            const keyupHandler = (event: Event) => {
+              if (!(event instanceof KeyboardEvent)) return
+              if (event.repeat) return
+
+              const key = event.key
+              if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+                finish()
+              }
+            }
+
+            eventTarget.addEventListener('keyup', keyupHandler)
+            addCleanup(() => {
+              eventTarget.removeEventListener('keyup', keyupHandler)
+            })
+          }
           break
         }
         case 'predicate': {
