@@ -192,8 +192,8 @@ body[data-tour-theme='aurora'] {
   --tour-popover-shadow: 0 50px 90px -35px rgba(35, 188, 255, 0.5);
   --tour-popover-border-width: 1px;
   --tour-popover-border-color: rgba(56, 189, 248, 0.45);
-  --tour-popover-padding-block: 1.75rem;
-  --tour-popover-padding-inline: 2rem;
+  --tour-popover-padding-block: 1rem;
+  --tour-popover-padding-inline: 1.2rem;
   --tour-popover-line-height: 1.7;
   --tour-popover-gap: 1.4rem;
 
@@ -212,7 +212,7 @@ body[data-tour-theme='aurora'] {
 
   --tour-focus-ring-width: 2px;
   --tour-focus-ring-offset: 3px;
-  --tour-focus-ring-color: rgba(34, 211, 238, 0.9);
+  --tour-focus-ring-color: rgba(7, 221, 254, 0.9);
   --tour-focus-ring-offset-color: rgba(8, 18, 35, 0.95);
 
   --tour-button-primary-bg: #38bdf8;
