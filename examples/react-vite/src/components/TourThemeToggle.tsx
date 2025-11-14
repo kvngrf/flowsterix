@@ -80,6 +80,7 @@ export function TourThemeToggle({ className }: TourThemeToggleProps) {
               key={option.id}
               type="button"
               onClick={() => setTheme(option.id)}
+              onKeyDown={() => setTheme(option.id)}
               className={`relative px-3 py-1.5 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-full ${isActive ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-200 hover:text-white hover:bg-slate-600/80'}`}
               aria-pressed={isActive}
               title={option.description}
