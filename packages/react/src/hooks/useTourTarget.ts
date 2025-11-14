@@ -33,6 +33,122 @@ const INITIAL_TARGET_INFO: TourTargetInfo = {
 
 const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 
+const AUTO_SCROLL_MARGIN = 16
+
+type ScrollBehaviorSetting = ScrollBehavior | undefined
+
+const scrollContainerBy = (
+  container: Element,
+  topDelta: number,
+  leftDelta: number,
+  behavior: ScrollBehaviorSetting,
+) => {
+  if (!isBrowser) return
+  if (Math.abs(topDelta) < 0.5 && Math.abs(leftDelta) < 0.5) {
+    return
+  }
+
+  const isRootContainer =
+    container === document.body ||
+    container === document.documentElement ||
+    container === document.scrollingElement
+
+  if (isRootContainer) {
+    window.scrollBy({
+      top: topDelta,
+      left: leftDelta,
+      behavior: behavior ?? 'auto',
+    })
+    return
+  }
+
+  const elementContainer = container as HTMLElement
+  if (typeof elementContainer.scrollBy === 'function') {
+    elementContainer.scrollBy({
+      top: topDelta,
+      left: leftDelta,
+      behavior: behavior ?? 'auto',
+    })
+    return
+  }
+
+  elementContainer.scrollTop += topDelta
+  elementContainer.scrollLeft += leftDelta
+}
+
+const ensureElementInView = (
+  element: Element,
+  margin: number,
+  behavior: ScrollBehaviorSetting,
+) => {
+  if (!isBrowser) return
+
+  const scrollParents = getScrollParents(element)
+
+  const rootScroller = document.scrollingElement
+  if (rootScroller && !scrollParents.includes(rootScroller)) {
+    scrollParents.push(rootScroller)
+  }
+
+  for (const container of scrollParents) {
+    const containerRect =
+      container === rootScroller ||
+      container === document.body ||
+      container === document.documentElement
+        ? getViewportRect()
+        : getClientRect(container)
+
+    const targetRect = getClientRect(element)
+
+    let topDelta = 0
+    if (targetRect.top < containerRect.top + margin) {
+      topDelta = targetRect.top - (containerRect.top + margin)
+    } else if (targetRect.bottom > containerRect.bottom - margin) {
+      topDelta =
+        targetRect.bottom - (containerRect.bottom - margin)
+    }
+
+    let leftDelta = 0
+    if (targetRect.left < containerRect.left + margin) {
+      leftDelta = targetRect.left - (containerRect.left + margin)
+    } else if (targetRect.right > containerRect.right - margin) {
+      leftDelta =
+        targetRect.right - (containerRect.right - margin)
+    }
+
+    if (topDelta !== 0 || leftDelta !== 0) {
+      scrollContainerBy(container, topDelta, leftDelta, behavior)
+    }
+  }
+
+  const viewportRect = getViewportRect()
+  const finalRect = getClientRect(element)
+
+  let viewportTopDelta = 0
+  if (finalRect.top < viewportRect.top + margin) {
+    viewportTopDelta = finalRect.top - (viewportRect.top + margin)
+  } else if (finalRect.bottom > viewportRect.bottom - margin) {
+    viewportTopDelta =
+      finalRect.bottom - (viewportRect.bottom - margin)
+  }
+
+  let viewportLeftDelta = 0
+  if (finalRect.left < viewportRect.left + margin) {
+    viewportLeftDelta = finalRect.left - (viewportRect.left + margin)
+  } else if (finalRect.right > viewportRect.right - margin) {
+    viewportLeftDelta =
+      finalRect.right - (viewportRect.right - margin)
+  }
+
+  if (viewportTopDelta !== 0 || viewportLeftDelta !== 0) {
+    window.scrollBy({
+      top: viewportTopDelta,
+      left: viewportLeftDelta,
+      behavior: behavior ?? 'auto',
+    })
+  }
+}
+
 const resolveStepTarget = (
   target: Step<ReactNode>['target'],
 ): Element | null => {
@@ -501,9 +617,9 @@ export const useTourTarget = (): TourTargetInfo => {
       if (autoState.stepId !== activeStep.id) return
       if (!element.isConnected) return
 
-      const rect = getClientRect(element)
-      const viewport = getViewportRect()
-      const margin = 16
+  const rect = getClientRect(element)
+  const viewport = getViewportRect()
+  const margin = AUTO_SCROLL_MARGIN
 
       const fitsHeight = rect.height <= viewport.height
       const fitsWidth = rect.width <= viewport.width
@@ -528,11 +644,10 @@ export const useTourTarget = (): TourTargetInfo => {
 
       autoState.attempts += 1
 
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: fitsHeight ? 'center' : 'nearest',
-        inline: fitsWidth ? 'center' : 'nearest',
-      })
+      const behavior: ScrollBehaviorSetting =
+        autoState.attempts >= 4 ? 'auto' : 'smooth'
+
+      ensureElementInView(element, margin, behavior)
 
       autoScrollTimeoutRef.current = window.setTimeout(() => {
         autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
