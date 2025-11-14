@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import { TourThemeToggle } from './TourThemeToggle'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -49,7 +50,8 @@ export default function Header() {
             />
           </Link>
         </h1>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2 justify-end">
+          <TourThemeToggle />
           <button
             onClick={isRunning ? handleStopTour : handleStartTour}
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${

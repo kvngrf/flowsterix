@@ -101,6 +101,27 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       ),
     },
     {
+      id: 'theme-toggle',
+      target: {
+        selector: '[data-tour-target="theme-toggle"]',
+        description: 'Preset toggle for the tour HUD themes',
+      },
+      placement: 'bottom',
+      advance: [{ type: 'manual' }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Try a Different Look
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            The controls here swap the CSS variables that drive every part of
+            the HUD. Flip to the Aurora preset to see a fully restyled popover,
+            buttons, and overlay, then switch back whenever you like.
+          </p>
+        </div>
+      ),
+    },
+    {
       id: 'menu',
       target: {
         selector: '[data-tour-target="menu-button"]',

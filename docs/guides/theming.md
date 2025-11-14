@@ -97,3 +97,5 @@ With Tailwind&nbsp;CSS v4, you can author utility hooks directly:
 ## Sandbox example
 
 The Vite example app now maps the tour variables to its own design tokens. Inspect `examples/react-vite/src/styles.css` for a full reference on how the default surface is themed in both light and dark modes.
+
+Launch the example and use the **Tour theme** toggle in the header to swap between the classic style and the vivid “Aurora” preset. The toggle simply switches a `data-tour-theme` attribute on `<body>`, letting you experiment with presets or wire up your own theme picker.
