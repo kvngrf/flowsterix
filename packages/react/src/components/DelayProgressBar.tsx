@@ -39,7 +39,7 @@ export const DelayProgressBar = ({
     return null
   }
 
-  const remainingRatio = Math.min(1, Math.max(0, progress.fractionRemaining))
+  const fillRatio = Math.min(1, Math.max(0, progress.fractionElapsed))
 
   return (
     <div
@@ -64,8 +64,8 @@ export const DelayProgressBar = ({
       >
         <MotionDiv
           className={cn('tour-delay-progress-indicator', indicatorClassName)}
-          initial={{ scaleX: 1 }}
-          animate={{ scaleX: remainingRatio }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: fillRatio }}
           transition={indicatorTransition}
           style={{
             position: 'absolute',
