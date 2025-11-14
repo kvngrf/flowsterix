@@ -104,16 +104,14 @@ const ensureElementInView = (
     if (targetRect.top < containerRect.top + margin) {
       topDelta = targetRect.top - (containerRect.top + margin)
     } else if (targetRect.bottom > containerRect.bottom - margin) {
-      topDelta =
-        targetRect.bottom - (containerRect.bottom - margin)
+      topDelta = targetRect.bottom - (containerRect.bottom - margin)
     }
 
     let leftDelta = 0
     if (targetRect.left < containerRect.left + margin) {
       leftDelta = targetRect.left - (containerRect.left + margin)
     } else if (targetRect.right > containerRect.right - margin) {
-      leftDelta =
-        targetRect.right - (containerRect.right - margin)
+      leftDelta = targetRect.right - (containerRect.right - margin)
     }
 
     if (topDelta !== 0 || leftDelta !== 0) {
@@ -128,16 +126,14 @@ const ensureElementInView = (
   if (finalRect.top < viewportRect.top + margin) {
     viewportTopDelta = finalRect.top - (viewportRect.top + margin)
   } else if (finalRect.bottom > viewportRect.bottom - margin) {
-    viewportTopDelta =
-      finalRect.bottom - (viewportRect.bottom - margin)
+    viewportTopDelta = finalRect.bottom - (viewportRect.bottom - margin)
   }
 
   let viewportLeftDelta = 0
   if (finalRect.left < viewportRect.left + margin) {
     viewportLeftDelta = finalRect.left - (viewportRect.left + margin)
   } else if (finalRect.right > viewportRect.right - margin) {
-    viewportLeftDelta =
-      finalRect.right - (viewportRect.right - margin)
+    viewportLeftDelta = finalRect.right - (viewportRect.right - margin)
   }
 
   if (viewportTopDelta !== 0 || viewportLeftDelta !== 0) {
@@ -617,9 +613,9 @@ export const useTourTarget = (): TourTargetInfo => {
       if (autoState.stepId !== activeStep.id) return
       if (!element.isConnected) return
 
-  const rect = getClientRect(element)
-  const viewport = getViewportRect()
-  const margin = AUTO_SCROLL_MARGIN
+      const rect = getClientRect(element)
+      const viewport = getViewportRect()
+      const margin = AUTO_SCROLL_MARGIN
 
       const fitsHeight = rect.height <= viewport.height
       const fitsWidth = rect.width <= viewport.width
