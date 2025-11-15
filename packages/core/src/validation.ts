@@ -70,16 +70,6 @@ const waitForSchema = z
   })
   .partial()
 
-const hudOverlaySchema = z.object({
-  padding: z.number().nonnegative().optional(),
-  radius: z.number().nonnegative().optional(),
-  blur: z.number().nonnegative().optional(),
-  color: z.string().optional(),
-  colorClassName: z.string().optional(),
-  shadow: z.string().optional(),
-  shadowClassName: z.string().optional(),
-})
-
 const hudPopoverSchema = z.object({
   offset: z.number().optional(),
   role: z.string().optional(),
@@ -89,8 +79,8 @@ const hudPopoverSchema = z.object({
 })
 
 const hudSchema = z.object({
-  overlay: hudOverlaySchema.optional(),
   popover: hudPopoverSchema.optional(),
+  tokens: z.record(z.string(), z.any()).optional(),
 })
 
 const placementSchema = z.union([

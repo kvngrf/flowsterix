@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 
 import Header from '../components/Header'
 import { demoFlows } from '../tour/flows'
+import { TourThemeProvider, useTourTheme } from '../tour/theme'
 
 import appCss from '../styles.css?url'
 
@@ -42,30 +43,41 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <TourProvider
-          flows={demoFlows}
-          storageNamespace="flowster-demo"
-          autoDetectReducedMotion
-          defaultDebug={false}
-        >
-          <TanStackRouterSync />
-          <Header />
-          {children}
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-          <TourHUD />
-        </TourProvider>
+        <TourThemeProvider>
+          <TourThemeAwareShell>{children}</TourThemeAwareShell>
+        </TourThemeProvider>
         <Scripts />
       </body>
     </html>
+  )
+}
+
+const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
+  const { tokensOverride } = useTourTheme()
+
+  return (
+    <TourProvider
+      flows={demoFlows}
+      storageNamespace="flowster-demo"
+      autoDetectReducedMotion
+      defaultDebug={false}
+      tokens={tokensOverride}
+    >
+      <TanStackRouterSync />
+      <Header />
+      {children}
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel />,
+          },
+        ]}
+      />
+      <TourHUD />
+    </TourProvider>
   )
 }

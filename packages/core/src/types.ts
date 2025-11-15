@@ -99,16 +99,6 @@ export interface Step<TContent = unknown> {
   controls?: StepControls
 }
 
-export interface FlowHudOverlayOptions {
-  padding?: number
-  radius?: number
-  blur?: number
-  color?: string
-  colorClassName?: string
-  shadow?: string
-  shadowClassName?: string
-}
-
 export interface FlowHudPopoverOptions {
   offset?: number
   role?: string
@@ -117,9 +107,13 @@ export interface FlowHudPopoverOptions {
   ariaModal?: boolean
 }
 
+export interface FlowHudTokenOverrides {
+  [key: string]: unknown
+}
+
 export interface FlowHudOptions {
-  overlay?: FlowHudOverlayOptions
   popover?: FlowHudPopoverOptions
+  tokens?: FlowHudTokenOverrides
 }
 
 export interface FlowDefinition<TContent = unknown> {

@@ -30,6 +30,9 @@ import {
   defaultAnimationAdapter,
   usePreferredAnimationAdapter,
 } from './motion/animationAdapter'
+import { TokensProvider } from './theme/TokensProvider'
+import type { TourTokensOverride } from './theme/tokens'
+import { defaultTokens, mergeTokens } from './theme/tokens'
 import { isBrowser } from './utils/dom'
 
 export interface DelayAdvanceInfo {
@@ -50,6 +53,7 @@ export interface TourProviderProps {
   animationAdapter?: AnimationAdapter
   reducedMotionAdapter?: AnimationAdapter
   autoDetectReducedMotion?: boolean
+  tokens?: TourTokensOverride
 }
 
 export interface TourContextValue {
@@ -96,6 +100,7 @@ export const TourProvider = ({
   animationAdapter: animationAdapterProp = defaultAnimationAdapter,
   reducedMotionAdapter,
   autoDetectReducedMotion = true,
+  tokens: tokenOverrides,
 }: PropsWithChildren<TourProviderProps>) => {
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
@@ -390,12 +395,18 @@ export const TourProvider = ({
     enabled: autoDetectReducedMotion,
   })
 
+  const resolvedTokens = useMemo(() => {
+    return mergeTokens(defaultTokens, tokenOverrides)
+  }, [tokenOverrides])
+
   return (
-    <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
-      <TourContext.Provider value={contextValue}>
-        {children}
-      </TourContext.Provider>
-    </AnimationAdapterProvider>
+    <TokensProvider tokens={resolvedTokens}>
+      <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
+        <TourContext.Provider value={contextValue}>
+          {children}
+        </TourContext.Provider>
+      </AnimationAdapterProvider>
+    </TokensProvider>
   )
 }
 

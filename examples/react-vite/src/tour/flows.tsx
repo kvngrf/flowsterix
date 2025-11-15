@@ -77,10 +77,6 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     popover: {
       offset: 28,
     },
-    overlay: {
-      blur: 6,
-      shadow: 'inset 0 0 0 2px rgba(56,189,248,0.45)',
-    },
   },
   steps: [
     {
@@ -114,9 +110,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
             Try a Different Look
           </h2>
           <p style={{ margin: 0, lineHeight: 1.5 }}>
-            The controls here swap the CSS variables that drive every part of
-            the HUD. Flip to the Aurora preset to see a fully restyled popover,
-            buttons, and overlay, then switch back whenever you like.
+            The controls here swap the token overrides (and corresponding CSS
+            variables) that drive every part of the HUD. Flip to the Aurora or
+            Nebula presets to see dramatically different popovers, buttons, and
+            overlay treatments, then switch back whenever you like.
           </p>
         </div>
       ),

@@ -1,6 +1,6 @@
 import type { FlowState, Step } from '@tour/core'
 import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { AnimatePresence } from 'motion/react'
@@ -9,6 +9,8 @@ import { useAdvanceRules } from '../hooks/useAdvanceRules'
 import { useTourControls } from '../hooks/useTourControls'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
+import { applyTokensToDocument, cssVar, mergeTokens } from '../theme/tokens'
+import { useTourTokens } from '../theme/TokensProvider'
 import { isBrowser, portalHost } from '../utils/dom'
 import { TourControls } from './TourControls'
 import { TourFocusManager } from './TourFocusManager'
@@ -37,6 +39,42 @@ export interface TourHUDProps {
   zIndex?: number
 }
 
+const ROOT_FONT_SIZE_FALLBACK = 16
+
+let cachedRootFontSize: number | null = null
+
+const getRootFontSize = () => {
+  if (!isBrowser) return ROOT_FONT_SIZE_FALLBACK
+  if (cachedRootFontSize !== null) return cachedRootFontSize
+  const computed = window.getComputedStyle(document.documentElement).fontSize
+  const parsed = Number.parseFloat(computed)
+  cachedRootFontSize = Number.isNaN(parsed) ? ROOT_FONT_SIZE_FALLBACK : parsed
+  return cachedRootFontSize
+}
+
+const toNumericRadius = (value?: number | string): number | undefined => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : undefined
+  }
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+
+  if (trimmed.endsWith('rem')) {
+    const numeric = Number.parseFloat(trimmed.slice(0, -3))
+    if (Number.isNaN(numeric)) return undefined
+    return numeric * getRootFontSize()
+  }
+
+  if (trimmed.endsWith('px')) {
+    const numeric = Number.parseFloat(trimmed.slice(0, -2))
+    return Number.isNaN(numeric) ? undefined : numeric
+  }
+
+  const numeric = Number.parseFloat(trimmed)
+  return Number.isNaN(numeric) ? undefined : numeric
+}
+
 export const TourHUD = ({
   overlayPadding,
   overlayRadius,
@@ -44,6 +82,7 @@ export const TourHUD = ({
   renderStep,
   zIndex = 1000,
 }: TourHUDProps) => {
+  const tokens = useTourTokens()
   const { state, activeStep, activeFlowId, flows } = useTour()
   const target = useTourTarget()
   useAdvanceRules(target)
@@ -55,18 +94,30 @@ export const TourHUD = ({
   const [popoverNode, setPopoverNode] = useState<HTMLDivElement | null>(null)
 
   const flowHudOptions = activeFlowId ? flows.get(activeFlowId)?.hud : null
-  const overlayOptions = flowHudOptions?.overlay
   const popoverOptions = flowHudOptions?.popover
+  const hudTokenOverrides = flowHudOptions?.tokens
+  const hasHudTokenOverrides = Boolean(
+    hudTokenOverrides && Object.keys(hudTokenOverrides).length > 0,
+  )
 
-  const resolvedOverlayPadding =
-    overlayPadding ?? overlayOptions?.padding ?? undefined
-  const resolvedOverlayRadius =
-    overlayRadius ?? overlayOptions?.radius ?? undefined
-  const resolvedOverlayBlur = overlayOptions?.blur
-  const resolvedOverlayShadow = overlayOptions?.shadow
-  const resolvedOverlayShadowClass = overlayOptions?.shadowClassName
-  const resolvedOverlayColor = overlayOptions?.color
-  const resolvedOverlayColorClass = overlayOptions?.colorClassName
+  const mergedHudTokens = useMemo(() => {
+    if (!hasHudTokenOverrides || !hudTokenOverrides) return null
+    return mergeTokens(tokens, hudTokenOverrides)
+  }, [hasHudTokenOverrides, hudTokenOverrides, tokens])
+
+  useEffect(() => {
+    if (!hasHudTokenOverrides || !isRunning || !mergedHudTokens) return
+    const cleanup = applyTokensToDocument(mergedHudTokens)
+    return cleanup
+  }, [hasHudTokenOverrides, isRunning, mergedHudTokens])
+
+  const activeTokens =
+    hasHudTokenOverrides && mergedHudTokens ? mergedHudTokens : tokens
+
+  const tokenOverlayRadius = toNumericRadius(activeTokens.overlay.radius)
+
+  const resolvedOverlayPadding = overlayPadding ?? undefined
+  const resolvedOverlayRadius = overlayRadius ?? tokenOverlayRadius ?? undefined
 
   const resolvedPopoverOffset = popoverOptions?.offset ?? 20
   const resolvedPopoverRole = popoverOptions?.role ?? 'dialog'
@@ -127,11 +178,6 @@ export const TourHUD = ({
         target={target}
         padding={resolvedOverlayPadding}
         radius={resolvedOverlayRadius}
-        blurAmount={resolvedOverlayBlur}
-        shadow={resolvedOverlayShadow}
-        shadowClassName={resolvedOverlayShadowClass ?? undefined}
-        color={resolvedOverlayColor}
-        colorClassName={resolvedOverlayColorClass}
         zIndex={zIndex}
       />
       <AnimatePresence>
@@ -266,8 +312,14 @@ const TourDebugPanel = ({ target, zIndex }: TourDebugPanelProps) => {
 
   return createPortal(
     <div
-      className="fixed bottom-4 right-4 min-w-[260px] max-w-[320px] rounded-xl bg-slate-900 px-5 py-4 font-mono text-xs text-white shadow-[0_24px_50px_-25px_rgba(15,23,42,0.65)] pointer-events-auto"
-      style={{ zIndex }}
+      className="fixed bottom-4 right-4 min-w-[260px] max-w-[320px] rounded-xl bg-slate-900 px-5 py-4 font-mono text-xs text-white pointer-events-auto"
+      style={{
+        zIndex,
+        boxShadow: cssVar(
+          'shadow.hud.panel',
+          '0 24px 50px -25px rgba(15,23,42,0.65)',
+        ),
+      }}
     >
       <div className="mb-3 flex items-center justify-between font-semibold tracking-[0.02em]">
         <span>Tour Debug</span>

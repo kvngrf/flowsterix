@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useAnimationAdapter } from '../motion/animationAdapter'
+import type { TourTokenPath } from '../theme/tokens'
+import { cssVar } from '../theme/tokens'
 import { cn } from '../utils/cn'
 import {
   expandRect,
@@ -22,6 +24,7 @@ export interface TourOverlayProps {
   colorClassName?: string
   opacity?: number
   shadow?: string
+  shadowToken?: TourTokenPath
   shadowClassName?: string
   zIndex?: number
   edgeBuffer?: number
@@ -50,10 +53,11 @@ export const TourOverlay = ({
   colorClassName,
   opacity = 1,
   shadow,
+  shadowToken,
   shadowClassName,
   zIndex = 1000,
   edgeBuffer = 8,
-  blurAmount = 4,
+  blurAmount,
 }: TourOverlayProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -156,17 +160,20 @@ export const TourOverlay = ({
   )
   const ringClassName = cn(
     'pointer-events-none absolute origin-center',
-    shadow ? null : shadowClassName,
+    shadow || shadowToken ? null : shadowClassName,
   )
 
   const defaultInsetShadow =
     'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
 
+  const defaultRingVar = cssVar('overlay.ringShadow', defaultInsetShadow)
   const highlightAppearance = shadow
     ? { boxShadow: shadow }
-    : shadowClassName
-      ? undefined
-      : { boxShadow: `var(--tour-overlay-ring-shadow, ${defaultInsetShadow})` }
+    : shadowToken
+      ? { boxShadow: cssVar(shadowToken) }
+      : shadowClassName
+        ? undefined
+        : { boxShadow: defaultRingVar }
 
   const { MotionDiv, MotionSvg, MotionDefs, MotionMask, MotionRect } =
     adapter.components
@@ -214,12 +221,19 @@ export const TourOverlay = ({
         transform: 'translate(-50%, -50%)',
       }
 
-  const blurValue = blurAmount > 0 ? `${blurAmount}px` : '0px'
+  const hasExplicitBlur = typeof blurAmount === 'number' && blurAmount >= 0
+  const blurValue: string | null = hasExplicitBlur ? `${blurAmount}px` : null
+  const blurAnimate: Record<'--tour-overlay-blur', string> | null = blurValue
+    ? { '--tour-overlay-blur': blurValue }
+    : null
+  const blurReset: Record<'--tour-overlay-blur', string> | null = blurValue
+    ? { '--tour-overlay-blur': '0px' }
+    : null
 
   const overlayStyle: CSSProperties = {
     zIndex,
-    backdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
-    WebkitBackdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
+    backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
+    WebkitBackdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
   }
 
   if (shouldMask) {
@@ -371,14 +385,17 @@ export const TourOverlay = ({
             }}
             initial={{
               opacity: 0,
-              '--tour-overlay-blur': '0px',
+              ...(blurReset ?? {}),
               transition: overlayTransition,
             }}
             animate={{
               opacity,
-              '--tour-overlay-blur': blurValue,
+              ...(blurAnimate ?? {}),
             }}
-            exit={{ opacity: 0, '--tour-overlay-blur': '0px' }}
+            exit={{
+              opacity: 0,
+              ...(blurReset ?? {}),
+            }}
             transition={overlayTransition}
           />
         ) : null}
@@ -405,13 +422,13 @@ export const TourOverlay = ({
                 }}
                 initial={{
                   opacity: 0,
-                  '--tour-overlay-blur': '0px',
+                  ...(blurReset ?? {}),
                 }}
                 animate={{
                   opacity,
-                  '--tour-overlay-blur': blurValue,
+                  ...(blurAnimate ?? {}),
                 }}
-                exit={{ opacity: 0, '--tour-overlay-blur': '0px' }}
+                exit={{ opacity: 0, ...(blurReset ?? {}) }}
                 transition={overlayTransition}
               />
             ))

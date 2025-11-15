@@ -45,7 +45,20 @@ export type {
 } from './motion/animationAdapter'
 
 export {
-  TanStackRouterSync,
+  cssVar,
+  defaultTokens,
+  isTourTokenPath,
+  mergeTokens,
+  tokenPathToCssVar,
+} from './theme/tokens'
+export type {
+  TourTokenPath,
+  TourTokens,
+  TourTokensOverride,
+} from './theme/tokens'
+export { TokensProvider, useTourTokens } from './theme/TokensProvider'
+
+export {
   createPathString,
   getCurrentRoutePath,
   getTanStackRouter,
@@ -54,5 +67,6 @@ export {
   setTanStackRouter,
   setTourRouter,
   subscribeToRouteChanges,
+  TanStackRouterSync,
   useTanStackRouterTourAdapter,
 } from './router'

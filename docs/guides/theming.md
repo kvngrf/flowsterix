@@ -39,6 +39,9 @@ Import `@tour/react/styles.css` once, then override any of the exported CSS vari
 
 - `--tour-overlay-background`
 - `--tour-overlay-ring-shadow`
+- `--tour-overlay-blur`
+- `--tour-overlay-radius`
+- `--tour-shadow-hud-panel`
 
 Every custom property falls back to the previous visual design, so existing installs continue to look the same until you override them.
 
@@ -94,8 +97,100 @@ With Tailwind&nbsp;CSS v4, you can author utility hooks directly:
 
 (If you are using Tailwind v3, register a `data-tour` variant in your config before applying utilities.)
 
+## Token helpers & runtime overrides
+
+The React package now exports a typed token map that mirrors every CSS variable. Import the helpers when you need to:
+
+- Reference a token path without hard-coding the CSS variable name.
+- Merge overrides in JavaScript/TypeScript instead of writing a new stylesheet.
+- Point flow-level options (like the highlight ring shadow) at a reusable token.
+
+```ts
+import {
+  cssVar,
+  defaultTokens,
+  mergeTokens,
+  TourProvider,
+} from '@tour/react'
+
+const brandTokens = mergeTokens(defaultTokens, {
+  overlay: {
+    ringShadow:
+      'inset 0 0 0 2px rgba(236,72,153,0.55), inset 0 0 0 10px rgba(22,22,36,0.65)',
+    blur: '4px',
+  },
+  shadow: {
+    hud: {
+      panel: '0 30px 70px -35px rgba(13,15,40,0.85)',
+    },
+  },
+})
+
+function App() {
+  return (
+    <TourProvider flows={flows} tokens={brandTokens}>
+      {/* ... */}
+    </TourProvider>
+  )
+}
+```
+
+Inside a flow definition you can now override tokens directly, which keeps per-step styles aligned with your theme without re-specifying box-shadow strings:
+
+```ts
+export const flow = createFlow({
+  hud: {
+    tokens: {
+      overlay: {
+        ringShadow:
+          'inset 0 0 0 2px rgba(236,72,153,0.55), inset 0 0 0 10px rgba(22,22,36,0.65)',
+      },
+    },
+  },
+  steps: [
+    /* ... */
+  ],
+})
+```
+
+Anywhere you need the literal value (for example, a custom HUD component), call `cssVar('shadow.hud.panel')` to get a `var(--tour-shadow-hud-panel)` reference with the correct fallback attached.
+
+Need sharper or rounder highlight corners? Override the `overlay.radius` token once (for example, `overlay: { radius: '0px' }`) and every HUD instance will adopt the new rounding without adjusting individual flows.
+
+### Per-flow token overrides
+
+When only a single flow should diverge from your global theme, add `hud.tokens` inside that flow definition. Those overrides merge with the provider-level tokens when the flow runs, then automatically revert when it exits:
+
+```ts
+export const flow = createFlow({
+  id: 'promo-flow',
+  version: 1,
+  hud: {
+    tokens: {
+      overlay: {
+        radius: '0px',
+        ringShadow:
+          'inset 0 0 0 3px rgba(251,191,36,0.9), inset 0 0 0 12px rgba(8,7,2,0.85)',
+      },
+      button: {
+        radius: '9999px',
+        primary: {
+          bg: '#fbbf24',
+          color: '#1f2937',
+        },
+      },
+    },
+  },
+  steps: [
+    /* ... */
+  ],
+})
+```
+
+That keeps structural HUD settings (like overlay padding) available per flow while giving you complete CSS-variable parity whenever you need a bespoke visual treatment.
+
 ## Sandbox example
 
-The Vite example app now maps the tour variables to its own design tokens. Inspect `examples/react-vite/src/styles.css` for a full reference on how the default surface is themed in both light and dark modes.
+The Vite example app now maps the tour variables to its own design tokens. Inspect `examples/react-vite/src/styles.css` for a full reference on how the default surface is themed in both light and dark modes, and open `examples/react-vite/src/tour/theme.tsx` to see how runtime overrides are composed with `mergeTokens`.
 
-Launch the example and use the **Tour theme** toggle in the header to swap between the classic style and the vivid “Aurora” preset. The toggle simply switches a `data-tour-theme` attribute on `<body>`, letting you experiment with presets or wire up your own theme picker.
+Launch the example and use the **Tour theme** toggle in the header to swap between the classic style and the vivid “Aurora” and “Nebula” presets. The toggle now updates the `tokens` prop passed into `TourProvider`, which writes the matching CSS variables via `applyTokensToDocument`, while still flipping a `data-tour-theme` attribute on `<body>` so you can layer on additional CSS-only experiments if you’d like.
