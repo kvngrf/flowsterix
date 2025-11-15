@@ -11,6 +11,15 @@ import {
   isBrowser,
 } from '../utils/dom'
 
+export type TourTargetVisibility =
+  | 'unknown'
+  | 'visible'
+  | 'hidden'
+  | 'detached'
+  | 'missing'
+
+export type TourRectSource = 'none' | 'live' | 'stored' | 'viewport'
+
 export interface TourTargetInfo {
   element: Element | null
   rect: ClientRectLike | null
@@ -19,6 +28,8 @@ export interface TourTargetInfo {
   status: 'idle' | 'resolving' | 'ready'
   stepId: string | null
   lastUpdated: number
+  visibility: TourTargetVisibility
+  rectSource: TourRectSource
 }
 
 const INITIAL_TARGET_INFO: TourTargetInfo = {
@@ -29,6 +40,8 @@ const INITIAL_TARGET_INFO: TourTargetInfo = {
   status: 'idle',
   stepId: null,
   lastUpdated: 0,
+  visibility: 'unknown',
+  rectSource: 'none',
 }
 
 const lastResolvedRectByStep = new Map<string, ClientRectLike>()
@@ -36,6 +49,48 @@ const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 const AUTO_SCROLL_MARGIN = 16
 
 type ScrollBehaviorSetting = ScrollBehavior | undefined
+
+const rectHasMeaningfulSize = (rect: ClientRectLike | null) =>
+  !!rect &&
+  rect.width > 0 &&
+  rect.height > 0 &&
+  Number.isFinite(rect.top) &&
+  Number.isFinite(rect.left)
+
+const computeRectSource = (
+  rect: ClientRectLike | null,
+  storedRect: ClientRectLike | null,
+  isScreen: boolean,
+): TourRectSource => {
+  if (isScreen) return 'viewport'
+  if (rectHasMeaningfulSize(rect)) return 'live'
+  if (storedRect) return 'stored'
+  return 'none'
+}
+
+const computeVisibilityState = (
+  element: Element | null,
+  rect: ClientRectLike | null,
+  isScreen: boolean,
+): TourTargetVisibility => {
+  if (!isBrowser) return 'unknown'
+  if (isScreen) return 'visible'
+  if (!element) return 'missing'
+  if (!document.documentElement.contains(element)) return 'detached'
+  const style = window.getComputedStyle(element)
+  const hiddenByStyle =
+    style.display === 'none' ||
+    style.visibility === 'hidden' ||
+    style.visibility === 'collapse'
+  const transparent = Number.parseFloat(style.opacity || '1') === 0
+  if (hiddenByStyle || transparent) {
+    return 'hidden'
+  }
+  if (!rectHasMeaningfulSize(rect)) {
+    return 'hidden'
+  }
+  return 'visible'
+}
 
 const scrollContainerBy = (
   container: Element,
@@ -217,6 +272,8 @@ export const useTourTarget = (): TourTargetInfo => {
         status: 'resolving',
         stepId: activeStep.id,
         lastUpdated: Date.now(),
+        visibility: 'unknown',
+        rectSource: storedRect ? 'stored' : 'none',
       })
       return
     }
@@ -264,13 +321,6 @@ export const useTourTarget = (): TourTargetInfo => {
         waitForPollId = null
       }
     }
-
-    const rectHasMeaningfulSize = (rect: ClientRectLike | null) =>
-      !!rect &&
-      rect.width > 0 &&
-      rect.height > 0 &&
-      Number.isFinite(rect.top) &&
-      Number.isFinite(rect.left)
 
     const rectChanged = (nextRect: ClientRectLike | null) => {
       const previous = lastRectRef.current
@@ -384,6 +434,9 @@ export const useTourTarget = (): TourTargetInfo => {
             ? { ...storedRect }
             : null
 
+      const visibility = computeVisibilityState(element ?? null, rect, isScreen)
+      const rectSource = computeRectSource(rect, lastResolvedRect, isScreen)
+
       setTargetInfo({
         element: element ?? null,
         rect,
@@ -392,6 +445,8 @@ export const useTourTarget = (): TourTargetInfo => {
         status: nextStatus,
         stepId: currentStep.id,
         lastUpdated: Date.now(),
+        visibility,
+        rectSource,
       })
     }
 

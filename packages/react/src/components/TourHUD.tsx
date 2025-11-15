@@ -198,6 +198,7 @@ export const TourHUD = ({
               descriptionText={targetDescription ?? undefined}
               onContainerChange={setPopoverNode}
             >
+              <TargetIssueNotice target={target} />
               {runningStep.content}
               {showControls ? <TourControls /> : null}
             </TourPopover>
@@ -293,6 +294,102 @@ const TourKeyboardShortcuts = ({ target }: TourKeyboardShortcutsProps) => {
   ])
 
   return null
+}
+
+interface TargetIssue {
+  type: 'missing' | 'hidden' | 'detached'
+  title: string
+  body: string
+  hint?: string
+}
+
+const deriveTargetIssue = (target: TourTargetInfo): TargetIssue | null => {
+  if (target.isScreen) return null
+  if (target.status === 'idle') return null
+  switch (target.visibility) {
+    case 'missing':
+      return {
+        type: 'missing',
+        title: 'Looking for the target',
+        body: 'Flowster is still trying to find this element. Make sure the UI piece is mounted or adjust the selector.',
+        hint:
+          target.rectSource === 'stored'
+            ? 'Showing the last known position until the element returns.'
+            : undefined,
+      }
+    case 'hidden':
+      return {
+        type: 'hidden',
+        title: 'Target is hidden',
+        body: 'The element exists but is currently hidden, collapsed, or zero-sized. Expand it so the highlight can lock on.',
+      }
+    case 'detached':
+      return {
+        type: 'detached',
+        title: 'Target left the page',
+        body: 'Navigate back to the screen that contains this element or reopen it before continuing the tour.',
+      }
+    default:
+      return null
+  }
+}
+
+const TargetIssueNotice = ({ target }: { target: TourTargetInfo }) => {
+  const [armed, setArmed] = useState(false)
+  const issue = useMemo(
+    () => deriveTargetIssue(target),
+    [target.isScreen, target.rectSource, target.status, target.visibility],
+  )
+
+  useEffect(() => {
+    if (!issue) {
+      setArmed(false)
+      return
+    }
+    if (!isBrowser) {
+      setArmed(true)
+      return
+    }
+    let timeoutId: ReturnType<typeof window.setTimeout> | null = null
+    timeoutId = window.setTimeout(() => setArmed(true), 500)
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [issue?.type, target.stepId])
+
+  if (!issue || !armed) {
+    return null
+  }
+
+  return (
+    <div
+      data-tour-target-alert=""
+      data-variant={issue.type}
+      role="status"
+      aria-live="polite"
+    >
+      <div data-tour-target-alert-icon="" aria-hidden>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        </svg>
+      </div>
+      <div data-tour-target-alert-body="">
+        <p data-tour-target-alert-title="">{issue.title}</p>
+        <p>{issue.body}</p>
+        {issue.hint ? <p data-tour-target-alert-hint="">{issue.hint}</p> : null}
+      </div>
+    </div>
+  )
 }
 
 interface TourDebugPanelProps {

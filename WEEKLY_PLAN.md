@@ -39,7 +39,7 @@
 - [x] Deliver accessibility polish (focus trap, aria semantics, reduced motion)
 - [x] Finalize theming via CSS variables and token documentation
 - [ ] Expand analytics hooks (`onFlowStart`, `onStepEnter`, etc.) and error surface
-- [ ] Implement robust edge-case handling (missing elements, hidden targets, mobile layout)
+- [x] Implement robust edge-case handling (missing elements, hidden targets, mobile layout)
 - [ ] Author comprehensive unit tests (Vitest) and begin Playwright scenarios
 - [ ] Capture visual regression snapshots for key placements/themes
 - [ ] Create example apps (React Vite, Next.js) and usage docs

@@ -113,6 +113,18 @@ Key details:
 - `waitFor.timeout` defaults to 8000 ms. When exceeded, the tour continues with the last known rect and logs a console warning to help diagnose slow render paths.
 - The hook registers `MutationObserver`, `ResizeObserver`, `scroll`, and `requestAnimationFrame` listeners so the highlight adjusts as async content settles.
 
+## Handling Missing or Hidden Targets
+
+Sequenced UI rarely behaves perfectly—routes change, accordions collapse, and selectors drift. The HUD now surfaces a lightweight status banner inside the popover whenever the current target can’t be highlighted:
+
+- **Looking for the target** appears when the selector hasn’t resolved yet. The popover docks to the viewport and, when possible, shows the last known position so the user can keep reading.
+- **Target is hidden** triggers when the DOM node exists but has zero size or is visually hidden. Prompt users to expand the collapsed UI before advancing.
+- **Target left the page** indicates the element was removed (often due to navigation). The tour pauses highlight rendering until the user returns to the expected route.
+
+Each state is also exposed via `data-target-visibility` and `data-rect-source` attributes on `[data-tour-popover]`, so you can wire your own visual treatments or analytics when a step is operating in fallback mode.
+
+These safeguards pair nicely with `waitFor`, route gating, and `onResume` hooks: you can keep the experience resilient without blocking progression when content isn’t instantly available.
+
 ## Troubleshooting Checklist
 
 - **HUD opens on the wrong page:** ensure an adapter calls `notifyRouteChange` and that `onResume` handlers navigate using your router instead of `window.location`.

@@ -14,6 +14,7 @@ import type { StepPlacement } from '@tour/core'
 import type { Transition } from 'motion/react'
 import { AnimatePresence } from 'motion/react'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
+import { useViewportRect } from '../hooks/useViewportRect'
 import { useAnimationAdapter } from '../motion/animationAdapter'
 import { cn } from '../utils/cn'
 import type { ClientRectLike } from '../utils/dom'
@@ -21,6 +22,9 @@ import { getViewportRect, isBrowser, portalHost } from '../utils/dom'
 
 const FLOATING_OFFSET = 8
 const DOCKED_MARGIN = 24
+const MOBILE_BREAKPOINT = 640
+const MOBILE_HEIGHT_BREAKPOINT = 560
+const MOBILE_HORIZONTAL_GUTTER = 12
 const DEFAULT_POPOVER_ENTRANCE_TRANSITION: Transition = {
   duration: 0.25,
   ease: 'easeOut',
@@ -37,7 +41,8 @@ export interface TourPopoverProps {
   target: TourTargetInfo
   children: ReactNode
   offset?: number
-  maxWidth?: number
+  width?: number | string
+  maxWidth?: number | string
   zIndex?: number
   className?: string
   placement?: StepPlacement
@@ -54,7 +59,8 @@ export const TourPopover = ({
   target,
   children,
   offset = 16,
-  maxWidth = 360,
+  width,
+  maxWidth,
   zIndex = 1001,
   className,
   placement,
@@ -71,14 +77,22 @@ export const TourPopover = ({
   if (!host) return null
   const adapter = useAnimationAdapter()
 
-  const viewport = getViewportRect()
+  const viewport = useViewportRect()
+  const prefersMobileLayout =
+    viewport.width <= MOBILE_BREAKPOINT ||
+    viewport.height <= MOBILE_HEIGHT_BREAKPOINT
+  const prefersMobileRef = useRef(prefersMobileLayout)
+  useEffect(() => {
+    prefersMobileRef.current = prefersMobileLayout
+  }, [prefersMobileLayout])
+
   const lastReadyTargetRef = useRef<{
     rect: ClientRectLike
     isScreen: boolean
   } | null>(null)
   const [layoutMode, setLayoutMode] = useState<
-    'floating' | 'docked' | 'manual'
-  >('floating')
+    'floating' | 'docked' | 'manual' | 'mobile'
+  >(() => (prefersMobileLayout ? 'mobile' : 'floating'))
   const [dragPosition, setDragPosition] = useState<{
     top: number
     left: number
@@ -180,6 +194,15 @@ export const TourPopover = ({
     [viewport.height, viewport.width],
   )
 
+  const mobilePosition = useMemo(
+    () => ({
+      top: viewport.height - MOBILE_HORIZONTAL_GUTTER,
+      left: viewport.width / 2,
+      transform: 'translate3d(-50%, -100%, 0px)',
+    }),
+    [viewport.height, viewport.width],
+  )
+
   useEffect(() => {
     if (layoutMode === 'docked') {
       setFloatingPosition(dockedPosition)
@@ -187,8 +210,14 @@ export const TourPopover = ({
   }, [dockedPosition, layoutMode])
 
   useEffect(() => {
+    if (layoutMode === 'mobile') {
+      setFloatingPosition(mobilePosition)
+    }
+  }, [layoutMode, mobilePosition])
+
+  useEffect(() => {
     setDragPosition(null)
-    setLayoutMode('floating')
+    setLayoutMode(prefersMobileRef.current ? 'mobile' : 'floating')
   }, [target.stepId])
 
   useEffect(() => {
@@ -196,6 +225,20 @@ export const TourPopover = ({
       setDragPosition(null)
     }
   }, [layoutMode])
+
+  useEffect(() => {
+    if (prefersMobileLayout) {
+      if (layoutMode !== 'mobile') {
+        setLayoutMode('mobile')
+        setDragPosition(null)
+      }
+      return
+    }
+    if (layoutMode === 'mobile') {
+      setLayoutMode('floating')
+      setFloatingPosition(fallbackPosition)
+    }
+  }, [fallbackPosition, layoutMode, prefersMobileLayout])
 
   useLayoutEffect(() => {
     if (!isBrowser) return
@@ -316,12 +359,12 @@ export const TourPopover = ({
   const clampToViewport = (rawLeft: number, rawTop: number) => {
     const rect = getViewportRect()
     const floatingEl = floatingRef.current
-    const width = floatingEl?.offsetWidth ?? 0
-    const height = floatingEl?.offsetHeight ?? 0
+    const floatingWidth = floatingEl?.offsetWidth ?? 0
+    const floatingHeight = floatingEl?.offsetHeight ?? 0
     const minLeft = rect.left + FLOATING_OFFSET
-    const maxLeft = rect.left + rect.width - width - FLOATING_OFFSET
+    const maxLeft = rect.left + rect.width - floatingWidth - FLOATING_OFFSET
     const minTop = rect.top + FLOATING_OFFSET
-    const maxTop = rect.top + rect.height - height - FLOATING_OFFSET
+    const maxTop = rect.top + rect.height - floatingHeight - FLOATING_OFFSET
     return {
       left: Math.min(Math.max(rawLeft, minLeft), Math.max(minLeft, maxLeft)),
       top: Math.min(Math.max(rawTop, minTop), Math.max(minTop, maxTop)),
@@ -392,7 +435,27 @@ export const TourPopover = ({
   useEffect(() => endDrag, [])
 
   const shouldUseFallbackInitial =
-    Boolean(target.lastResolvedRect) || Boolean(cachedTarget)
+    layoutMode !== 'mobile' &&
+    (Boolean(target.lastResolvedRect) || Boolean(cachedTarget))
+
+  const initialTop =
+    layoutMode === 'mobile'
+      ? mobilePosition.top
+      : shouldUseFallbackInitial
+        ? fallbackPosition.top
+        : centerInitialPosition.top
+  const initialLeft =
+    layoutMode === 'mobile'
+      ? mobilePosition.left
+      : shouldUseFallbackInitial
+        ? fallbackPosition.left
+        : centerInitialPosition.left
+  const initialTransform =
+    layoutMode === 'mobile'
+      ? mobilePosition.transform
+      : shouldUseFallbackInitial
+        ? fallbackPosition.transform
+        : centerInitialPosition.transform
 
   const { MotionDiv } = adapter.components
   const popoverEntranceTransition =
@@ -411,6 +474,7 @@ export const TourPopover = ({
         'overflow-hidden',
         layoutMode === 'docked' ? 'tour-popover--docked' : null,
         layoutMode === 'manual' ? 'tour-popover--manual' : null,
+        layoutMode === 'mobile' ? 'tour-popover--mobile' : null,
       )}
       role={role ?? 'dialog'}
       aria-modal={ariaModal ?? false}
@@ -419,23 +483,26 @@ export const TourPopover = ({
       tabIndex={-1}
       data-tour-popover=""
       data-layout={layoutMode}
+      data-target-visibility={target.visibility}
+      data-rect-source={target.rectSource}
       style={{
         zIndex,
-        maxWidth,
+        maxWidth:
+          layoutMode === 'mobile' || typeof maxWidth === 'undefined'
+            ? undefined
+            : maxWidth,
+        width:
+          layoutMode === 'mobile' || typeof width === 'undefined'
+            ? undefined
+            : width,
         cursor: isDragging ? 'grabbing' : undefined,
       }}
       initial={{
         filter: 'blur(4px)',
         opacity: 0,
-        top: shouldUseFallbackInitial
-          ? fallbackPosition.top
-          : centerInitialPosition.top,
-        left: shouldUseFallbackInitial
-          ? fallbackPosition.left
-          : centerInitialPosition.left,
-        transform: shouldUseFallbackInitial
-          ? fallbackPosition.transform
-          : centerInitialPosition.transform,
+        top: initialTop,
+        left: initialLeft,
+        transform: initialTransform,
       }}
       animate={{
         filter: 'blur(0px)',

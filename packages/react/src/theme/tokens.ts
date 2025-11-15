@@ -31,6 +31,8 @@ const defaultTokens = {
     foreground: '#0f172a',
     radius: '0.75rem',
     shadow: '0 20px 45px -20px rgba(15, 23, 42, 0.35)',
+    width: 'auto',
+    maxWidth: '360px',
     border: {
       width: '0px',
       color: 'transparent',
@@ -41,6 +43,17 @@ const defaultTokens = {
     },
     lineHeight: '1.6',
     gap: '1rem',
+    mobile: {
+      width: 'min(100vw, 32rem)',
+      maxWidth: 'min(100vw, 32rem)',
+      radius: '1.25rem 1.25rem 0 0',
+      padding: {
+        top: 'clamp(0.75rem, 3vw, 1.25rem)',
+        bottom:
+          'calc(var(--tour-popover-padding-block, 1.25rem) + env(safe-area-inset-bottom, 0px))',
+        inline: 'clamp(1rem, 4vw, 1.25rem)',
+      },
+    },
   },
   controls: {
     marginBlockStart: '1.5rem',
@@ -90,6 +103,24 @@ const defaultTokens = {
   shadow: {
     hud: {
       panel: '0 24px 50px -25px rgba(15, 23, 42, 0.65)',
+    },
+  },
+  targetAlert: {
+    background: 'rgba(15, 23, 42, 0.04)',
+    border: 'rgba(15, 23, 42, 0.08)',
+    color: 'rgb(15 23 42)',
+    hintColor: 'rgba(15, 23, 42, 0.7)',
+    icon: {
+      background: 'rgba(15, 23, 42, 0.08)',
+      color: 'rgb(15 23 42)',
+    },
+    hidden: {
+      background: 'rgba(251, 191, 36, 0.16)',
+      border: 'rgba(245, 158, 11, 0.4)',
+    },
+    detached: {
+      background: 'rgba(248, 113, 113, 0.16)',
+      border: 'rgba(239, 68, 68, 0.4)',
     },
   },
 } as const satisfies TokenBranch

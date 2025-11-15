@@ -63,8 +63,13 @@ export const TourFocusManager = ({
       if (popoverNode) {
         nodes.push(...getFocusableIn(popoverNode))
       }
-      if (!target.isScreen && target.element instanceof HTMLElement) {
-        const targetElement = target.element
+      const targetIsFocusable =
+        !target.isScreen &&
+        target.visibility === 'visible' &&
+        target.element instanceof HTMLElement
+
+      if (targetIsFocusable) {
+        const targetElement = target.element as HTMLElement
         if (
           !targetElement.closest('[data-tour-focus-skip="true"]') &&
           isFocusableElement(targetElement)
@@ -160,7 +165,12 @@ export const TourFocusManager = ({
     }
 
     observe(popoverNode)
-    if (!target.isScreen && target.element instanceof HTMLElement) {
+    const targetIsFocusable =
+      !target.isScreen &&
+      target.visibility === 'visible' &&
+      target.element instanceof HTMLElement
+
+    if (targetIsFocusable) {
       observe(target.element)
     }
 
@@ -177,6 +187,7 @@ export const TourFocusManager = ({
     target.lastUpdated,
     target.status,
     target.stepId,
+    target.visibility,
   ])
 
   return null
