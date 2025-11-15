@@ -12,7 +12,11 @@ declare global {
 const logEvent = (level: AnalyticsLevel, event: string, payload: unknown) => {
   const namespace = `[tour][demo][analytics] ${event}`
   const logger =
-    level === 'error' ? console.error : level === 'warn' ? console.warn : console.info
+    level === 'error'
+      ? console.error
+      : level === 'warn'
+        ? console.warn
+        : console.info
   logger(namespace, payload)
 }
 

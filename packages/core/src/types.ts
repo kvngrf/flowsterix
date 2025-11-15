@@ -209,7 +209,10 @@ export interface FlowEvents<TContent = unknown>
 type AnalyticsHandlerName<TName extends string> = `on${Capitalize<TName>}`
 
 export type FlowAnalyticsHandlers<TContent = unknown> = {
-  [TKey in Extract<keyof FlowEvents<TContent>, string> as AnalyticsHandlerName<TKey>]?: (
+  [TKey in Extract<
+    keyof FlowEvents<TContent>,
+    string
+  > as AnalyticsHandlerName<TKey>]?: (
     payload: FlowEvents<TContent>[TKey],
   ) => void
 }

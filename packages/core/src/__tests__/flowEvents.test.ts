@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createFlowStore } from '../state'
-import type { FlowAnalyticsHandlers, FlowDefinition } from '../types'
 import type { StorageAdapter } from '../storage'
+import type { FlowAnalyticsHandlers, FlowDefinition } from '../types'
 
 const demoFlow: FlowDefinition<string> = {
   id: 'demo',

@@ -109,12 +109,17 @@ import { TourProvider } from '@tour/react'
 
 const analytics = {
   onFlowStart: ({ flow }) => console.log('Flow started', flow.id),
-  onStepEnter: ({ currentStep }) => window.plausible?.('Tour Step', { props: { id: currentStep.id } }),
+  onStepEnter: ({ currentStep }) =>
+    window.plausible?.('Tour Step', { props: { id: currentStep.id } }),
   onFlowError: ({ code, error }) => reportError(code, error),
 }
 
 export function App() {
-  return <TourProvider flows={flows} analytics={analytics}>{/* ... */}</TourProvider>
+  return (
+    <TourProvider flows={flows} analytics={analytics}>
+      {/* ... */}
+    </TourProvider>
+  )
 }
 ```
 
