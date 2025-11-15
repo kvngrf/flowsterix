@@ -98,6 +98,28 @@ Adapters can provide alternative motion components (e.g. `animated.div`) and tun
 
 Flows auto-detect `prefers-reduced-motion`, trap keyboard focus within the popover and highlighted target, and expose hooks for extra ARIA metadata. See `docs/guides/accessibility.md` for details on overriding popover roles, adding custom descriptions, or excluding controls from the focus loop.
 
+## Analytics & Error Reporting
+
+Every `FlowStore` exposes an event bus so you can subscribe to lifecycle changes such as `flowStart`, `stepEnter`, and `flowComplete`. In React you can listen through `useTourEvents('stepEnter', handler)` to drive custom product analytics.
+
+For zero-boilerplate tracking, pass an `analytics` object to `TourProvider`. Each handler mirrors the event name (e.g. `onFlowStart`, `onStepExit`, `onFlowError`) and receives the typed payload from the core runtime:
+
+```tsx
+import { TourProvider } from '@tour/react'
+
+const analytics = {
+  onFlowStart: ({ flow }) => console.log('Flow started', flow.id),
+  onStepEnter: ({ currentStep }) => window.plausible?.('Tour Step', { props: { id: currentStep.id } }),
+  onFlowError: ({ code, error }) => reportError(code, error),
+}
+
+export function App() {
+  return <TourProvider flows={flows} analytics={analytics}>{/* ... */}</TourProvider>
+}
+```
+
+The core now surfaces structured error events with stable codes (e.g. `storage.persist_failed`, `flow.step_not_found`), so you can alert or fallback before the UI fails silently.
+
 ## Linting & Formatting
 
 This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:

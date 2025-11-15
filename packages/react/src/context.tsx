@@ -1,5 +1,6 @@
 import type {
   EventBus,
+  FlowAnalyticsHandlers,
   FlowDefinition,
   FlowEvents,
   FlowState,
@@ -54,6 +55,7 @@ export interface TourProviderProps {
   reducedMotionAdapter?: AnimationAdapter
   autoDetectReducedMotion?: boolean
   tokens?: TourTokensOverride
+  analytics?: FlowAnalyticsHandlers<ReactNode>
 }
 
 export interface TourContextValue {
@@ -101,6 +103,7 @@ export const TourProvider = ({
   reducedMotionAdapter,
   autoDetectReducedMotion = true,
   tokens: tokenOverrides,
+  analytics,
 }: PropsWithChildren<TourProviderProps>) => {
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
@@ -173,6 +176,7 @@ export const TourProvider = ({
           ? `${storageNamespace}:${definition.id}`
           : undefined,
         persistOnChange,
+        analytics,
       })
 
       unsubscribeRef.current = store.subscribe(setState)
@@ -180,7 +184,14 @@ export const TourProvider = ({
       storeRef.current = store
       return store
     },
-    [flowMap, persistOnChange, storageAdapter, storageNamespace, teardownStore],
+    [
+      analytics,
+      flowMap,
+      persistOnChange,
+      storageAdapter,
+      storageNamespace,
+      teardownStore,
+    ],
   )
 
   const getActiveStore = useCallback((): FlowStore<ReactNode> => {

@@ -6,6 +6,7 @@ import '@tour/react/styles.css'
 import type { ReactNode } from 'react'
 
 import Header from '../components/Header'
+import { demoAnalytics } from '../tour/analytics'
 import { demoFlows } from '../tour/flows'
 import { TourThemeProvider, useTourTheme } from '../tour/theme'
 
@@ -61,6 +62,7 @@ const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
       storageNamespace="flowster-demo"
       autoDetectReducedMotion
       defaultDebug={false}
+      analytics={demoAnalytics}
       tokens={tokensOverride}
     >
       <TanStackRouterSync />

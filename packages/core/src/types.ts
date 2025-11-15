@@ -14,6 +14,48 @@ export interface FlowState {
   updatedAt: number
 }
 
+export type StepDirection = 'forward' | 'backward' | 'none'
+
+export type StepEnterReason = 'start' | 'resume' | 'advance' | 'back' | 'jump'
+
+export type StepExitReason =
+  | 'advance'
+  | 'back'
+  | 'pause'
+  | 'cancel'
+  | 'complete'
+  | 'unknown'
+
+export type StepCompleteReason = 'advance' | 'flowComplete'
+
+export interface StepTransitionPayload<TContent = unknown> {
+  flow: FlowDefinition<TContent>
+  state: FlowState
+  currentStep: Step<TContent> | null
+  currentStepIndex: number
+  previousStep: Step<TContent> | null
+  previousStepIndex: number
+  direction: StepDirection
+}
+
+export interface StepEnterEvent<TContent = unknown>
+  extends StepTransitionPayload<TContent> {
+  currentStep: Step<TContent>
+  reason: StepEnterReason
+}
+
+export interface StepExitEvent<TContent = unknown>
+  extends StepTransitionPayload<TContent> {
+  previousStep: Step<TContent>
+  reason: StepExitReason
+}
+
+export interface StepCompleteEvent<TContent = unknown>
+  extends StepTransitionPayload<TContent> {
+  previousStep: Step<TContent>
+  reason: StepCompleteReason
+}
+
 export type StepPlacement =
   | 'auto'
   | 'top'
@@ -124,6 +166,22 @@ export interface FlowDefinition<TContent = unknown> {
   metadata?: Record<string, unknown>
 }
 
+export type FlowErrorCode =
+  | 'async.schedule_failed'
+  | 'storage.persist_failed'
+  | 'storage.remove_failed'
+  | 'storage.hydrate_failed'
+  | 'flow.step_not_found'
+  | 'flow.store_destroyed'
+
+export interface FlowErrorEvent<TContent = unknown> {
+  flow: FlowDefinition<TContent>
+  state: FlowState
+  code: FlowErrorCode
+  error?: unknown
+  meta?: Record<string, unknown>
+}
+
 export interface FlowEvents<TContent = unknown>
   extends Record<string, unknown> {
   flowStart: { flow: FlowDefinition<TContent>; state: FlowState }
@@ -142,6 +200,18 @@ export interface FlowEvents<TContent = unknown>
     previousStep: Step<TContent> | null
   }
   stateChange: { flow: FlowDefinition<TContent>; state: FlowState }
+  stepEnter: StepEnterEvent<TContent>
+  stepExit: StepExitEvent<TContent>
+  stepComplete: StepCompleteEvent<TContent>
+  flowError: FlowErrorEvent<TContent>
+}
+
+type AnalyticsHandlerName<TName extends string> = `on${Capitalize<TName>}`
+
+export type FlowAnalyticsHandlers<TContent = unknown> = {
+  [TKey in Extract<keyof FlowEvents<TContent>, string> as AnalyticsHandlerName<TKey>]?: (
+    payload: FlowEvents<TContent>[TKey],
+  ) => void
 }
 
 export interface StartFlowOptions {

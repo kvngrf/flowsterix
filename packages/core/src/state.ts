@@ -3,12 +3,18 @@ import { createEventBus } from './events'
 import type { StorageAdapter, StorageSnapshot } from './storage'
 import { resolveMaybePromise } from './storage'
 import type {
+  FlowAnalyticsHandlers,
   FlowDefinition,
+  FlowErrorCode,
   FlowEvents,
   FlowState,
   FlowStore,
   StartFlowOptions,
   Step,
+  StepCompleteReason,
+  StepDirection,
+  StepEnterReason,
+  StepExitReason,
 } from './types'
 
 export interface FlowStoreOptions<TContent = unknown> {
@@ -17,6 +23,7 @@ export interface FlowStoreOptions<TContent = unknown> {
   eventBus?: EventBus<FlowEvents<TContent>>
   now?: () => number
   persistOnChange?: boolean
+  analytics?: FlowAnalyticsHandlers<TContent>
 }
 
 interface CommitOptions {
@@ -35,6 +42,50 @@ const clampIndex = (value: number, max: number) => {
 }
 
 const cloneState = (state: FlowState): FlowState => ({ ...state })
+
+const getStepDirection = (
+  previousIndex: number,
+  currentIndex: number,
+): StepDirection => {
+  if (currentIndex > previousIndex) return 'forward'
+  if (currentIndex < previousIndex) return 'backward'
+  return 'none'
+}
+
+const getStepEnterReason = (
+  previousState: FlowState,
+  currentState: FlowState,
+  direction: StepDirection,
+): StepEnterReason => {
+  if (previousState.status === 'idle' && currentState.status === 'running') {
+    return 'start'
+  }
+  if (previousState.status === 'paused' && currentState.status === 'running') {
+    return 'resume'
+  }
+  if (direction === 'forward') return 'advance'
+  if (direction === 'backward') return 'back'
+  return 'jump'
+}
+
+const getStepExitReason = (
+  currentState: FlowState,
+  direction: StepDirection,
+): StepExitReason => {
+  if (currentState.status === 'paused') return 'pause'
+  if (currentState.status === 'cancelled') return 'cancel'
+  if (currentState.status === 'completed') return 'complete'
+  if (direction === 'forward') return 'advance'
+  if (direction === 'backward') return 'back'
+  return 'unknown'
+}
+
+const getStepCompleteReason = (currentState: FlowState): StepCompleteReason => {
+  if (currentState.status === 'completed') {
+    return 'flowComplete'
+  }
+  return 'advance'
+}
 
 const createInitialState = <TContent>(
   definition: FlowDefinition<TContent>,
@@ -86,6 +137,7 @@ export const createFlowStore = <TContent>(
     eventBus = createEventBus<FlowEvents<TContent>>(),
     now = () => Date.now(),
     persistOnChange = true,
+    analytics,
   } = flowOptions
 
   let state = createInitialState(definition, now)
@@ -96,6 +148,47 @@ export const createFlowStore = <TContent>(
   let hasHydrated = !storageAdapter
   let pendingStartOptions: StartFlowOptions | undefined
 
+  const callAnalytics = <
+    TEvent extends Extract<keyof FlowEvents<TContent>, string>,
+  >(
+    event: TEvent,
+    payload: FlowEvents<TContent>[TEvent],
+  ) => {
+    if (!analytics) return
+    const eventName = String(event)
+    const handlerKey = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(
+      1,
+    )}` as keyof FlowAnalyticsHandlers<TContent>
+    const handler = analytics[handlerKey] as
+      | ((value: FlowEvents<TContent>[TEvent]) => void)
+      | undefined
+    handler?.(payload)
+  }
+
+  const emitEvent = <
+    TEvent extends Extract<keyof FlowEvents<TContent>, string>,
+  >(
+    event: TEvent,
+    payload: FlowEvents<TContent>[TEvent],
+  ) => {
+    eventBus.emit(event, payload)
+    callAnalytics(event, payload)
+  }
+
+  const emitFlowError = (
+    code: FlowErrorCode,
+    error: unknown,
+    meta?: Record<string, unknown>,
+  ) => {
+    emitEvent('flowError', {
+      flow: definition,
+      state,
+      code,
+      error,
+      meta,
+    })
+  }
+
   const scheduleMicrotask = (fn: () => void) => {
     if (typeof queueMicrotask === 'function') {
       queueMicrotask(fn)
@@ -105,6 +198,9 @@ export const createFlowStore = <TContent>(
       .then(fn)
       .catch((error) => {
         console.warn('[tour][flow] async scheduling failed', error)
+        emitFlowError('async.schedule_failed', error, {
+          operation: 'queueMicrotaskFallback',
+        })
       })
   }
 
@@ -130,6 +226,7 @@ export const createFlowStore = <TContent>(
     if (result instanceof Promise) {
       result.catch((error) => {
         console.warn('[tour][storage] Failed to persist flow state', error)
+        emitFlowError('storage.persist_failed', error, { key: storageKey })
       })
     }
   }
@@ -143,39 +240,103 @@ export const createFlowStore = <TContent>(
       if (currentState.status === 'running') {
         const payload = { flow: definition, state: currentState }
         if (previousState.status === 'paused') {
-          eventBus.emit('flowResume', payload)
+          emitEvent('flowResume', payload)
         } else {
-          eventBus.emit('flowStart', payload)
+          emitEvent('flowStart', payload)
         }
       }
       if (currentState.status === 'paused') {
-        eventBus.emit('flowPause', { flow: definition, state: currentState })
+        emitEvent('flowPause', { flow: definition, state: currentState })
       }
       if (currentState.status === 'cancelled') {
-        eventBus.emit('flowCancel', {
+        emitEvent('flowCancel', {
           flow: definition,
           state: currentState,
           reason: lifecycleOptions?.cancelReason,
         })
       }
       if (currentState.status === 'completed') {
-        eventBus.emit('flowComplete', { flow: definition, state: currentState })
+        emitEvent('flowComplete', { flow: definition, state: currentState })
       }
+    }
+
+    const previousStep = getStep(definition, previousState.stepIndex)
+    const currentStep = getStep(definition, currentState.stepIndex)
+    const direction = getStepDirection(
+      previousState.stepIndex,
+      currentState.stepIndex,
+    )
+
+    const shouldEmitStepExit =
+      previousStep !== null &&
+      (direction !== 'none' || currentState.status !== 'running')
+
+    if (shouldEmitStepExit) {
+      const exitedStep = previousStep
+      emitEvent('stepExit', {
+        flow: definition,
+        state: currentState,
+        currentStep,
+        currentStepIndex: currentState.stepIndex,
+        previousStep: exitedStep,
+        previousStepIndex: previousState.stepIndex,
+        direction,
+        reason: getStepExitReason(currentState, direction),
+      })
+    }
+
+    const shouldEmitStepComplete =
+      previousStep !== null &&
+      (direction === 'forward' ||
+        (currentState.status === 'completed' &&
+          previousState.status !== 'completed'))
+
+    if (shouldEmitStepComplete) {
+      const completedStep = previousStep
+      emitEvent('stepComplete', {
+        flow: definition,
+        state: currentState,
+        currentStep,
+        currentStepIndex: currentState.stepIndex,
+        previousStep: completedStep,
+        previousStepIndex: previousState.stepIndex,
+        direction,
+        reason: getStepCompleteReason(currentState),
+      })
+    }
+
+    const shouldEmitStepEnter =
+      currentState.status === 'running' &&
+      currentStep !== null &&
+      (direction !== 'none' || previousState.status !== 'running')
+
+    if (shouldEmitStepEnter) {
+      const enteredStep = currentStep
+      emitEvent('stepEnter', {
+        flow: definition,
+        state: currentState,
+        currentStep: enteredStep,
+        currentStepIndex: currentState.stepIndex,
+        previousStep,
+        previousStepIndex: previousState.stepIndex,
+        direction,
+        reason: getStepEnterReason(previousState, currentState, direction),
+      })
     }
 
     if (
       previousState.stepIndex !== currentState.stepIndex ||
       previousState.status !== currentState.status
     ) {
-      eventBus.emit('stepChange', {
+      emitEvent('stepChange', {
         flow: definition,
         state: currentState,
-        step: getStep(definition, currentState.stepIndex),
-        previousStep: getStep(definition, previousState.stepIndex),
+        step: currentStep,
+        previousStep,
       })
     }
 
-    eventBus.emit('stateChange', { flow: definition, state: currentState })
+    emitEvent('stateChange', { flow: definition, state: currentState })
   }
 
   const commit = (
@@ -190,7 +351,9 @@ export const createFlowStore = <TContent>(
     } = commitConfig
 
     if (destroyed) {
-      throw new Error('Flow store has been destroyed')
+      const error = new Error('Flow store has been destroyed')
+      emitFlowError('flow.store_destroyed', error, { operation: 'commit' })
+      throw error
     }
 
     const previousState = state
@@ -240,6 +403,7 @@ export const createFlowStore = <TContent>(
               '[tour][storage] failed to remove outdated snapshot',
               error,
             )
+            emitFlowError('storage.remove_failed', error, { key: storageKey })
           })
         }
         return
@@ -247,6 +411,7 @@ export const createFlowStore = <TContent>(
       commit(snapshot.value, { persist: false, preserveTimestamp: true })
     } catch (error) {
       console.warn('[tour][storage] failed to hydrate flow state', error)
+      emitFlowError('storage.hydrate_failed', error, { key: storageKey })
     } finally {
       isHydrating = false
       hasHydrated = true
@@ -283,9 +448,14 @@ export const createFlowStore = <TContent>(
     } else if (fromStepId) {
       const index = definition.steps.findIndex((step) => step.id === fromStepId)
       if (index === -1) {
-        throw new Error(
+        const error = new Error(
           `Step with id "${fromStepId}" not found in flow ${definition.id}`,
         )
+        emitFlowError('flow.step_not_found', error, {
+          stepId: fromStepId,
+          operation: 'start',
+        })
+        throw error
       }
       targetIndex = index
     } else if (state.stepIndex >= 0) {
@@ -340,9 +510,14 @@ export const createFlowStore = <TContent>(
     } else {
       const index = definition.steps.findIndex((item) => item.id === step)
       if (index === -1) {
-        throw new Error(
+        const error = new Error(
           `Step with id "${step}" not found in flow ${definition.id}`,
         )
+        emitFlowError('flow.step_not_found', error, {
+          stepId: step,
+          operation: 'goToStep',
+        })
+        throw error
       }
       targetIndex = index
     }
@@ -411,7 +586,9 @@ export const createFlowStore = <TContent>(
 
   const subscribe: FlowStore<TContent>['subscribe'] = (listener) => {
     if (destroyed) {
-      throw new Error('Cannot subscribe to a destroyed flow store')
+      const error = new Error('Cannot subscribe to a destroyed flow store')
+      emitFlowError('flow.store_destroyed', error, { operation: 'subscribe' })
+      throw error
     }
     subscribers.add(listener)
     listener(state)
