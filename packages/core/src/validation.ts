@@ -107,6 +107,12 @@ const stepSchema = z.object({
   route: z.union([z.string(), z.instanceof(RegExp)]).optional(),
   placement: placementSchema.optional(),
   mask: maskSchema.optional(),
+  targetBehavior: z
+    .object({
+      hidden: z.union([z.literal('screen'), z.literal('skip')]).optional(),
+      hiddenDelayMs: z.number().nonnegative().optional(),
+    })
+    .optional(),
   content: z.any(),
   advance: z.array(advanceRuleSchema).optional(),
   waitFor: waitForSchema.optional(),

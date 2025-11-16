@@ -1,14 +1,16 @@
 import type { FlowState, Step } from '@tour/core'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { AnimatePresence } from 'motion/react'
 import { useTour } from '../context'
 import { useAdvanceRules } from '../hooks/useAdvanceRules'
 import { useTourControls } from '../hooks/useTourControls'
+import { useHiddenTargetFallback } from '../hooks/useHiddenTargetFallback'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
+import { useViewportRect } from '../hooks/useViewportRect'
 import { applyTokensToDocument, cssVar, mergeTokens } from '../theme/tokens'
 import { useTourTokens } from '../theme/TokensProvider'
 import { isBrowser, portalHost } from '../utils/dom'
@@ -83,8 +85,9 @@ export const TourHUD = ({
   zIndex = 1000,
 }: TourHUDProps) => {
   const tokens = useTourTokens()
-  const { state, activeStep, activeFlowId, flows } = useTour()
+  const { state, activeStep, activeFlowId, flows, next, complete } = useTour()
   const target = useTourTarget()
+  const viewportRect = useViewportRect()
   useAdvanceRules(target)
 
   const isRunning = state?.status === 'running'
@@ -146,6 +149,27 @@ export const TourHUD = ({
     }
   }, [isRunning, shouldRender, target.status])
 
+  const skipHiddenStep = useCallback(() => {
+    if (!runningState || runningState.status !== 'running') return
+    if (!activeFlowId) return
+    const flow = flows.get(activeFlowId)
+    if (!flow) return
+    const isLastStep =
+      runningState.stepIndex >= flow.steps.length - 1 && flow.steps.length > 0
+    if (isLastStep) {
+      complete()
+    } else {
+      next()
+    }
+  }, [activeFlowId, complete, flows, next, runningState])
+
+  const { target: hudTarget } = useHiddenTargetFallback({
+    step: runningStep,
+    target,
+    viewportRect,
+    onSkip: skipHiddenStep,
+  })
+
   if (!shouldRender) {
     return null
   }
@@ -170,12 +194,12 @@ export const TourHUD = ({
     <>
       <TourFocusManager
         active={focusTrapActive}
-        target={target}
+        target={hudTarget}
         popoverNode={popoverNode}
       />
-      <TourKeyboardShortcuts target={target} />
+      <TourKeyboardShortcuts target={hudTarget} />
       <TourOverlay
-        target={target}
+        target={hudTarget}
         padding={resolvedOverlayPadding}
         radius={resolvedOverlayRadius}
         zIndex={zIndex}
@@ -186,7 +210,7 @@ export const TourHUD = ({
             renderStep({ step: runningStep, state: runningState, target })
           ) : (
             <TourPopover
-              target={target}
+              target={hudTarget}
               zIndex={zIndex + 1}
               offset={resolvedPopoverOffset}
               placement={runningStep.placement}

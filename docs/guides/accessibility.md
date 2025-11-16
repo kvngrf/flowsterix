@@ -34,6 +34,41 @@ const flow = createFlow({
 
 Add matching IDs inside your content when you need a custom description, or rely on `target.description` for a quick annotation.
 
+## Hidden Target Fallbacks
+
+Sometimes a step’s element technically exists but is collapsed to `display: none`, zero width/height, or otherwise hidden from assistive tech. Flowster watches for that state and, after a short grace period (900&nbsp;ms by default), either centers the HUD on the screen or silently skips to the next step.
+
+Control the behavior per step with `targetBehavior`:
+
+```ts
+const flow = createFlow({
+  id: 'guided-demo',
+  version: 1,
+  steps: [
+    {
+      id: 'filters',
+      target: { selector: '#filters-panel' },
+      targetBehavior: {
+        hidden: 'screen', // default – center popover as a screen modal
+        hiddenDelayMs: 600,
+      },
+      content: <FiltersStep />,
+    },
+    {
+      id: 'beta-only',
+      target: { selector: '#beta-badge' },
+      targetBehavior: {
+        hidden: 'skip', // auto-advance instead of blocking the flow
+        hiddenDelayMs: 800,
+      },
+      content: <BetaBadgeStep />,
+    },
+  ],
+})
+```
+
+`hidden: 'screen'` shows a centered modal fallback while keeping the flow alive, and `'skip'` advances (or completes) the tour once the delay expires. The default delay keeps things calm during quick UI transitions but you can lower it when you know the visibility change is intentional.
+
 ## Reduced Motion
 
 `TourProvider` now auto-detects `prefers-reduced-motion` by default and swaps to the `reducedMotionAnimationAdapter`. You can still opt out or provide a custom adapter:

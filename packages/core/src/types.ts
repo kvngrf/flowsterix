@@ -75,6 +75,13 @@ export type StepPlacement =
 
 export type StepMask = 'hole' | 'none' | { padding?: number; radius?: number }
 
+export type HiddenTargetFallbackMode = 'screen' | 'skip'
+
+export interface StepTargetBehavior {
+  hidden?: HiddenTargetFallbackMode
+  hiddenDelayMs?: number
+}
+
 export type StepTarget =
   | 'screen'
   | {
@@ -133,6 +140,7 @@ export interface Step<TContent = unknown> {
   route?: string | RegExp
   placement?: StepPlacement
   mask?: StepMask
+  targetBehavior?: StepTargetBehavior
   content: TContent
   advance?: Array<AdvanceRule<TContent>>
   waitFor?: StepWaitFor
