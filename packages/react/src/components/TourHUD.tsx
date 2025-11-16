@@ -350,12 +350,9 @@ const TargetIssueNotice = ({ target }: { target: TourTargetInfo }) => {
       setArmed(true)
       return
     }
-    let timeoutId: ReturnType<typeof window.setTimeout> | null = null
-    timeoutId = window.setTimeout(() => setArmed(true), 500)
+    const timeoutId = globalThis.setTimeout(() => setArmed(true), 500)
     return () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId)
-      }
+      globalThis.clearTimeout(timeoutId)
     }
   }, [issue?.type, target.stepId])
 

@@ -238,14 +238,14 @@ export const useTourTarget = (): TourTargetInfo => {
   }>({ stepId: null, attempts: 0, done: false })
   const autoScrollRafRef = useRef<number | null>(null)
   const autoScrollTimeoutRef = useRef<ReturnType<
-    typeof window.setTimeout
+    typeof globalThis.setTimeout
   > | null>(null)
   const lastRectRef = useRef<ClientRectLike | null>(null)
 
   const cancelAutoScrollLoop = () => {
     if (!isBrowser) return
     if (autoScrollTimeoutRef.current !== null) {
-      window.clearTimeout(autoScrollTimeoutRef.current)
+      globalThis.clearTimeout(autoScrollTimeoutRef.current)
       autoScrollTimeoutRef.current = null
     }
     if (autoScrollRafRef.current !== null) {
@@ -700,7 +700,7 @@ export const useTourTarget = (): TourTargetInfo => {
 
       ensureElementInView(element, margin, behavior)
 
-      autoScrollTimeoutRef.current = window.setTimeout(() => {
+      autoScrollTimeoutRef.current = globalThis.setTimeout(() => {
         autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
       }, 120)
     }

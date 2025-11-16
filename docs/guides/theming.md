@@ -224,6 +224,26 @@ export const flow = createFlow({
 
 That keeps structural HUD settings (like overlay padding) available per flow while giving you complete CSS-variable parity whenever you need a bespoke visual treatment.
 
+## Preset theme package
+
+If you would rather start from a curated palette, install the optional `@tour/themes` package that now ships with the repo. It exports a growing list of presets (Classic, Aurora, Nebula to start) plus helpers for enumerating them:
+
+```ts
+import { auroraTokens, listTourThemePresets } from '@tour/themes'
+
+const presets = listTourThemePresets()
+
+export function App() {
+  return (
+    <TourProvider flows={flows} tokens={auroraTokens}>
+      {/* ... */}
+    </TourProvider>
+  )
+}
+```
+
+Each preset exposes metadata (`id`, `label`, `description`) so you can build a UI selector while reusing the matching token overrides directly. The Vite example uses the helper to power its theme toggle without re-declaring the overrides.
+
 ## Sandbox example
 
 The Vite example app now maps the tour variables to its own design tokens. Inspect `examples/react-vite/src/styles.css` for a full reference on how the default surface is themed in both light and dark modes, and open `examples/react-vite/src/tour/theme.tsx` to see how runtime overrides are composed with `mergeTokens`.

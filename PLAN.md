@@ -18,7 +18,7 @@
 - [x] Persistence via LocalStorage with namespaced key and schema version per flow
 - [x] Serializable flow state machine: idle → running → paused → completed/cancelled
 - [x] Framer Motion animations with swappable abstraction
-- [ ] Accessibility: focus management, ARIA roles, reduce-motion, screen-reader text, tabbable controls
+- [x] Accessibility: focus management, ARIA roles, reduce-motion, screen-reader text, tabbable controls
 - [x] Developer experience foundations: typed API, Zod validation, helpful errors, dev overlay, default styles
 
 ## 2. Architecture Overview (keep it portable)
@@ -32,7 +32,7 @@
 - [x] `@tour/react` bindings (Provider, hooks, components)
 - [x] AnimationAdapter using Framer Motion
 - [x] Router adapters (`@tour/react-router-adapter`, `@tour/next-adapter`)
-- [ ] Optional packages (`@tour/themes`, example apps)
+- [x] Optional packages (`@tour/themes`, example apps)
 
 ## 3. Core Types and DSL
 

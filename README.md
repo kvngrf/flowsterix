@@ -39,6 +39,25 @@ import '@tour/react/styles.css'
 
 See `docs/guides/theming.md` for the full list of CSS variables and `data-tour-*` hooks you can override to match your design system.
 
+#### Theme presets
+
+Prefer to start from an opinionated palette? Install `@tour/themes` from this workspace to grab drop-in token overrides:
+
+```tsx
+import { auroraTokens } from '@tour/themes'
+import { TourProvider } from '@tour/react'
+
+export function App() {
+  return (
+    <TourProvider flows={flows} tokens={auroraTokens}>
+      {/* ... */}
+    </TourProvider>
+  )
+}
+```
+
+The package also exposes `listTourThemePresets()` so you can build a selector UI with matching metadata (id, label, description) for each preset before applying the token overrides.
+
 ### Customizing Animations
 
 The React bindings drive motion through an `AnimationAdapter` that ships with a Framer Motion-backed default. `TourProvider` accepts several options so you can adjust timing or respect user preferences without rewriting components:
