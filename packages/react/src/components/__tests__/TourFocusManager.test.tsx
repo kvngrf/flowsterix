@@ -65,7 +65,11 @@ const FocusManagerHarness = ({
   const [popoverNode, setPopoverNode] = useState<HTMLDivElement | null>(null)
   return (
     <>
-      <TourFocusManager active={active} target={target} popoverNode={popoverNode} />
+      <TourFocusManager
+        active={active}
+        target={target}
+        popoverNode={popoverNode}
+      />
       <AutoFocusPopover active={active} onNodeChange={setPopoverNode} />
     </>
   )
