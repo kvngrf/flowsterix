@@ -1,12 +1,12 @@
-import type { Step } from '@tour/core'
 import { render } from '@testing-library/react'
+import type { Step } from '@tour/core'
 import type { ReactNode } from 'react'
 import { act, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ClientRectLike } from '../../utils/dom'
-import type { TourTargetInfo } from '../useTourTarget'
 import { useHiddenTargetFallback } from '../useHiddenTargetFallback'
+import type { TourTargetInfo } from '../useTourTarget'
 
 const VIEWPORT: ClientRectLike = {
   top: 0,
