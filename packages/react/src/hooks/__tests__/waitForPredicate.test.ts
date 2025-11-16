@@ -60,9 +60,9 @@ describe('createWaitForPredicateController', () => {
   })
 
   it('allows subscribe-only handlers to control readiness manually', () => {
-  const onChange = vi.fn()
-  let cleanupCalled = false
-  let notify: (next?: boolean) => void = () => {}
+    const onChange = vi.fn()
+    let cleanupCalled = false
+    let notify: (next?: boolean) => void = () => {}
 
     const controller = createWaitForPredicateController({
       waitFor: {
@@ -84,7 +84,7 @@ describe('createWaitForPredicateController', () => {
     controller.start()
     expect(controller.isSatisfied()).toBe(false)
 
-  notify(true)
+    notify(true)
 
     expect(onChange).toHaveBeenCalledWith(true)
     expect(controller.isSatisfied()).toBe(true)
@@ -94,8 +94,8 @@ describe('createWaitForPredicateController', () => {
   })
 
   it('uses subscribe notifications to re-run predicate checks', () => {
-  const onChange = vi.fn()
-  let notify: (next?: boolean) => void = () => {}
+    const onChange = vi.fn()
+    let notify: (next?: boolean) => void = () => {}
     let ready = false
 
     const controller = createWaitForPredicateController({

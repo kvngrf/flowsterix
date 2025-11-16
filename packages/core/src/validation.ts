@@ -77,9 +77,12 @@ const waitForSchema = z
       .optional(),
     pollMs: z.number().positive().optional(),
     subscribe: z
-      .custom<(ctx: unknown) => unknown>((value) => typeof value === 'function', {
-        message: 'waitFor.subscribe must be a function',
-      })
+      .custom<(ctx: unknown) => unknown>(
+        (value) => typeof value === 'function',
+        {
+          message: 'waitFor.subscribe must be a function',
+        },
+      )
       .optional(),
   })
   .partial()

@@ -12,8 +12,8 @@ import {
 } from '../utils/dom'
 import type { ScrollMargin } from './scrollMargin'
 import { DEFAULT_SCROLL_MARGIN, resolveScrollMargin } from './scrollMargin'
-import { createWaitForPredicateController } from './waitForPredicate'
 import type { WaitForPredicateController } from './waitForPredicate'
+import { createWaitForPredicateController } from './waitForPredicate'
 
 export type TourTargetVisibility =
   | 'unknown'
@@ -318,9 +318,7 @@ export const useTourTarget = (): TourTargetInfo => {
     }
 
     const currentStep = activeStep
-    const activeFlow = activeFlowId
-      ? flows.get(activeFlowId) ?? null
-      : null
+    const activeFlow = activeFlowId ? (flows.get(activeFlowId) ?? null) : null
 
     const isScreen = currentStep.target === 'screen'
     const waitForSelectorRaw = currentStep.waitFor?.selector
@@ -330,14 +328,13 @@ export const useTourTarget = (): TourTargetInfo => {
         : undefined
     const hasWaitForSelector = Boolean(waitForSelector)
     const waitForTimeout = Math.max(0, currentStep.waitFor?.timeout ?? 8000)
-    const waitContext =
-      activeFlow
-        ? {
-            flow: activeFlow,
-            state,
-            step: currentStep,
-          }
-        : null
+    const waitContext = activeFlow
+      ? {
+          flow: activeFlow,
+          state,
+          step: currentStep,
+        }
+      : null
 
     let cancelled = false
     let resolvePollId: number | null = null
@@ -355,7 +352,7 @@ export const useTourTarget = (): TourTargetInfo => {
     let waitForTimedOut = false
     let waitForSelectorWarned = false
     let waitForTimeoutWarned = false
-  let waitForPredicateController: WaitForPredicateController | null = null
+    let waitForPredicateController: WaitForPredicateController | null = null
 
     lastRectRef.current = null
 
@@ -405,10 +402,8 @@ export const useTourTarget = (): TourTargetInfo => {
     }
 
     const isWaitForSatisfied = () => {
-      const selectorReady =
-        !hasWaitForSelector || isWaitForSelectorSatisfied()
-      const predicateReady =
-        waitForPredicateController?.isSatisfied() ?? true
+      const selectorReady = !hasWaitForSelector || isWaitForSelectorSatisfied()
+      const predicateReady = waitForPredicateController?.isSatisfied() ?? true
       return selectorReady && predicateReady
     }
 
