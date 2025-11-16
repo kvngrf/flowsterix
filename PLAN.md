@@ -80,18 +80,18 @@
 ## 9. Accessibility and UX
 
 - [x] Focus trap within popover and focus return on close
-- [ ] `aria-modal` dialog semantics with linked descriptions
-- [ ] Keyboard support (Enter/Space next, Shift+Tab/Tab within trap, Esc exit)
-- [ ] High-contrast theme, visible focus ring, screen-reader-only descriptions
-- [ ] Option to ensure target is keyboard reachable (temporary tabindex)
+- [x] `aria-modal` dialog semantics with linked descriptions
+- [x] Keyboard support (Enter/Space next, Shift+Tab/Tab within trap, Esc exit)
+- [x] High-contrast theme, visible focus ring, screen-reader-only descriptions
+- [x] Option to ensure target is keyboard reachable (temporary tabindex)
 
 ## 10. Edge Cases to Handle Early
 
-- [ ] Element-not-found timeout handling with configurable skip/failure
+- [x] Element-not-found timeout handling with configurable skip/failure
 - [ ] Hidden/zero-size element fallback (auto-skip or screen modal)
 - [ ] Scrolling container detection with offset handling for sticky headers
-- [ ] Portal rendering to `document.body` to avoid z-index clashes; support custom container
-- [ ] Mobile responsiveness with safe area placement
+- [x] Portal rendering to `document.body` to avoid z-index clashes; support custom container
+- [x] Mobile responsiveness with safe area placement
 - [ ] Virtualized list support via wait/predicate or developer-provided hooks
 
 ## 11. Testing and Quality
