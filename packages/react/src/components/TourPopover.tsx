@@ -103,12 +103,10 @@ export const TourPopover = ({
     offsetX: number
     offsetY: number
   } | null>(null)
-  const overflowRetryRef = useRef<{ stepId: string | null; attempts: number }>(
-    {
-      stepId: null,
-      attempts: 0,
-    },
-  )
+  const overflowRetryRef = useRef<{ stepId: string | null; attempts: number }>({
+    stepId: null,
+    attempts: 0,
+  })
   const overflowRetryTimeoutRef = useRef<number | null>(null)
 
   const resolvedPlacement: StepPlacement = placement ?? 'bottom'
@@ -349,7 +347,8 @@ export const TourPopover = ({
         (targetRect.height >= viewportHeight - FLOATING_OFFSET * 4 ||
           targetRect.width >= viewportWidth - FLOATING_OFFSET * 4)
 
-      const shouldDock = targetNearlyFillsViewport || maxOverflow > overflowThreshold
+      const shouldDock =
+        targetNearlyFillsViewport || maxOverflow > overflowThreshold
 
       if (shouldDock) {
         if (!targetNearlyFillsViewport && retryState.attempts < 2) {
