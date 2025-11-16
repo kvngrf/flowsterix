@@ -115,8 +115,8 @@
 
 - [x] Zod schemas plus invariant error codes with actionable tips
 - [x] Debug mode overlay for step diagnostics
-- [ ] Theming tokens via CSS variables (spacing, radii, shadows)
-- [ ] Analytics hooks (`onFlowStart`, `onStepEnter`, `onStepComplete`, `onFlowComplete`)
+- [x] Theming tokens via CSS variables (spacing, radii, shadows)
+- [x] Analytics hooks (`onFlowStart`, `onStepEnter`, `onStepComplete`, `onFlowComplete`)
 
 ## 14. Roadmap After MVP
 
