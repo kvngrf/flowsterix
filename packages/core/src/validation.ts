@@ -67,6 +67,20 @@ const waitForSchema = z
   .object({
     selector: z.string().optional(),
     timeout: z.number().positive().optional(),
+    predicate: z
+      .custom<(ctx: unknown) => boolean | Promise<boolean>>(
+        (value) => typeof value === 'function',
+        {
+          message: 'waitFor.predicate must be a function',
+        },
+      )
+      .optional(),
+    pollMs: z.number().positive().optional(),
+    subscribe: z
+      .custom<(ctx: unknown) => unknown>((value) => typeof value === 'function', {
+        message: 'waitFor.subscribe must be a function',
+      })
+      .optional(),
   })
   .partial()
 

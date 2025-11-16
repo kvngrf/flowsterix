@@ -12,6 +12,8 @@ import {
 } from '../utils/dom'
 import type { ScrollMargin } from './scrollMargin'
 import { DEFAULT_SCROLL_MARGIN, resolveScrollMargin } from './scrollMargin'
+import { createWaitForPredicateController } from './waitForPredicate'
+import type { WaitForPredicateController } from './waitForPredicate'
 
 export type TourTargetVisibility =
   | 'unknown'
@@ -228,7 +230,7 @@ const resolveStepTarget = (
 }
 
 export const useTourTarget = (): TourTargetInfo => {
-  const { activeStep, state } = useTour()
+  const { activeStep, state, activeFlowId, flows } = useTour()
   const [targetInfo, setTargetInfo] =
     useState<TourTargetInfo>(INITIAL_TARGET_INFO)
   const autoScrollStateRef = useRef<{
@@ -316,6 +318,9 @@ export const useTourTarget = (): TourTargetInfo => {
     }
 
     const currentStep = activeStep
+    const activeFlow = activeFlowId
+      ? flows.get(activeFlowId) ?? null
+      : null
 
     const isScreen = currentStep.target === 'screen'
     const waitForSelectorRaw = currentStep.waitFor?.selector
@@ -325,6 +330,14 @@ export const useTourTarget = (): TourTargetInfo => {
         : undefined
     const hasWaitForSelector = Boolean(waitForSelector)
     const waitForTimeout = Math.max(0, currentStep.waitFor?.timeout ?? 8000)
+    const waitContext =
+      activeFlow
+        ? {
+            flow: activeFlow,
+            state,
+            step: currentStep,
+          }
+        : null
 
     let cancelled = false
     let resolvePollId: number | null = null
@@ -342,6 +355,7 @@ export const useTourTarget = (): TourTargetInfo => {
     let waitForTimedOut = false
     let waitForSelectorWarned = false
     let waitForTimeoutWarned = false
+  let waitForPredicateController: WaitForPredicateController | null = null
 
     lastRectRef.current = null
 
@@ -373,7 +387,7 @@ export const useTourTarget = (): TourTargetInfo => {
       )
     }
 
-    const isWaitForSatisfied = () => {
+    const isWaitForSelectorSatisfied = () => {
       if (!hasWaitForSelector) return true
       try {
         return document.querySelector(waitForSelector!) !== null
@@ -390,10 +404,18 @@ export const useTourTarget = (): TourTargetInfo => {
       }
     }
 
-    const updateTargetState = (
+    const isWaitForSatisfied = () => {
+      const selectorReady =
+        !hasWaitForSelector || isWaitForSelectorSatisfied()
+      const predicateReady =
+        waitForPredicateController?.isSatisfied() ?? true
+      return selectorReady && predicateReady
+    }
+
+    function updateTargetState(
       status: 'resolving' | 'ready',
       rectOverride?: ClientRectLike | null,
-    ) => {
+    ) {
       if (cancelled) return
       const rect =
         typeof rectOverride !== 'undefined'
@@ -490,6 +512,16 @@ export const useTourTarget = (): TourTargetInfo => {
     const commitInfo = (status: 'resolving' | 'ready') => {
       updateTargetState(status)
     }
+
+    waitForPredicateController = createWaitForPredicateController<ReactNode>({
+      waitFor: currentStep.waitFor,
+      context: waitContext,
+      onChange: () => {
+        updateTargetState(element ? 'ready' : 'resolving')
+      },
+    })
+
+    waitForPredicateController.start()
 
     function stopRaf() {
       if (rafId !== null) {
@@ -663,8 +695,10 @@ export const useTourTarget = (): TourTargetInfo => {
       clearResolvePolling()
       clearWaitForPoll()
       resetObservers()
+      waitForPredicateController?.stop()
+      waitForPredicateController = null
     }
-  }, [activeStep, state])
+  }, [activeStep, activeFlowId, flows, state])
 
   useEffect(() => {
     if (!isBrowser) return

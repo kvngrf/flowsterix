@@ -125,6 +125,51 @@ Each state is also exposed via `data-target-visibility` and `data-rect-source` a
 
 These safeguards pair nicely with `waitFor`, route gating, and `onResume` hooks: you can keep the experience resilient without blocking progression when content isn’t instantly available.
 
+### Virtualized Lists & Custom Hooks
+
+Virtualized scrollers often render targets only after you scroll them into view or after a batching loop flushes. Instead of guessing when that happens, use the expanded `waitFor` API:
+
+- `waitFor.predicate` lets you express arbitrary readiness logic (for example, "item 42 is mounted"), optionally polled via `waitFor.pollMs`.
+- `waitFor.subscribe` wires into whatever event stream your virtualizer exposes. Flowster passes a `notify` helper so you can re-run the predicate or flip readiness manually.
+
+```ts
+const employeeFlow = createFlow({
+  id: 'employees-onboarding',
+  version: 1,
+  steps: [
+    {
+      id: 'virtual-row',
+      target: {
+        selector: '[data-employee-row="42"]',
+      },
+      waitFor: {
+        predicate: () => gridApi.isRowMounted(42),
+        pollMs: 100,
+        subscribe: ({ notify }) => gridApi.onRowsRendered(() => notify()),
+      },
+      content: <RowDetails />,
+    },
+  ],
+})
+```
+
+When a virtualizer exposes a ready callback but no predicate, call `notify(true)` from your hook to manually finish the wait:
+
+```ts
+waitFor: {
+  subscribe: ({ notify }) => {
+    const unsubscribe = listStore.onRender(() => {
+      if (listStore.visibleIds.has(stepMetadata.targetId)) {
+        notify(true)
+      }
+    })
+    return () => unsubscribe()
+  },
+}
+```
+
+These hooks keep the HUD in "Looking for target" mode until your data grid genuinely paints the row, eliminating jarring jumps for virtualized UIs.
+
 ## Troubleshooting Checklist
 
 - **HUD opens on the wrong page:** ensure an adapter calls `notifyRouteChange` and that `onResume` handlers navigate using your router instead of `window.location`.

@@ -107,9 +107,25 @@ export interface StepControls {
   next?: StepControlState
 }
 
-export interface StepWaitFor {
+export interface StepWaitForSubscribeContext<TContent = unknown>
+  extends StepHookContext<TContent> {
+  notify: (next?: boolean) => void
+}
+
+export type StepWaitForPredicate<TContent = unknown> = (
+  ctx: StepHookContext<TContent>,
+) => boolean | Promise<boolean>
+
+export type StepWaitForSubscribe<TContent = unknown> = (
+  ctx: StepWaitForSubscribeContext<TContent>,
+) => void | (() => void)
+
+export interface StepWaitFor<TContent = unknown> {
   selector?: string
   timeout?: number
+  predicate?: StepWaitForPredicate<TContent>
+  pollMs?: number
+  subscribe?: StepWaitForSubscribe<TContent>
 }
 
 export interface AdvancePredicateContext<TContent = unknown> {
@@ -153,7 +169,7 @@ export interface Step<TContent = unknown> {
   targetBehavior?: StepTargetBehavior
   content: TContent
   advance?: Array<AdvanceRule<TContent>>
-  waitFor?: StepWaitFor
+  waitFor?: StepWaitFor<TContent>
   onResume?: StepHook<TContent>
   onExit?: StepHook<TContent>
   controls?: StepControls
