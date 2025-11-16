@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { isBrowser } from '../utils/dom'
@@ -29,16 +29,20 @@ export const TourFocusManager = ({
 }: TourFocusManagerProps) => {
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
-  useEffect(() => {
+  const restoreFocus = () => {
+    const previous = previousFocusRef.current
+    previousFocusRef.current = null
+    if (previous && previous.isConnected) {
+      runMicrotask(() => {
+        focusElement(previous, { preventScroll: true })
+      })
+    }
+  }
+
+  useLayoutEffect(() => {
     if (!isBrowser) return
     if (!active) {
-      const previous = previousFocusRef.current
-      previousFocusRef.current = null
-      if (previous && previous.isConnected) {
-        runMicrotask(() => {
-          focusElement(previous, { preventScroll: true })
-        })
-      }
+      restoreFocus()
       return
     }
 
@@ -49,6 +53,9 @@ export const TourFocusManager = ({
     const activeEl = (doc ?? document).activeElement
     if (activeEl instanceof HTMLElement) {
       previousFocusRef.current = activeEl
+    }
+    return () => {
+      restoreFocus()
     }
   }, [active, popoverNode, target.element])
   useEffect(() => {

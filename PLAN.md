@@ -79,7 +79,7 @@
 
 ## 9. Accessibility and UX
 
-- [ ] Focus trap within popover and focus return on close
+- [x] Focus trap within popover and focus return on close
 - [ ] `aria-modal` dialog semantics with linked descriptions
 - [ ] Keyboard support (Enter/Space next, Shift+Tab/Tab within trap, Esc exit)
 - [ ] High-contrast theme, visible focus ring, screen-reader-only descriptions

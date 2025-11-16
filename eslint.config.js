@@ -35,4 +35,12 @@ export default [
       },
     },
   },
+  {
+    files: ['**/vitest.config.ts', '**/vitest.setup.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: false,
+      },
+    },
+  },
 ]
