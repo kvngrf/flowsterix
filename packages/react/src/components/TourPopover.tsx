@@ -247,7 +247,7 @@ export const TourPopover = ({
     if (!floatingEl) return
     if (target.status !== 'ready') return
     if (!rectInfo || target.isScreen) return
-    if (layoutMode !== 'floating') return
+    if (layoutMode === 'mobile' || layoutMode === 'manual') return
 
     const cancelState = { cancelled: false }
 
@@ -315,12 +315,16 @@ export const TourPopover = ({
       )
 
       if (maxOverflow > 4) {
-        setLayoutMode('docked')
-        setFloatingPosition(dockedPosition)
+        if (layoutMode !== 'docked') {
+          setLayoutMode('docked')
+          setFloatingPosition(dockedPosition)
+        }
         return
       }
 
-      setLayoutMode('floating')
+      if (layoutMode !== 'floating') {
+        setLayoutMode('floating')
+      }
 
       setFloatingPosition({
         top: y,

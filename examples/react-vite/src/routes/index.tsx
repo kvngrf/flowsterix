@@ -119,6 +119,56 @@ function App() {
           ))}
         </div>
       </section>
+
+      <section className="py-24 px-6 bg-slate-950/60 border-t border-slate-800/60">
+        <div className="max-w-4xl mx-auto grid gap-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">
+            Deep dive
+          </p>
+          <h2 className="text-4xl md:text-5xl font-bold text-white">
+            Build onboarding that floats above sticky navbars
+          </h2>
+          <p className="text-gray-400 text-lg leading-relaxed">
+            This callout sits far enough down the page to require scrolling. It
+            makes a perfect target for verifying Flowster&apos;s scroll margin
+            offsets when a sticky header hugs the top of the viewport.
+          </p>
+          <div
+            id="sticky-cta-card"
+            data-tour-target="sticky-cta-card"
+            className="bg-linear-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 border border-cyan-500/40 rounded-2xl p-8 shadow-2xl backdrop-blur"
+          >
+            <p className="text-sm font-semibold text-cyan-200 mb-2">
+              Sticky header friendly
+            </p>
+            <h3 className="text-2xl font-semibold text-white mb-4">
+              The popover won&apos;t hide behind the navigation anymore.
+            </h3>
+            <p className="text-gray-100/80 mb-6 leading-relaxed">
+              Scroll to this card manually or let the tour auto-scroll. A
+              top-only scroll margin keeps the highlight just below the sticky
+              header, making the sticky chrome feel intentional instead of
+              obstructive.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="https://flowster.dev/docs"
+                className="px-5 py-2 rounded-full bg-white/90 text-slate-900 font-semibold shadow-lg hover:bg-white"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Read the docs
+              </a>
+              <span className="px-4 py-2 rounded-full border border-white/40 text-white/80 text-sm">
+                Scroll offset demo
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="h-screen py-12 px-6 text-center text-gray-500 text-sm">
+        © {new Date().getFullYear()} TanStack, LLC. All rights reserved.
+      </section>
     </div>
   )
 }

@@ -77,9 +77,19 @@ export type StepMask = 'hole' | 'none' | { padding?: number; radius?: number }
 
 export type HiddenTargetFallbackMode = 'screen' | 'skip'
 
+export type ScrollMarginConfig =
+  | number
+  | {
+      top?: number
+      bottom?: number
+      left?: number
+      right?: number
+    }
+
 export interface StepTargetBehavior {
   hidden?: HiddenTargetFallbackMode
   hiddenDelayMs?: number
+  scrollMargin?: ScrollMarginConfig
 }
 
 export type StepTarget =

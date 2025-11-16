@@ -32,7 +32,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
+      <header className="sticky top-0 inset-x-0 z-40 p-4 flex items-center bg-slate-950/60 text-white shadow-lg border-b border-gray-800/70 backdrop-blur supports-backdrop-filter:bg-slate-950/60">
         <button
           data-tour-target="menu-button"
           onClick={() => setIsOpen(true)}

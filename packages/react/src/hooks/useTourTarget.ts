@@ -10,6 +10,8 @@ import {
   getViewportRect,
   isBrowser,
 } from '../utils/dom'
+import type { ScrollMargin } from './scrollMargin'
+import { DEFAULT_SCROLL_MARGIN, resolveScrollMargin } from './scrollMargin'
 
 export type TourTargetVisibility =
   | 'unknown'
@@ -45,8 +47,6 @@ const INITIAL_TARGET_INFO: TourTargetInfo = {
 }
 
 const lastResolvedRectByStep = new Map<string, ClientRectLike>()
-
-const AUTO_SCROLL_MARGIN = 16
 
 type ScrollBehaviorSetting = ScrollBehavior | undefined
 
@@ -133,7 +133,7 @@ const scrollContainerBy = (
 
 const ensureElementInView = (
   element: Element,
-  margin: number,
+  margin: ScrollMargin,
   behavior: ScrollBehaviorSetting,
 ) => {
   if (!isBrowser) return
@@ -156,17 +156,17 @@ const ensureElementInView = (
     const targetRect = getClientRect(element)
 
     let topDelta = 0
-    if (targetRect.top < containerRect.top + margin) {
-      topDelta = targetRect.top - (containerRect.top + margin)
-    } else if (targetRect.bottom > containerRect.bottom - margin) {
-      topDelta = targetRect.bottom - (containerRect.bottom - margin)
+    if (targetRect.top < containerRect.top + margin.top) {
+      topDelta = targetRect.top - (containerRect.top + margin.top)
+    } else if (targetRect.bottom > containerRect.bottom - margin.bottom) {
+      topDelta = targetRect.bottom - (containerRect.bottom - margin.bottom)
     }
 
     let leftDelta = 0
-    if (targetRect.left < containerRect.left + margin) {
-      leftDelta = targetRect.left - (containerRect.left + margin)
-    } else if (targetRect.right > containerRect.right - margin) {
-      leftDelta = targetRect.right - (containerRect.right - margin)
+    if (targetRect.left < containerRect.left + margin.left) {
+      leftDelta = targetRect.left - (containerRect.left + margin.left)
+    } else if (targetRect.right > containerRect.right - margin.right) {
+      leftDelta = targetRect.right - (containerRect.right - margin.right)
     }
 
     if (topDelta !== 0 || leftDelta !== 0) {
@@ -178,17 +178,17 @@ const ensureElementInView = (
   const finalRect = getClientRect(element)
 
   let viewportTopDelta = 0
-  if (finalRect.top < viewportRect.top + margin) {
-    viewportTopDelta = finalRect.top - (viewportRect.top + margin)
-  } else if (finalRect.bottom > viewportRect.bottom - margin) {
-    viewportTopDelta = finalRect.bottom - (viewportRect.bottom - margin)
+  if (finalRect.top < viewportRect.top + margin.top) {
+    viewportTopDelta = finalRect.top - (viewportRect.top + margin.top)
+  } else if (finalRect.bottom > viewportRect.bottom - margin.bottom) {
+    viewportTopDelta = finalRect.bottom - (viewportRect.bottom - margin.bottom)
   }
 
   let viewportLeftDelta = 0
-  if (finalRect.left < viewportRect.left + margin) {
-    viewportLeftDelta = finalRect.left - (viewportRect.left + margin)
-  } else if (finalRect.right > viewportRect.right - margin) {
-    viewportLeftDelta = finalRect.right - (viewportRect.right - margin)
+  if (finalRect.left < viewportRect.left + margin.left) {
+    viewportLeftDelta = finalRect.left - (viewportRect.left + margin.left)
+  } else if (finalRect.right > viewportRect.right - margin.right) {
+    viewportLeftDelta = finalRect.right - (viewportRect.right - margin.right)
   }
 
   if (viewportTopDelta !== 0 || viewportLeftDelta !== 0) {
@@ -241,6 +241,7 @@ export const useTourTarget = (): TourTargetInfo => {
     typeof globalThis.setTimeout
   > | null>(null)
   const lastRectRef = useRef<ClientRectLike | null>(null)
+  const initialScrollStepRef = useRef<string | null>(null)
 
   const cancelAutoScrollLoop = () => {
     if (!isBrowser) return
@@ -253,6 +254,42 @@ export const useTourTarget = (): TourTargetInfo => {
       autoScrollRafRef.current = null
     }
   }
+
+  useEffect(() => {
+    if (!activeStep) {
+      initialScrollStepRef.current = null
+    }
+    return () => {
+      initialScrollStepRef.current = null
+    }
+  }, [activeStep?.id])
+
+  useEffect(() => {
+    if (!isBrowser) return
+    if (!activeStep) return
+    if (targetInfo.status !== 'ready') return
+    if (targetInfo.isScreen) return
+    if (!targetInfo.element) return
+
+    if (initialScrollStepRef.current === activeStep.id) {
+      return
+    }
+
+    initialScrollStepRef.current = activeStep.id
+
+    const margin = resolveScrollMargin(
+      activeStep.targetBehavior?.scrollMargin,
+      DEFAULT_SCROLL_MARGIN,
+    )
+
+    ensureElementInView(targetInfo.element, margin, 'smooth')
+  }, [
+    activeStep?.id,
+    activeStep?.targetBehavior?.scrollMargin,
+    targetInfo.element,
+    targetInfo.isScreen,
+    targetInfo.status,
+  ])
 
   useEffect(() => {
     if (!activeStep || !state || state.status !== 'running') {
@@ -670,18 +707,27 @@ export const useTourTarget = (): TourTargetInfo => {
 
       const rect = getClientRect(element)
       const viewport = getViewportRect()
-      const margin = AUTO_SCROLL_MARGIN
+      const margin = resolveScrollMargin(
+        activeStep.targetBehavior?.scrollMargin,
+        DEFAULT_SCROLL_MARGIN,
+      )
 
-      const fitsHeight = rect.height <= viewport.height
-      const fitsWidth = rect.width <= viewport.width
+      const fitsHeight =
+        rect.height <= viewport.height - (margin.top + margin.bottom)
+      const fitsWidth =
+        rect.width <= viewport.width - (margin.left + margin.right)
 
       const verticalSatisfied = fitsHeight
-        ? rect.top >= margin && rect.bottom <= viewport.height - margin
-        : rect.top <= margin && rect.bottom >= viewport.height - margin
+        ? rect.top >= margin.top &&
+          rect.bottom <= viewport.height - margin.bottom
+        : rect.top <= margin.top &&
+          rect.bottom >= viewport.height - margin.bottom
 
       const horizontalSatisfied = fitsWidth
-        ? rect.left >= margin && rect.right <= viewport.width - margin
-        : rect.left <= margin && rect.right >= viewport.width - margin
+        ? rect.left >= margin.left &&
+          rect.right <= viewport.width - margin.right
+        : rect.left <= margin.left &&
+          rect.right >= viewport.width - margin.right
 
       if (verticalSatisfied && horizontalSatisfied) {
         autoState.done = true

@@ -43,7 +43,7 @@ function RootDocument({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="bg-slate-900">
         <TourThemeProvider>
           <TourThemeAwareShell>{children}</TourThemeAwareShell>
         </TourThemeProvider>

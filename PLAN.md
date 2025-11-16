@@ -89,7 +89,7 @@
 
 - [x] Element-not-found timeout handling with configurable skip/failure
 - [x] Hidden/zero-size element fallback (auto-skip or screen modal)
-- [ ] Scrolling container detection with offset handling for sticky headers
+- [x] Scrolling container detection with offset handling for sticky headers
 - [x] Portal rendering to `document.body` to avoid z-index clashes; support custom container
 - [x] Mobile responsiveness with safe area placement
 - [ ] Virtualized list support via wait/predicate or developer-provided hooks

@@ -3,6 +3,8 @@ import { createFlow } from '@tour/core'
 import { DelayProgressBar, getTourRouter, useDelayAdvance } from '@tour/react'
 import type { ReactNode } from 'react'
 
+const STICKY_HEADER_OFFSET = 96
+
 const DelayCountdownLabel = () => {
   const { remainingMs, totalMs, flowId } = useDelayAdvance()
 
@@ -202,8 +204,11 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         selector: '#feature-grid',
         description: 'Feature highlight card grid',
       },
+      targetBehavior: {
+        scrollMargin: { top: STICKY_HEADER_OFFSET },
+      },
       placement: 'top',
-      advance: [{ type: 'event', event: 'keydown', on: 'document' }],
+      advance: [{ type: 'manual' }],
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
@@ -214,8 +219,32 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
             visitors to detailed resources, documentation links, or funnel next
             steps.
           </p>
+        </div>
+      ),
+    },
+    {
+      id: 'sticky-cta',
+      target: {
+        selector: '#sticky-cta-card',
+        description: 'Deep dive tile positioned below the fold',
+      },
+      targetBehavior: {
+        scrollMargin: { top: STICKY_HEADER_OFFSET + 16 },
+      },
+      placement: 'top',
+      advance: [{ type: 'manual' }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Sticky Header Safe Zone
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            Notice how the highlight stops just beneath the navigation bar even
+            though it is sticky. The new <code>scrollMargin</code> option keeps
+            targets from hiding behind persistent chrome.
+          </p>
           <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
-            Press a keyboard key to continue.
+            Use Next when you&apos;re ready to continue.
           </p>
         </div>
       ),

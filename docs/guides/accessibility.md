@@ -69,6 +69,36 @@ const flow = createFlow({
 
 `hidden: 'screen'` shows a centered modal fallback while keeping the flow alive, and `'skip'` advances (or completes) the tour once the delay expires. The default delay keeps things calm during quick UI transitions but you can lower it when you know the visibility change is intentional.
 
+## Sticky Headers & Scroll Margins
+
+If your layout keeps a sticky header, toolbar, or product chrome pinned to the top of the viewport, default auto-scroll behavior can leave highlighted targets partially obscured. Steps can now opt into `targetBehavior.scrollMargin` to reserve extra space on specific sides of the viewport while the tour scrolls the element into view.
+
+```ts
+const flow = createFlow({
+  id: 'sticky-demo',
+  steps: [
+    {
+      id: 'feature-grid',
+      target: { selector: '#feature-grid' },
+      targetBehavior: {
+        scrollMargin: {
+          top: 96, // height of the sticky header
+        },
+      },
+      content: <FeatureCallout />,
+    },
+  ],
+})
+```
+
+Details:
+
+- `scrollMargin` accepts either a single number (applied to all sides) or per-side values for `top`, `bottom`, `left`, and `right`.
+- Flowster already detects nested scroll containers, so the same margin keeps targets inside overflow panels padded as they animate into view.
+- The helper clamps negative values to zero and falls back to the default 16 px margin whenever a side isn’t provided.
+
+In the demo app, the “Sticky Header Safe Zone” step uses this option to keep the popover just below the persistent navigation bar, making it obvious how the HUD will behave in real products.
+
 ## Reduced Motion
 
 `TourProvider` now auto-detects `prefers-reduced-motion` by default and swaps to the `reducedMotionAnimationAdapter`. You can still opt out or provide a custom adapter:

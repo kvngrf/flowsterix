@@ -70,6 +70,18 @@ const waitForSchema = z
   })
   .partial()
 
+const scrollMarginSchema = z.union([
+  z.number().nonnegative(),
+  z
+    .object({
+      top: z.number().nonnegative().optional(),
+      bottom: z.number().nonnegative().optional(),
+      left: z.number().nonnegative().optional(),
+      right: z.number().nonnegative().optional(),
+    })
+    .strict(),
+])
+
 const hudPopoverSchema = z.object({
   offset: z.number().optional(),
   role: z.string().optional(),
@@ -111,6 +123,7 @@ const stepSchema = z.object({
     .object({
       hidden: z.union([z.literal('screen'), z.literal('skip')]).optional(),
       hiddenDelayMs: z.number().nonnegative().optional(),
+      scrollMargin: scrollMarginSchema.optional(),
     })
     .optional(),
   content: z.any(),
