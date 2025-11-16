@@ -80,7 +80,7 @@ export const useHiddenTargetFallback = ({
         setUsingScreenFallback(true)
         return
       }
-      if (hiddenMode === 'skip' && !skipTriggeredRef.current) {
+      if (!skipTriggeredRef.current) {
         skipTriggeredRef.current = true
         onSkip()
       }

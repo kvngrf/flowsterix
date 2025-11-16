@@ -1,6 +1,6 @@
-import type { Step } from '@tour/core'
+import type { Step, StepScrollMode } from '@tour/core'
 import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { useTour } from '../context'
 import type { ClientRectLike } from '../utils/dom'
@@ -133,11 +133,45 @@ const scrollContainerBy = (
   elementContainer.scrollLeft += leftDelta
 }
 
-const ensureElementInView = (
+type ScrollMode = StepScrollMode
+
+interface EnsureInViewOptions {
+  behavior?: ScrollBehaviorSetting
+  mode?: ScrollMode
+}
+
+const alignWithinViewport = (
   element: Element,
   margin: ScrollMargin,
   behavior: ScrollBehaviorSetting,
+  mode: ScrollMode,
 ) => {
+  if (mode === 'preserve') return
+  const viewportRect = getViewportRect()
+  const finalRect = getClientRect(element)
+  const availableHeight = viewportRect.height - (margin.top + margin.bottom)
+  if (availableHeight <= 0) return
+
+  const desiredTop =
+    mode === 'center'
+      ? margin.top + (availableHeight - finalRect.height) / 2
+      : margin.top
+  const delta = finalRect.top - desiredTop
+  if (Math.abs(delta) < 0.5) return
+
+  window.scrollBy({
+    top: delta,
+    behavior: behavior ?? 'auto',
+  })
+}
+
+const ensureElementInView = (
+  element: Element,
+  margin: ScrollMargin,
+  options?: EnsureInViewOptions,
+) => {
+  const behavior = options?.behavior ?? 'auto'
+  const mode: ScrollMode = options?.mode ?? 'preserve'
   if (!isBrowser) return
 
   const scrollParents = getScrollParents(element)
@@ -197,9 +231,11 @@ const ensureElementInView = (
     window.scrollBy({
       top: viewportTopDelta,
       left: viewportLeftDelta,
-      behavior: behavior ?? 'auto',
+      behavior,
     })
   }
+
+  alignWithinViewport(element, margin, behavior, mode)
 }
 
 const resolveStepTarget = (
@@ -266,7 +302,7 @@ export const useTourTarget = (): TourTargetInfo => {
     }
   }, [activeStep?.id])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isBrowser) return
     if (!activeStep) return
     if (targetInfo.status !== 'ready') return
@@ -284,10 +320,28 @@ export const useTourTarget = (): TourTargetInfo => {
       DEFAULT_SCROLL_MARGIN,
     )
 
-    ensureElementInView(targetInfo.element, margin, 'smooth')
+    const scrollMode: ScrollMode =
+      activeStep.targetBehavior?.scrollMode ?? 'preserve'
+
+    const rect = targetInfo.rect ?? targetInfo.lastResolvedRect
+    const viewport = getViewportRect()
+    const needsImmediateScroll = rect
+      ? rect.bottom < viewport.top + margin.top ||
+        rect.top > viewport.bottom - margin.bottom ||
+        rect.right < viewport.left + margin.left ||
+        rect.left > viewport.right - margin.right
+      : false
+
+    ensureElementInView(targetInfo.element, margin, {
+      behavior: needsImmediateScroll ? 'auto' : 'smooth',
+      mode: scrollMode,
+    })
   }, [
     activeStep?.id,
     activeStep?.targetBehavior?.scrollMargin,
+    activeStep?.targetBehavior?.scrollMode,
+    targetInfo.rect,
+    targetInfo.lastResolvedRect,
     targetInfo.element,
     targetInfo.isScreen,
     targetInfo.status,
@@ -726,6 +780,8 @@ export const useTourTarget = (): TourTargetInfo => {
     }
 
     const { element } = targetInfo
+    const scrollMode: ScrollMode =
+      activeStep.targetBehavior?.scrollMode ?? 'preserve'
 
     const runCheck = () => {
       autoScrollRafRef.current = null
@@ -773,7 +829,10 @@ export const useTourTarget = (): TourTargetInfo => {
       const behavior: ScrollBehaviorSetting =
         autoState.attempts >= 4 ? 'auto' : 'smooth'
 
-      ensureElementInView(element, margin, behavior)
+      ensureElementInView(element, margin, {
+        behavior,
+        mode: scrollMode,
+      })
 
       autoScrollTimeoutRef.current = globalThis.setTimeout(() => {
         autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
@@ -784,7 +843,7 @@ export const useTourTarget = (): TourTargetInfo => {
     autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
 
     return cancelAutoScrollLoop
-  }, [activeStep, targetInfo])
+  }, [activeStep, activeStep?.targetBehavior?.scrollMode, targetInfo])
 
   return targetInfo
 }

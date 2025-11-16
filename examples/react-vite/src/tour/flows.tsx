@@ -206,6 +206,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       },
       targetBehavior: {
         scrollMargin: { top: STICKY_HEADER_OFFSET },
+        scrollMode: 'center',
       },
       placement: 'top',
       advance: [{ type: 'manual' }],
@@ -230,6 +231,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       },
       targetBehavior: {
         scrollMargin: { top: STICKY_HEADER_OFFSET + 16 },
+        scrollMode: 'start',
       },
       placement: 'top',
       advance: [{ type: 'manual' }],

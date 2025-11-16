@@ -103,6 +103,13 @@ export const TourPopover = ({
     offsetX: number
     offsetY: number
   } | null>(null)
+  const overflowRetryRef = useRef<{ stepId: string | null; attempts: number }>(
+    {
+      stepId: null,
+      attempts: 0,
+    },
+  )
+  const overflowRetryTimeoutRef = useRef<number | null>(null)
 
   const resolvedPlacement: StepPlacement = placement ?? 'bottom'
   const isAutoPlacement = resolvedPlacement.startsWith('auto')
@@ -251,6 +258,20 @@ export const TourPopover = ({
 
     const cancelState = { cancelled: false }
 
+    const retryState = overflowRetryRef.current
+    const currentStepId = target.stepId ?? null
+    if (retryState.stepId !== currentStepId) {
+      retryState.stepId = currentStepId
+      retryState.attempts = 0
+    }
+
+    const clearRetryTimeout = () => {
+      if (overflowRetryTimeoutRef.current !== null) {
+        window.clearTimeout(overflowRetryTimeoutRef.current)
+        overflowRetryTimeoutRef.current = null
+      }
+    }
+
     const virtualReference: VirtualElement = {
       contextElement: target.element ?? undefined,
       getBoundingClientRect: () =>
@@ -314,7 +335,34 @@ export const TourPopover = ({
         overflowLeft,
       )
 
-      if (maxOverflow > 4) {
+      const viewportHeight = viewportRect.height
+      const viewportWidth = viewportRect.width
+      const overflowThreshold = Math.max(
+        FLOATING_OFFSET * 2,
+        viewportHeight * 0.05,
+        viewportWidth * 0.05,
+      )
+
+      const targetRect = rectInfo
+      const targetNearlyFillsViewport =
+        !target.isScreen &&
+        (targetRect.height >= viewportHeight - FLOATING_OFFSET * 4 ||
+          targetRect.width >= viewportWidth - FLOATING_OFFSET * 4)
+
+      const shouldDock = targetNearlyFillsViewport || maxOverflow > overflowThreshold
+
+      if (shouldDock) {
+        if (!targetNearlyFillsViewport && retryState.attempts < 2) {
+          retryState.attempts += 1
+          clearRetryTimeout()
+          overflowRetryTimeoutRef.current = window.setTimeout(() => {
+            overflowRetryTimeoutRef.current = null
+            if (cancelState.cancelled) return
+            void updatePosition()
+          }, 120)
+          return
+        }
+        retryState.attempts = 0
         if (layoutMode !== 'docked') {
           setLayoutMode('docked')
           setFloatingPosition(dockedPosition)
@@ -322,6 +370,7 @@ export const TourPopover = ({
         return
       }
 
+      retryState.attempts = 0
       if (layoutMode !== 'floating') {
         setLayoutMode('floating')
       }
@@ -337,6 +386,7 @@ export const TourPopover = ({
 
     return () => {
       cancelState.cancelled = true
+      clearRetryTimeout()
     }
   }, [
     autoAlignment,
@@ -348,6 +398,7 @@ export const TourPopover = ({
     target.isScreen,
     target.lastUpdated,
     target.status,
+    target.stepId,
     resolvedPlacement,
   ])
 

@@ -86,10 +86,13 @@ export type ScrollMarginConfig =
       right?: number
     }
 
+export type StepScrollMode = 'preserve' | 'start' | 'center'
+
 export interface StepTargetBehavior {
   hidden?: HiddenTargetFallbackMode
   hiddenDelayMs?: number
   scrollMargin?: ScrollMarginConfig
+  scrollMode?: StepScrollMode
 }
 
 export type StepTarget =

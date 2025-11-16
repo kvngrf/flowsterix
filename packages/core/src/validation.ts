@@ -141,6 +141,9 @@ const stepSchema = z.object({
       hidden: z.union([z.literal('screen'), z.literal('skip')]).optional(),
       hiddenDelayMs: z.number().nonnegative().optional(),
       scrollMargin: scrollMarginSchema.optional(),
+      scrollMode: z
+        .union([z.literal('preserve'), z.literal('start'), z.literal('center')])
+        .optional(),
     })
     .optional(),
   content: z.any(),
