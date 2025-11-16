@@ -97,7 +97,7 @@ const defaultTokens = {
     background: 'rgba(15, 23, 42, 0.6)',
     ringShadow:
       'inset 0 0 0 2px rgba(56, 189, 248, 0.4), inset 0 0 0 8px rgba(15, 23, 42, 0.3)',
-    blur: '0px',
+    blur: '6px',
     radius: '12px',
   },
   shadow: {
