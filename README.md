@@ -117,6 +117,36 @@ Adapters can provide alternative motion components (e.g. `animated.div`) and tun
 
 Flows auto-detect `prefers-reduced-motion`, trap keyboard focus within the popover and highlighted target, and expose hooks for extra ARIA metadata. See `docs/guides/accessibility.md` for details on overriding popover roles, adding custom descriptions, or excluding controls from the focus loop.
 
+### Backdrop interaction modes
+
+Some products want the dimmed backdrop to block clicks, while others prefer letting users continue interacting with the underlying UI. `TourProvider` exposes a `backdropInteraction` switch so you can choose the default globally:
+
+```tsx
+<TourProvider flows={flows} backdropInteraction="block">
+  {/* ... */}
+</TourProvider>
+```
+
+- `'passthrough'` (default) keeps the highlight purely visual. Pointer events fall through to the page beneath the overlay unless the popover itself captures them.
+- `'block'` turns the backdrop into a modal scrim so clicks, drags, and hovers stop at the overlay until the step advances.
+
+Override the behavior per flow via HUD options when a specific tour needs different affordances:
+
+```ts
+const flow = createFlow({
+  id: 'paywall-tour',
+  version: 1,
+  hud: {
+    backdrop: {
+      interaction: 'block',
+    },
+  },
+  steps: [/* ... */],
+})
+```
+
+The React overlay reads these settings and toggles pointer events accordingly, so no extra CSS tweaks are required.
+
 ## Analytics & Error Reporting
 
 Every `FlowStore` exposes an event bus so you can subscribe to lifecycle changes such as `flowStart`, `stepEnter`, and `flowComplete`. In React you can listen through `useTourEvents('stepEnter', handler)` to drive custom product analytics.

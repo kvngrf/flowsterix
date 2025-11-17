@@ -1,3 +1,4 @@
+import type { BackdropInteractionMode } from '@tour/core'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -29,6 +30,7 @@ export interface TourOverlayProps {
   zIndex?: number
   edgeBuffer?: number
   blurAmount?: number
+  interactionMode?: BackdropInteractionMode
 }
 
 const DEFAULT_HIGHLIGHT_TRANSITION = {
@@ -58,6 +60,7 @@ export const TourOverlay = ({
   zIndex = 1000,
   edgeBuffer = 8,
   blurAmount,
+  interactionMode = 'passthrough',
 }: TourOverlayProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -151,8 +154,17 @@ export const TourOverlay = ({
     target.status === 'ready' ||
     (target.status === 'resolving' && cachedTarget !== null)
 
+  const rootPointerClass =
+    interactionMode === 'block' ? 'pointer-events-auto' : 'pointer-events-none'
+
+  const overlayPointerClass =
+    interactionMode === 'block' ? 'pointer-events-auto' : 'pointer-events-none'
+
+  const segmentPointerClass = overlayPointerClass
+
   const overlayClassName = cn(
-    'pointer-events-none absolute origin-center inset-0',
+    'absolute origin-center inset-0',
+    overlayPointerClass,
     shouldMask ? '[mask-mode:luminance]' : null,
     shouldMask ? '[mask-repeat:no-repeat]' : null,
     shouldMask ? '[mask-size:100%_100%]' : null,
@@ -315,7 +327,7 @@ export const TourOverlay = ({
 
   return createPortal(
     <MotionDiv
-      className="fixed inset-0 pointer-events-none"
+      className={cn('fixed inset-0', rootPointerClass)}
       style={{ zIndex }}
       aria-hidden={target.status !== 'ready'}
       data-tour-overlay=""
@@ -406,7 +418,8 @@ export const TourOverlay = ({
               <MotionDiv
                 key={`tour-overlay-fallback-${segment.key}`}
                 className={cn(
-                  'pointer-events-none absolute origin-center',
+                  'absolute origin-center',
+                  segmentPointerClass,
                   color ? null : colorClassName,
                 )}
                 data-tour-overlay-layer="segment"

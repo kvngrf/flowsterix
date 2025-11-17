@@ -85,7 +85,15 @@ export const TourHUD = ({
   zIndex = 1000,
 }: TourHUDProps) => {
   const tokens = useTourTokens()
-  const { state, activeStep, activeFlowId, flows, next, complete } = useTour()
+  const {
+    state,
+    activeStep,
+    activeFlowId,
+    flows,
+    next,
+    complete,
+    backdropInteraction,
+  } = useTour()
   const target = useTourTarget()
   const viewportRect = useViewportRect()
   useAdvanceRules(target)
@@ -98,6 +106,7 @@ export const TourHUD = ({
 
   const flowHudOptions = activeFlowId ? flows.get(activeFlowId)?.hud : null
   const popoverOptions = flowHudOptions?.popover
+  const backdropOptions = flowHudOptions?.backdrop
   const hudTokenOverrides = flowHudOptions?.tokens
   const hasHudTokenOverrides = Boolean(
     hudTokenOverrides && Object.keys(hudTokenOverrides).length > 0,
@@ -121,6 +130,8 @@ export const TourHUD = ({
 
   const resolvedOverlayPadding = overlayPadding ?? undefined
   const resolvedOverlayRadius = overlayRadius ?? tokenOverlayRadius ?? undefined
+  const resolvedBackdropInteraction =
+    backdropOptions?.interaction ?? backdropInteraction
 
   const resolvedPopoverOffset = popoverOptions?.offset ?? 20
   const resolvedPopoverRole = popoverOptions?.role ?? 'dialog'
@@ -203,6 +214,7 @@ export const TourHUD = ({
         padding={resolvedOverlayPadding}
         radius={resolvedOverlayRadius}
         zIndex={zIndex}
+        interactionMode={resolvedBackdropInteraction}
       />
       <AnimatePresence>
         {canRenderStep && runningStep && runningState ? (

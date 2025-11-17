@@ -34,6 +34,36 @@ const flow = createFlow({
 
 Add matching IDs inside your content when you need a custom description, or rely on `target.description` for a quick annotation.
 
+## Backdrop Interaction Modes
+
+Not every tour should freeze the UI behind it. Flowster now treats backdrop interaction as a first-class setting so you can decide whether the dimmed scrim absorbs pointer events or lets them pass through.
+
+- Set `backdropInteraction="passthrough"` (the default) at the provider level to keep the highlight purely visual—users can continue interacting with the page even while a step is active.
+- Use `backdropInteraction="block"` to turn the overlay into a modal scrim. Pointer events are trapped by the backdrop, but the punched-out highlight and popover remain interactive.
+
+```tsx
+<TourProvider flows={flows} backdropInteraction="block">
+  {/* ... */}
+</TourProvider>
+```
+
+When only a subset of tours should block interaction, override the default through HUD options on that flow alone:
+
+```ts
+const flow = createFlow({
+  id: 'critical-setup',
+  version: 1,
+  hud: {
+    backdrop: {
+      interaction: 'block',
+    },
+  },
+  steps: [/* ... */],
+})
+```
+
+Under the hood the overlay toggles pointer events on every backdrop layer, so you do not need extra CSS to enforce the behavior.
+
 ## Hidden Target Fallbacks
 
 Sometimes a step’s element technically exists but is collapsed to `display: none`, zero width/height, or otherwise hidden from assistive tech. Flowster watches for that state and, after a short grace period (900&nbsp;ms by default), either centers the HUD on the screen or silently skips to the next step.

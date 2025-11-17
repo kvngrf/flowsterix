@@ -107,8 +107,13 @@ const hudPopoverSchema = z.object({
   ariaModal: z.boolean().optional(),
 })
 
+const hudBackdropSchema = z.object({
+  interaction: z.union([z.literal('block'), z.literal('passthrough')]).optional(),
+})
+
 const hudSchema = z.object({
   popover: hudPopoverSchema.optional(),
+  backdrop: hudBackdropSchema.optional(),
   tokens: z.record(z.string(), z.any()).optional(),
 })
 

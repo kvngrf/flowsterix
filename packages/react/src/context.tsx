@@ -1,4 +1,5 @@
 import type {
+  BackdropInteractionMode,
   EventBus,
   FlowAnalyticsHandlers,
   FlowDefinition,
@@ -56,6 +57,7 @@ export interface TourProviderProps {
   autoDetectReducedMotion?: boolean
   tokens?: TourTokensOverride
   analytics?: FlowAnalyticsHandlers<ReactNode>
+  backdropInteraction?: BackdropInteractionMode
 }
 
 export interface TourContextValue {
@@ -78,6 +80,7 @@ export interface TourContextValue {
   delayInfo: DelayAdvanceInfo | null
   /** @internal */
   setDelayInfo: Dispatch<SetStateAction<DelayAdvanceInfo | null>>
+  backdropInteraction: BackdropInteractionMode
 }
 
 const TourContext = createContext<TourContextValue | undefined>(undefined)
@@ -104,6 +107,7 @@ export const TourProvider = ({
   autoDetectReducedMotion = true,
   tokens: tokenOverrides,
   analytics,
+  backdropInteraction: backdropInteractionProp = 'passthrough',
 }: PropsWithChildren<TourProviderProps>) => {
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
@@ -377,6 +381,7 @@ export const TourProvider = ({
       toggleDebug,
       delayInfo,
       setDelayInfo,
+      backdropInteraction: backdropInteractionProp,
     }),
     [
       activeFlowId,
@@ -397,6 +402,7 @@ export const TourProvider = ({
       startFlow,
       state,
       toggleDebug,
+      backdropInteractionProp,
     ],
   )
 

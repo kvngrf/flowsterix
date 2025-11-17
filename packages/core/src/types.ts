@@ -178,12 +178,18 @@ export interface Step<TContent = unknown> {
   controls?: StepControls
 }
 
+export type BackdropInteractionMode = 'block' | 'passthrough'
+
 export interface FlowHudPopoverOptions {
   offset?: number
   role?: string
   ariaLabel?: string
   ariaDescribedBy?: string
   ariaModal?: boolean
+}
+
+export interface FlowHudBackdropOptions {
+  interaction?: BackdropInteractionMode
 }
 
 export interface FlowHudTokenOverrides {
@@ -193,6 +199,7 @@ export interface FlowHudTokenOverrides {
 export interface FlowHudOptions {
   popover?: FlowHudPopoverOptions
   tokens?: FlowHudTokenOverrides
+  backdrop?: FlowHudBackdropOptions
 }
 
 export interface FlowDefinition<TContent = unknown> {

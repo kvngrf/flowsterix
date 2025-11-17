@@ -64,6 +64,7 @@ const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
       defaultDebug={false}
       analytics={demoAnalytics}
       tokens={tokensOverride}
+      backdropInteraction="block"
     >
       <TanStackRouterSync />
       <Header />

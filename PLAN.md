@@ -121,7 +121,7 @@
 ## 14. Roadmap After MVP
 
 - [ ] Branching flows / conditional steps
-- [ ] Backdrop interaction modes (block, passthrough)
+- [x] Backdrop interaction modes (block, passthrough)
 - [ ] Multi-target steps and guided cursor
 - [ ] Internationalization surface (message ids, binding render)
 - [ ] Plugin ecosystem (analytics, external storage, tour builder)
