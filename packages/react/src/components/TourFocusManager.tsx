@@ -114,10 +114,6 @@ export const TourFocusManager = ({
       focusElement(focusables[0])
     }
 
-    if (!isWithinTrap(doc.activeElement)) {
-      runMicrotask(ensureFocus)
-    }
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return
       focusables = deriveFocusables()
