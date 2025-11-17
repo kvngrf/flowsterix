@@ -58,6 +58,29 @@ export function App() {
 
 The package also exposes `listTourThemePresets()` so you can build a selector UI with matching metadata (id, label, description) for each preset before applying the token overrides.
 
+### Headless React bindings
+
+Need total control over the markup, styling, and controls? Install the new `@tour/headless` package. It re-exports the Flowster provider, hooks, router adapters, and animation utilities without bundling any HUD components or CSS, so you can render your own overlay/popover/buttons from scratch:
+
+```tsx
+import {
+  TourProvider,
+  useTour,
+  useTourTarget,
+  useTourControls,
+} from '@tour/headless'
+
+export function App() {
+  return (
+    <TourProvider flows={flows}>
+      <CustomHud />
+    </TourProvider>
+  )
+}
+```
+
+See `docs/guides/headless.md` for a complete walkthrough, including a minimal highlight and popover implementation you can paste into your project.
+
 ### Customizing Animations
 
 The React bindings drive motion through an `AnimationAdapter` that ships with a Framer Motion-backed default. `TourProvider` accepts several options so you can adjust timing or respect user preferences without rewriting components:

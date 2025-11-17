@@ -86,6 +86,9 @@ importers:
       '@tour/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tour/headless':
+        specifier: workspace:*
+        version: link:../../packages/headless
       '@tour/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -168,6 +171,18 @@ importers:
       zod:
         specifier: ^4.1.11
         version: 4.1.12
+
+  packages/headless:
+    dependencies:
+      '@tour/react':
+        specifier: workspace:*
+        version: link:../react
+      react:
+        specifier: '>=18'
+        version: 19.2.0
+      react-dom:
+        specifier: '>=18'
+        version: 19.2.0(react@19.2.0)
 
   packages/react:
     dependencies:

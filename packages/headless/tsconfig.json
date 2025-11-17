@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
+    "baseUrl": ".",
+    "paths": {
+      "@tour/react": ["../react/dist"],
+      "@tour/react/*": ["../react/dist/*"],
+      "@tour/react/headless": ["../react/dist/headless"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "../react" }]
+}

@@ -3,6 +3,7 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: [
     'src/index.tsx',
+    'src/headless.ts',
     'src/router/index.ts',
     'src/router/tanstackRouterAdapter.tsx',
     'src/router/reactRouterAdapter.tsx',

@@ -346,4 +346,58 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   ],
 })
 
-export const demoFlows = [onboardingFlow]
+export const headlessDemoFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
+  id: 'headless-demo',
+  version: 1,
+  hud: {
+    popover: {
+      offset: 32,
+    },
+  },
+  steps: [
+    {
+      id: 'headless-intro',
+      target: {
+        selector: '[data-headless-target="panel"]',
+        description: 'Minimal headless highlight panel',
+      },
+      placement: 'right',
+      advance: [{ type: 'manual' }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Totally custom HUD
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            This flow renders a bespoke overlay and controls powered by
+            <code style={{ paddingInline: 4 }}>@tour/headless</code>. All the
+            targeting, routing, and analytics logic still comes from Flowster.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'headless-cta',
+      target: {
+        selector: '[data-headless-target="cta"]',
+        description: 'CTA block rendered in the headless demo',
+      },
+      placement: 'top',
+      advance: [{ type: 'manual' }],
+      content: (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+            Add limitless UI
+          </h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>
+            Because you render everything yourself, it&apos;s easy to drop in
+            extra buttons, multi-column layouts, or integrate with your design
+            system tokens.
+          </p>
+        </div>
+      ),
+    },
+  ],
+})
+
+export const demoFlows = [onboardingFlow, headlessDemoFlow]
