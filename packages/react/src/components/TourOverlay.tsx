@@ -154,11 +154,9 @@ export const TourOverlay = ({
     target.status === 'ready' ||
     (target.status === 'resolving' && cachedTarget !== null)
 
-  const rootPointerClass =
-    interactionMode === 'block' ? 'pointer-events-auto' : 'pointer-events-none'
+  const rootPointerClass = 'pointer-events-none'
 
-  const overlayPointerClass =
-    interactionMode === 'block' ? 'pointer-events-auto' : 'pointer-events-none'
+  const overlayPointerClass = 'pointer-events-none'
 
   const segmentPointerClass = overlayPointerClass
 
@@ -323,6 +321,86 @@ export const TourOverlay = ({
     viewport.width,
   ])
 
+  type Segment = {
+    key: string
+    top: number
+    left: number
+    width: number
+    height: number
+  }
+
+  const blockerSegments: Array<Segment> | null = useMemo(() => {
+    if (interactionMode !== 'block') {
+      return null
+    }
+
+    if (!hasHighlightBounds) {
+      return [
+        {
+          key: 'blocker-full',
+          top: 0,
+          left: 0,
+          width: viewport.width,
+          height: viewport.height,
+        },
+      ]
+    }
+
+    const topEdge = Math.max(0, Math.min(highlightTop, viewport.height))
+    const bottomEdge = Math.max(
+      topEdge,
+      Math.min(highlightTop + highlightHeight, viewport.height),
+    )
+    const leftEdge = Math.max(0, Math.min(highlightLeft, viewport.width))
+    const rightEdge = Math.max(
+      leftEdge,
+      Math.min(highlightLeft + highlightWidth, viewport.width),
+    )
+    const middleHeight = Math.max(0, bottomEdge - topEdge)
+
+  const segments: Array<Segment> = [
+      {
+        key: 'blocker-top',
+        top: 0,
+        left: 0,
+        width: viewport.width,
+        height: topEdge,
+      },
+      {
+        key: 'blocker-bottom',
+        top: bottomEdge,
+        left: 0,
+        width: viewport.width,
+        height: Math.max(0, viewport.height - bottomEdge),
+      },
+      {
+        key: 'blocker-left',
+        top: topEdge,
+        left: 0,
+        width: leftEdge,
+        height: middleHeight,
+      },
+      {
+        key: 'blocker-right',
+        top: topEdge,
+        left: rightEdge,
+        width: Math.max(0, viewport.width - rightEdge),
+        height: middleHeight,
+      },
+    ]
+
+    return segments.filter((segment) => segment.width > 0 && segment.height > 0)
+  }, [
+    hasHighlightBounds,
+    highlightHeight,
+    highlightLeft,
+    highlightTop,
+    highlightWidth,
+    interactionMode,
+    viewport.height,
+    viewport.width,
+  ])
+
   const showBaseOverlay = isActive && (shouldMask || !hasHighlightBounds)
 
   return createPortal(
@@ -447,6 +525,27 @@ export const TourOverlay = ({
             ))
           : null}
       </AnimatePresence>
+      {blockerSegments ? (
+        <div
+          className="pointer-events-none absolute inset-0"
+          data-tour-overlay-layer="interaction-blocker"
+          aria-hidden
+          style={{ zIndex }}
+        >
+          {blockerSegments.map((segment) => (
+            <div
+              key={segment.key}
+              className="absolute pointer-events-auto"
+              style={{
+                top: segment.top,
+                left: segment.left,
+                width: segment.width,
+                height: segment.height,
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
       <AnimatePresence mode="popLayout">
         {isActive && hasHighlightBounds ? (
           <MotionDiv

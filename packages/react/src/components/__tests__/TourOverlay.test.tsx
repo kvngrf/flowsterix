@@ -62,11 +62,15 @@ describe('TourOverlay interaction modes', () => {
     render(<TourOverlay target={target} interactionMode="block" />)
 
     const overlayRoot = document.querySelector('[data-tour-overlay]')
-    const backdropLayer = document.querySelector(
-      '[data-tour-overlay-layer="backdrop"]',
+    const blockerLayer = document.querySelector(
+      '[data-tour-overlay-layer="interaction-blocker"]',
+    )
+    const blockerSegments = blockerLayer?.querySelectorAll(
+      '.pointer-events-auto',
     )
 
-    expect(overlayRoot?.className).toContain('pointer-events-auto')
-    expect(backdropLayer?.className).toContain('pointer-events-auto')
+    expect(overlayRoot?.className).toContain('pointer-events-none')
+    expect(blockerLayer).not.toBeNull()
+    expect(blockerSegments && blockerSegments.length).toBeGreaterThan(0)
   })
 })
