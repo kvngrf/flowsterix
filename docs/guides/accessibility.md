@@ -97,7 +97,7 @@ Details:
 - `scrollMargin` accepts either a single number (applied to all sides) or per-side values for `top`, `bottom`, `left`, and `right`.
 - Flowster already detects nested scroll containers, so the same margin keeps targets inside overflow panels padded as they animate into view.
 - The helper clamps negative values to zero and falls back to the default 16 px margin whenever a side isn’t provided.
-- Add `targetBehavior.scrollMode` when you want Flowster to reposition the viewport even if the target is technically visible. Use `'start'` to pin the element just below the margin buffer or `'center'` to center it inside the available space. The default `'preserve'` keeps the lighter-touch behavior.
+- Add `targetBehavior.scrollMode` when you want Flowster to reposition the viewport even if the target is technically visible. Use `'start'` to pin the element just below the margin buffer, `'center'` (the default) to center it inside the available space, or `'preserve'` to keep the lighter-touch behavior that only scrolls when the element would otherwise be clipped.
 
 In the demo app, the “Sticky Header Safe Zone” step uses this option to keep the popover just below the persistent navigation bar, making it obvious how the HUD will behave in real products.
 

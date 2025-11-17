@@ -48,6 +48,8 @@ const INITIAL_TARGET_INFO: TourTargetInfo = {
   rectSource: 'none',
 }
 
+const DEFAULT_SCROLL_MODE: StepScrollMode = 'center'
+
 const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 
 type ScrollBehaviorSetting = ScrollBehavior | undefined
@@ -321,7 +323,7 @@ export const useTourTarget = (): TourTargetInfo => {
     )
 
     const scrollMode: ScrollMode =
-      activeStep.targetBehavior?.scrollMode ?? 'preserve'
+      activeStep.targetBehavior?.scrollMode ?? DEFAULT_SCROLL_MODE
 
     const rect = targetInfo.rect ?? targetInfo.lastResolvedRect
     const viewport = getViewportRect()
@@ -781,7 +783,7 @@ export const useTourTarget = (): TourTargetInfo => {
 
     const { element } = targetInfo
     const scrollMode: ScrollMode =
-      activeStep.targetBehavior?.scrollMode ?? 'preserve'
+      activeStep.targetBehavior?.scrollMode ?? 'center'
 
     const runCheck = () => {
       autoScrollRafRef.current = null
