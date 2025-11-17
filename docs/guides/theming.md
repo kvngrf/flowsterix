@@ -224,6 +224,10 @@ export const flow = createFlow({
 
 That keeps structural HUD settings (like overlay padding) available per flow while giving you complete CSS-variable parity whenever you need a bespoke visual treatment.
 
+### Layout helpers
+
+If you want to increase or decrease the default gap between a target and the HUD popover without editing every flow, override the `layout.popoverOffset` token. The Tour HUD now falls back to that value whenever a flow doesn’t specify its own `hud.popover.offset`, which makes it perfect for theme presets (Nebula now ships with a much larger offset by default).
+
 ## Preset theme package
 
 If you would rather start from a curated palette, install the optional `@tour/themes` package that now ships with the repo. It exports a growing list of presets (Classic, Aurora, Nebula to start) plus helpers for enumerating them:

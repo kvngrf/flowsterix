@@ -75,11 +75,6 @@ const ensureSsrGroupExpanded = () => {
 export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   id: 'demo-onboarding',
   version: 1,
-  hud: {
-    popover: {
-      offset: 28,
-    },
-  },
   steps: [
     {
       id: 'welcome',

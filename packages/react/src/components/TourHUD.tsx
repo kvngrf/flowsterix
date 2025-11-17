@@ -138,7 +138,8 @@ export const TourHUD = ({
   const resolvedLockBodyScroll =
     behaviorOptions?.lockBodyScroll ?? lockBodyScroll
 
-  const resolvedPopoverOffset = popoverOptions?.offset ?? 20
+  const resolvedPopoverOffset =
+    popoverOptions?.offset ?? activeTokens.layout.popoverOffset
   const resolvedPopoverRole = popoverOptions?.role ?? 'dialog'
   const resolvedPopoverAriaLabel = popoverOptions?.ariaLabel
   const resolvedPopoverAriaDescribedBy = popoverOptions?.ariaDescribedBy

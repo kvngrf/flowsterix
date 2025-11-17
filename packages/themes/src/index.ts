@@ -133,11 +133,14 @@ export const nebulaTokens: TourTokensOverride = {
     ringOffsetColor: 'rgba(12, 4, 20, 0.95)',
   },
   overlay: {
-    background: 'rgba(7, 3, 15, 0.82)',
+    background: 'rgba(0, 0, 0, 0)',
     ringShadow:
-      'inset 0 0 0 2px rgba(244, 114, 182, 0.65), inset 0 0 0 8px rgba(147, 51, 234, 0.3)',
-    blur: '10px',
+      '0 0 32px 6px rgba(244, 114, 182, 0.65), 0 0 60px 18px rgba(147, 51, 234, 0.3)',
+    blur: '0px',
     radius: '0px',
+  },
+  layout: {
+    popoverOffset: 48,
   },
   shadow: {
     hud: {

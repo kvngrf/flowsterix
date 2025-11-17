@@ -100,6 +100,9 @@ const defaultTokens = {
     blur: '6px',
     radius: '12px',
   },
+  layout: {
+    popoverOffset: 28,
+  },
   shadow: {
     hud: {
       panel: '0 24px 50px -25px rgba(15, 23, 42, 0.65)',
