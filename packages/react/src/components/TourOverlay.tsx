@@ -358,7 +358,7 @@ export const TourOverlay = ({
     )
     const middleHeight = Math.max(0, bottomEdge - topEdge)
 
-  const segments: Array<Segment> = [
+    const segments: Array<Segment> = [
       {
         key: 'blocker-top',
         top: 0,
