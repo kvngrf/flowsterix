@@ -141,7 +141,9 @@ const flow = createFlow({
       interaction: 'block',
     },
   },
-  steps: [/* ... */],
+  steps: [
+    /* ... */
+  ],
 })
 ```
 

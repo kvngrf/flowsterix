@@ -108,7 +108,9 @@ const hudPopoverSchema = z.object({
 })
 
 const hudBackdropSchema = z.object({
-  interaction: z.union([z.literal('block'), z.literal('passthrough')]).optional(),
+  interaction: z
+    .union([z.literal('block'), z.literal('passthrough')])
+    .optional(),
 })
 
 const hudSchema = z.object({
