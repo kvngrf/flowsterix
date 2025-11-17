@@ -66,6 +66,34 @@ const flow = createFlow({
 
 Under the hood the overlay toggles pointer events on every backdrop layer, so you do not need extra CSS to enforce the behavior.
 
+## Scroll Locking
+
+When a tour step grabs the user’s attention, drifting content can be just as distracting as stray clicks. Flowster now lets you opt into body scroll locking independently of backdrop interaction modes.
+
+- Enable it everywhere by passing `lockBodyScroll` to `TourProvider`.
+- Override specific flows through `hud.behavior.lockBodyScroll` when only certain experiences need to freeze the page position.
+
+```tsx
+<TourProvider flows={flows} lockBodyScroll>
+  {/* ... */}
+</TourProvider>
+```
+
+```ts
+const flow = createFlow({
+  id: 'onboarding',
+  version: 1,
+  hud: {
+    behavior: {
+      lockBodyScroll: true,
+    },
+  },
+  steps: [/* ... */],
+})
+```
+
+The React binding reference-counts locks, so even if multiple tours mount (or a tour re-renders) the document overflow state is restored as soon as the last lock releases.
+
 ## Hidden Target Fallbacks
 
 Sometimes a step’s element technically exists but is collapsed to `display: none`, zero width/height, or otherwise hidden from assistive tech. Flowster watches for that state and, after a short grace period (900&nbsp;ms by default), either centers the HUD on the screen or silently skips to the next step.

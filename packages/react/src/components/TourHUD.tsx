@@ -8,6 +8,7 @@ import { useTour } from '../context'
 import { useAdvanceRules } from '../hooks/useAdvanceRules'
 import { useHiddenTargetFallback } from '../hooks/useHiddenTargetFallback'
 import { useTourControls } from '../hooks/useTourControls'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
 import { useViewportRect } from '../hooks/useViewportRect'
@@ -93,6 +94,7 @@ export const TourHUD = ({
     next,
     complete,
     backdropInteraction,
+    lockBodyScroll,
   } = useTour()
   const target = useTourTarget()
   const viewportRect = useViewportRect()
@@ -107,6 +109,7 @@ export const TourHUD = ({
   const flowHudOptions = activeFlowId ? flows.get(activeFlowId)?.hud : null
   const popoverOptions = flowHudOptions?.popover
   const backdropOptions = flowHudOptions?.backdrop
+  const behaviorOptions = flowHudOptions?.behavior
   const hudTokenOverrides = flowHudOptions?.tokens
   const hasHudTokenOverrides = Boolean(
     hudTokenOverrides && Object.keys(hudTokenOverrides).length > 0,
@@ -132,6 +135,8 @@ export const TourHUD = ({
   const resolvedOverlayRadius = overlayRadius ?? tokenOverlayRadius ?? undefined
   const resolvedBackdropInteraction =
     backdropOptions?.interaction ?? backdropInteraction
+  const resolvedLockBodyScroll =
+    behaviorOptions?.lockBodyScroll ?? lockBodyScroll
 
   const resolvedPopoverOffset = popoverOptions?.offset ?? 20
   const resolvedPopoverRole = popoverOptions?.role ?? 'dialog'
@@ -200,6 +205,8 @@ export const TourHUD = ({
   const combinedAriaDescribedBy =
     [resolvedPopoverAriaDescribedBy, descriptionId].filter(Boolean).join(' ') ||
     undefined
+
+  useBodyScrollLock(Boolean(resolvedLockBodyScroll && focusTrapActive))
 
   return (
     <>

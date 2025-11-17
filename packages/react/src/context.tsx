@@ -58,6 +58,7 @@ export interface TourProviderProps {
   tokens?: TourTokensOverride
   analytics?: FlowAnalyticsHandlers<ReactNode>
   backdropInteraction?: BackdropInteractionMode
+  lockBodyScroll?: boolean
 }
 
 export interface TourContextValue {
@@ -81,6 +82,7 @@ export interface TourContextValue {
   /** @internal */
   setDelayInfo: Dispatch<SetStateAction<DelayAdvanceInfo | null>>
   backdropInteraction: BackdropInteractionMode
+  lockBodyScroll: boolean
 }
 
 const TourContext = createContext<TourContextValue | undefined>(undefined)
@@ -108,6 +110,7 @@ export const TourProvider = ({
   tokens: tokenOverrides,
   analytics,
   backdropInteraction: backdropInteractionProp = 'passthrough',
+  lockBodyScroll: lockBodyScrollProp = false,
 }: PropsWithChildren<TourProviderProps>) => {
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
@@ -382,6 +385,7 @@ export const TourProvider = ({
       delayInfo,
       setDelayInfo,
       backdropInteraction: backdropInteractionProp,
+      lockBodyScroll: lockBodyScrollProp,
     }),
     [
       activeFlowId,
@@ -403,6 +407,7 @@ export const TourProvider = ({
       state,
       toggleDebug,
       backdropInteractionProp,
+      lockBodyScrollProp,
     ],
   )
 

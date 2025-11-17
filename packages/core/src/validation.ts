@@ -113,9 +113,14 @@ const hudBackdropSchema = z.object({
     .optional(),
 })
 
+const hudBehaviorSchema = z.object({
+  lockBodyScroll: z.boolean().optional(),
+})
+
 const hudSchema = z.object({
   popover: hudPopoverSchema.optional(),
   backdrop: hudBackdropSchema.optional(),
+  behavior: hudBehaviorSchema.optional(),
   tokens: z.record(z.string(), z.any()).optional(),
 })
 

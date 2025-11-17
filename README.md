@@ -149,6 +149,35 @@ const flow = createFlow({
 
 The React overlay reads these settings and toggles pointer events accordingly, so no extra CSS tweaks are required.
 
+### Scroll locking
+
+Keep long pages from drifting under the HUD by enabling body scroll locking. Opt in globally via `lockBodyScroll`:
+
+```tsx
+<TourProvider flows={flows} lockBodyScroll>
+  {/* ... */}
+</TourProvider>
+```
+
+If only a handful of flows need the behavior, override the provider default through HUD behavior options:
+
+```ts
+const flow = createFlow({
+  id: 'critical-setup',
+  version: 1,
+  hud: {
+    behavior: {
+      lockBodyScroll: true,
+    },
+  },
+  steps: [
+    /* ... */
+  ],
+})
+```
+
+The React binding reference-counts locks, so scroll state is restored automatically when the tour closes—even if you start another tour immediately afterward.
+
 ## Analytics & Error Reporting
 
 Every `FlowStore` exposes an event bus so you can subscribe to lifecycle changes such as `flowStart`, `stepEnter`, and `flowComplete`. In React you can listen through `useTourEvents('stepEnter', handler)` to drive custom product analytics.

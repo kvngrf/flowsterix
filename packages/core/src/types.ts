@@ -192,6 +192,10 @@ export interface FlowHudBackdropOptions {
   interaction?: BackdropInteractionMode
 }
 
+export interface FlowHudBehaviorOptions {
+  lockBodyScroll?: boolean
+}
+
 export interface FlowHudTokenOverrides {
   [key: string]: unknown
 }
@@ -200,6 +204,7 @@ export interface FlowHudOptions {
   popover?: FlowHudPopoverOptions
   tokens?: FlowHudTokenOverrides
   backdrop?: FlowHudBackdropOptions
+  behavior?: FlowHudBehaviorOptions
 }
 
 export interface FlowDefinition<TContent = unknown> {
