@@ -6,9 +6,9 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence } from 'motion/react'
 import { useTour } from '../context'
 import { useAdvanceRules } from '../hooks/useAdvanceRules'
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import { useHiddenTargetFallback } from '../hooks/useHiddenTargetFallback'
 import { useTourControls } from '../hooks/useTourControls'
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useTourTarget } from '../hooks/useTourTarget'
 import { useViewportRect } from '../hooks/useViewportRect'
@@ -186,12 +186,13 @@ export const TourHUD = ({
     onSkip: skipHiddenStep,
   })
 
+  const canRenderStep = Boolean(runningStep && runningState)
+  const focusTrapActive = canRenderStep
+  useBodyScrollLock(Boolean(resolvedLockBodyScroll && focusTrapActive))
+
   if (!shouldRender) {
     return null
   }
-
-  const canRenderStep = Boolean(runningStep && runningState)
-  const focusTrapActive = canRenderStep
   const targetDescription =
     runningStep && typeof runningStep.target === 'object'
       ? (runningStep.target.description ?? null)
@@ -205,8 +206,6 @@ export const TourHUD = ({
   const combinedAriaDescribedBy =
     [resolvedPopoverAriaDescribedBy, descriptionId].filter(Boolean).join(' ') ||
     undefined
-
-  useBodyScrollLock(Boolean(resolvedLockBodyScroll && focusTrapActive))
 
   return (
     <>

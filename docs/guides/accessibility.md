@@ -88,7 +88,9 @@ const flow = createFlow({
       lockBodyScroll: true,
     },
   },
-  steps: [/* ... */],
+  steps: [
+    /* ... */
+  ],
 })
 ```
 
