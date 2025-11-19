@@ -323,8 +323,9 @@ export const TourPopoverPortal = ({
 
   useLayoutEffect(() => {
     if (layoutMode !== 'floating') return
+    if (target.status === 'ready' && !target.isScreen) return
     setFloatingPosition(fallbackPosition)
-  }, [fallbackPosition, layoutMode])
+  }, [fallbackPosition, layoutMode, target.isScreen, target.status])
 
   useEffect(() => {
     return () => {
