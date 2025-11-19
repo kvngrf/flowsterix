@@ -154,11 +154,7 @@ function HeadlessHud() {
 Need the highlight math without recreating Flowster’s overlay logic? Call `useTourOverlay` with the active `hudTarget` and feed that data into the new `OverlayBackdrop` component (exported from both `@tour/react` and `@tour/headless`). It renders the same mask/backdrop/interaction-blocker stack used by the default HUD, but you can fully customize color, blur, and transitions:
 
 ```tsx
-import {
-  OverlayBackdrop,
-  useTourHud,
-  useTourOverlay,
-} from '@tour/headless'
+import { OverlayBackdrop, useTourHud, useTourOverlay } from '@tour/headless'
 
 function HighlightOverlay() {
   const hud = useTourHud()
