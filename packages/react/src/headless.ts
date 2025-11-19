@@ -68,6 +68,12 @@ export type {
   TourPopoverPortalRenderProps,
 } from './components/TourPopoverPortal'
 
+export { OverlayBackdrop } from './components/OverlayBackdrop'
+export type {
+  OverlayBackdropProps,
+  OverlayBackdropTransitionsOverride,
+} from './components/OverlayBackdrop'
+
 export { useAdvanceRules } from './hooks/useAdvanceRules'
 export { useBodyScrollLock } from './hooks/useBodyScrollLock'
 export { useHiddenTargetFallback } from './hooks/useHiddenTargetFallback'

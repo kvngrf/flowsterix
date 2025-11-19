@@ -58,6 +58,12 @@ export type { DelayAdvanceProgress } from './hooks/useDelayAdvance'
 export { TourOverlay } from './components/TourOverlay'
 export type { TourOverlayProps } from './components/TourOverlay'
 
+export { OverlayBackdrop } from './components/OverlayBackdrop'
+export type {
+  OverlayBackdropProps,
+  OverlayBackdropTransitionsOverride,
+} from './components/OverlayBackdrop'
+
 export { TourPopover, TourPopoverPortal } from './components/TourPopover'
 export type {
   TourPopoverLayoutMode,

@@ -2,6 +2,7 @@ import { AnimatePresence } from 'motion/react'
 import { createPortal } from 'react-dom'
 
 import {
+  OverlayBackdrop,
   TourFocusManager,
   TourPopoverPortal,
   useHudMotion,
@@ -34,24 +35,16 @@ export const HeadlessHUD = () => {
   } = transitions
 
   const overlayShade = 'rgba(2,6,23,0.65)'
+  const overlayBlur = 10
   const overlayGeometry = useTourOverlay({
     target: hudTarget,
     padding: overlay.padding ?? 10,
     radius: overlay.radius ?? 20,
     interactionMode: overlay.interactionMode,
   })
-  const highlightRect = overlayGeometry.highlight.rect
 
   if (!hudEnabled || !runningStep) return null
   if (!portalTarget) return null
-
-  const fallbackOverlayStyle = {
-    position: 'fixed' as const,
-    inset: 0,
-    pointerEvents: 'none' as const,
-    background: overlayShade,
-    zIndex: 2000,
-  }
 
   const controlsStyle = {
     display: 'flex',
@@ -91,46 +84,20 @@ export const HeadlessHUD = () => {
         target={focusManager.target}
         popoverNode={focusManager.popoverNode}
       />
-      <AnimatePresence initial={false}>
-        {highlightRect ? (
-          <MotionDiv
-            key="headless-highlight"
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: 1,
-              left: highlightRect.left,
-              top: highlightRect.top,
-              width: highlightRect.width,
-              height: highlightRect.height,
-            }}
-            exit={{ opacity: 0 }}
-            transition={highlightTransition}
-            style={{
-              position: 'fixed',
-              borderRadius: highlightRect.radius,
-              border: '2px solid rgba(82,255,168,0.9)',
-              boxShadow: `0 0 0 9999px ${overlayShade}, 0 0 25px rgba(82,255,168,0.8), 0 0 70px rgba(82,255,168,0.45)`,
-              pointerEvents: 'none',
-              zIndex: 2000,
-              backgroundClip: 'padding-box',
-            }}
-            aria-hidden
-          />
-        ) : null}
-      </AnimatePresence>
-      <AnimatePresence initial={false}>
-        {!highlightRect ? (
-          <MotionDiv
-            key="headless-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={overlayFadeTransition}
-            style={fallbackOverlayStyle}
-            aria-hidden
-          />
-        ) : null}
-      </AnimatePresence>
+      <OverlayBackdrop
+        overlay={overlayGeometry}
+        zIndex={2000}
+        color={overlayShade}
+        opacity={1}
+        blurAmount={overlayBlur}
+        shadow={
+          '0 0 0 2px rgba(82,255,168,0.9), 0 0 25px rgba(82,255,168,0.8), 0 0 70px rgba(82,255,168,0.45)'
+        }
+        transitionsOverride={{
+          overlayHighlight: highlightTransition,
+          overlayFade: overlayFadeTransition,
+        }}
+      />
       <AnimatePresence>
         <TourPopoverPortal
           target={hudTarget}
