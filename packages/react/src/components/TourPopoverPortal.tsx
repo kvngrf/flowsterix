@@ -597,22 +597,22 @@ export const TourPopoverPortal = ({
     layoutMode === 'mobile' ? null : getFloatingCacheKey(target)
   const persistedFloatingInitial =
     floatingCacheKey && floatingPositionCache.has(floatingCacheKey)
-      ? floatingPositionCache.get(floatingCacheKey) ?? null
+      ? (floatingPositionCache.get(floatingCacheKey) ?? null)
       : null
   const cachedFloatingInitial =
     layoutMode === 'mobile'
       ? null
-      : cachedFloatingPositionRef.current ?? persistedFloatingInitial
+      : (cachedFloatingPositionRef.current ?? persistedFloatingInitial)
   const hasCachedFloatingInitial = Boolean(cachedFloatingInitial)
 
   const resolvedInitialPosition: FloatingPositionState =
     layoutMode === 'mobile'
       ? mobilePosition
       : hasCachedFloatingInitial && cachedFloatingInitial
-          ? cachedFloatingInitial
-          : shouldUseFallbackInitial
-            ? fallbackPosition
-            : centerInitialPosition
+        ? cachedFloatingInitial
+        : shouldUseFallbackInitial
+          ? fallbackPosition
+          : centerInitialPosition
 
   const initialTop = resolvedInitialPosition.top
   const initialLeft = resolvedInitialPosition.left
