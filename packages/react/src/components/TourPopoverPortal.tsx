@@ -52,6 +52,24 @@ type MotionElementProps = MotionProps &
 
 type MotionElementComponent = ComponentType<MotionElementProps>
 
+type FloatingPositionState = {
+  top: number
+  left: number
+  transform: string
+}
+
+const floatingPositionCache = new Map<string, FloatingPositionState>()
+
+const getFloatingCacheKey = (target: TourTargetInfo) => {
+  if (target.stepId) {
+    return `step:${target.stepId}`
+  }
+  if (target.isScreen) {
+    return 'screen'
+  }
+  return null
+}
+
 export type TourPopoverLayoutMode = 'floating' | 'docked' | 'manual' | 'mobile'
 
 export interface TourPopoverPortalRenderProps {
@@ -207,10 +225,12 @@ export const TourPopoverPortal = ({
   )
 
   const floatingRef = useRef<HTMLElement | null>(null)
+  const cachedFloatingPositionRef = useRef<FloatingPositionState | null>(null)
   const [layoutMode, setLayoutMode] = useState<TourPopoverLayoutMode>(() =>
     prefersMobileLayout ? 'mobile' : 'floating',
   )
-  const [floatingPosition, setFloatingPosition] = useState(fallbackPosition)
+  const [floatingPosition, setFloatingPosition] =
+    useState<FloatingPositionState>(fallbackPosition)
   const [dragPosition, setDragPosition] = useState<{
     top: number
     left: number
@@ -240,6 +260,7 @@ export const TourPopoverPortal = ({
   useEffect(() => {
     setDragPosition(null)
     setLayoutMode(prefersMobileRef.current ? 'mobile' : 'floating')
+    cachedFloatingPositionRef.current = null
   }, [target.stepId])
 
   useEffect(() => {
@@ -247,6 +268,14 @@ export const TourPopoverPortal = ({
       setDragPosition(null)
     }
   }, [layoutMode])
+
+  useEffect(() => {
+    cachedFloatingPositionRef.current = floatingPosition
+    const cacheKey = getFloatingCacheKey(target)
+    if (cacheKey) {
+      floatingPositionCache.set(cacheKey, floatingPosition)
+    }
+  }, [floatingPosition, target.isScreen, target.stepId])
 
   const dockedPosition = useMemo(
     () => ({
@@ -564,24 +593,30 @@ export const TourPopoverPortal = ({
     layoutMode !== 'mobile' &&
     (Boolean(target.lastResolvedRect) || Boolean(cachedTarget))
 
-  const initialTop =
+  const floatingCacheKey =
+    layoutMode === 'mobile' ? null : getFloatingCacheKey(target)
+  const persistedFloatingInitial =
+    floatingCacheKey && floatingPositionCache.has(floatingCacheKey)
+      ? floatingPositionCache.get(floatingCacheKey) ?? null
+      : null
+  const cachedFloatingInitial =
     layoutMode === 'mobile'
-      ? mobilePosition.top
-      : shouldUseFallbackInitial
-        ? fallbackPosition.top
-        : centerInitialPosition.top
-  const initialLeft =
+      ? null
+      : cachedFloatingPositionRef.current ?? persistedFloatingInitial
+  const hasCachedFloatingInitial = Boolean(cachedFloatingInitial)
+
+  const resolvedInitialPosition: FloatingPositionState =
     layoutMode === 'mobile'
-      ? mobilePosition.left
-      : shouldUseFallbackInitial
-        ? fallbackPosition.left
-        : centerInitialPosition.left
-  const initialTransform =
-    layoutMode === 'mobile'
-      ? mobilePosition.transform
-      : shouldUseFallbackInitial
-        ? fallbackPosition.transform
-        : centerInitialPosition.transform
+      ? mobilePosition
+      : hasCachedFloatingInitial && cachedFloatingInitial
+          ? cachedFloatingInitial
+          : shouldUseFallbackInitial
+            ? fallbackPosition
+            : centerInitialPosition
+
+  const initialTop = resolvedInitialPosition.top
+  const initialLeft = resolvedInitialPosition.left
+  const initialTransform = resolvedInitialPosition.transform
 
   const containerStyle: CSSProperties = {
     position: 'fixed',
