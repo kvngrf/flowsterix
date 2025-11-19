@@ -16,6 +16,7 @@ The package depends on `@tour/core` and `@tour/react`, so those peer dependencie
 - Target/geometry hooks: `useTourTarget`, `useViewportRect`, `useHiddenTargetFallback`.
 - Progression helpers: `useTourControls`, `useAdvanceRules`, `useDelayAdvance`, `useBodyScrollLock`, `createWaitForPredicateController`.
 - HUD hooks: `useTourHud` for the bundled experience, `useTourOverlay` for reusable highlight geometry, plus the lower-level `useHudState`, `useHudAppearance`, `useHudDescription`, `useHudShortcuts`, `useHudTargetIssue` when you need to pick and choose pieces.
+- Visual primitives: `OverlayBackdrop`, the same component Flowster uses under the hood for `TourOverlay`, which renders the mask/backdrop/interaction blocker using the data from `useTourOverlay`.
 - Router + animation utilities if you still want Flowster to sync with TanStack/Next/React Router or reuse the default motion adapter.
 
 Everything that renders UI (`TourHUD`, `TourOverlay`, `TourPopover`, `DelayProgressBar`, etc.) is intentionally omitted.
@@ -148,12 +149,16 @@ function HeadlessHud() {
 
 `useTourHud` mirrors the behavior of Flowster’s default HUD—body scroll locking, keyboard shortcuts, focus management, description wiring, and target diagnostics all stay in sync. You can still reach for the lower-level hooks if you need to override any particular piece.
 
-## Overlay helper hook
+## Overlay helpers
 
-Need the highlight math without recreating Flowster’s overlay logic? Call `useTourOverlay` with the active `hudTarget` and reuse the returned rect to paint your own mask:
+Need the highlight math without recreating Flowster’s overlay logic? Call `useTourOverlay` with the active `hudTarget` and feed that data into the new `OverlayBackdrop` component (exported from both `@tour/react` and `@tour/headless`). It renders the same mask/backdrop/interaction-blocker stack used by the default HUD, but you can fully customize color, blur, and transitions:
 
 ```tsx
-import { useTourHud, useTourOverlay } from '@tour/headless'
+import {
+  OverlayBackdrop,
+  useTourHud,
+  useTourOverlay,
+} from '@tour/headless'
 
 function HighlightOverlay() {
   const hud = useTourHud()
@@ -164,30 +169,21 @@ function HighlightOverlay() {
     interactionMode: hud.overlay.interactionMode,
   })
 
-  if (!overlay.highlight.rect) {
-    return overlay.showBaseOverlay ? (
-      <div className="fixed inset-0 bg-black/60" aria-hidden />
-    ) : null
-  }
-
-  const rect = overlay.highlight.rect
-
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed"
-      style={{
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-        borderRadius: rect.radius,
-        boxShadow: '0 0 0 9999px rgba(2,6,23,0.65)',
-        backgroundClip: 'padding-box',
+    <OverlayBackdrop
+      overlay={overlay}
+      zIndex={2000}
+      color="rgba(2,6,23,0.65)"
+      blurAmount={10}
+      shadow="0 0 0 2px rgba(82,255,168,0.9), 0 0 70px rgba(82,255,168,0.45)"
+      transitionsOverride={{
+        overlayFade: { duration: 0.25, ease: 'easeOut' },
+        overlayHighlight: { type: 'spring', stiffness: 260, damping: 25 },
       }}
+      ariaHidden={overlay.highlight.target?.status !== 'ready'}
     />
   )
 }
 ```
 
-The hook mirrors `TourOverlay`’s resilient behavior: it caches the last known target, clamps the highlight when the element hugs the viewport edge, and tells you when to fall back to a full-screen scrim if the real target hasn’t mounted yet.
+`OverlayBackdrop` understands the fallback segments, pointer-blocker rectangles, mask IDs, and highlight caching provided by `useTourOverlay`, so you get the resilient behavior of `TourOverlay` without copying its internals. Want even more control? You can still read directly from `overlay.highlight`, `overlay.fallbackSegments`, etc., but now most headless HUDs only need a couple of props to replicate the built-in visuals.
