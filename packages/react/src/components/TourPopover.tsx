@@ -1,594 +1,71 @@
-import type { PointerEventHandler, ReactNode } from 'react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import type { ReactNode } from 'react'
 
-import type { Placement, VirtualElement } from '@floating-ui/dom'
-import {
-  autoPlacement,
-  computePosition,
-  flip,
-  offset as floatingOffset,
-  shift,
-} from '@floating-ui/dom'
-import type { StepPlacement } from '@tour/core'
-import type { Transition } from 'motion/react'
 import { AnimatePresence } from 'motion/react'
-import type { TourTargetInfo } from '../hooks/useTourTarget'
-import { useViewportRect } from '../hooks/useViewportRect'
-import { useAnimationAdapter } from '../motion/animationAdapter'
+
 import { cn } from '../utils/cn'
-import type { ClientRectLike } from '../utils/dom'
-import { getViewportRect, isBrowser, portalHost } from '../utils/dom'
+import type {
+  TourPopoverPortalProps,
+  TourPopoverPortalRenderProps,
+} from './TourPopoverPortal'
+import { TourPopoverPortal } from './TourPopoverPortal'
 
-const FLOATING_OFFSET = 8
-const DOCKED_MARGIN = 24
-const MOBILE_BREAKPOINT = 640
-const MOBILE_HEIGHT_BREAKPOINT = 560
-const MOBILE_HORIZONTAL_GUTTER = 12
-const DEFAULT_POPOVER_ENTRANCE_TRANSITION: Transition = {
-  duration: 0.25,
-  ease: 'easeOut',
-}
-const DEFAULT_POPOVER_EXIT_TRANSITION: Transition = {
-  duration: 0.2,
-  ease: 'easeOut',
-}
-const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
-  duration: 0.6,
-  ease: 'easeOut',
-}
-export interface TourPopoverProps {
-  target: TourTargetInfo
-  children: ReactNode
-  offset?: number
-  width?: number | string
-  maxWidth?: number | string
-  zIndex?: number
+export interface TourPopoverProps
+  extends Omit<
+    TourPopoverPortalProps,
+    | 'children'
+    | 'containerComponent'
+    | 'contentComponent'
+    | 'transitionsOverride'
+  > {
   className?: string
-  placement?: StepPlacement
-  role?: string
-  ariaLabel?: string
-  ariaDescribedBy?: string
-  ariaModal?: boolean
-  descriptionId?: string
-  descriptionText?: string
-  onContainerChange?: (node: HTMLDivElement | null) => void
+  children: ReactNode
 }
 
-export const TourPopover = ({
-  target,
-  children,
-  offset = 16,
-  width,
-  maxWidth,
-  zIndex = 1001,
-  className,
-  placement,
-  role,
-  ariaLabel,
-  ariaDescribedBy,
-  ariaModal,
-  descriptionId,
-  descriptionText,
-  onContainerChange,
-}: TourPopoverProps) => {
-  if (!isBrowser) return null
-  const host = portalHost()
-  if (!host) return null
-  const adapter = useAnimationAdapter()
-
-  const viewport = useViewportRect()
-  const prefersMobileLayout =
-    viewport.width <= MOBILE_BREAKPOINT ||
-    viewport.height <= MOBILE_HEIGHT_BREAKPOINT
-  const prefersMobileRef = useRef(prefersMobileLayout)
-  useEffect(() => {
-    prefersMobileRef.current = prefersMobileLayout
-  }, [prefersMobileLayout])
-
-  const lastReadyTargetRef = useRef<{
-    rect: ClientRectLike
-    isScreen: boolean
-  } | null>(null)
-  const [layoutMode, setLayoutMode] = useState<
-    'floating' | 'docked' | 'manual' | 'mobile'
-  >(() => (prefersMobileLayout ? 'mobile' : 'floating'))
-  const [dragPosition, setDragPosition] = useState<{
-    top: number
-    left: number
-  } | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const dragStateRef = useRef<{
-    pointerId: number
-    offsetX: number
-    offsetY: number
-  } | null>(null)
-  const overflowRetryRef = useRef<{ stepId: string | null; attempts: number }>({
-    stepId: null,
-    attempts: 0,
-  })
-  const overflowRetryTimeoutRef = useRef<number | null>(null)
-
-  const resolvedPlacement: StepPlacement = placement ?? 'bottom'
-  const isAutoPlacement = resolvedPlacement.startsWith('auto')
-  const autoAlignment: 'start' | 'end' | undefined = resolvedPlacement.endsWith(
-    '-start',
-  )
-    ? 'start'
-    : resolvedPlacement.endsWith('-end')
-      ? 'end'
-      : undefined
-
-  useEffect(() => {
-    if (target.status === 'ready' && target.rect) {
-      lastReadyTargetRef.current = {
-        rect: { ...target.rect },
-        isScreen: target.isScreen,
-      }
-    } else if (target.status === 'idle') {
-      lastReadyTargetRef.current = null
-    }
-  }, [target.isScreen, target.rect, target.status])
-
-  const cachedTarget = lastReadyTargetRef.current
-
-  const resolvedRect =
-    target.rect ?? target.lastResolvedRect ?? cachedTarget?.rect ?? null
-  const resolvedIsScreen =
-    target.status === 'ready'
-      ? target.isScreen
-      : (cachedTarget?.isScreen ?? target.isScreen)
-
-  const fallbackRect = resolvedRect ?? viewport
-  const fallbackIsScreen = resolvedIsScreen
-
-  const baseTop = fallbackIsScreen
-    ? viewport.height / 2
-    : fallbackRect.top + fallbackRect.height + offset
-  const top = fallbackIsScreen
-    ? viewport.height / 2
-    : Math.min(viewport.height - 24, Math.max(24, baseTop))
-  const left = fallbackIsScreen
-    ? viewport.width / 2
-    : fallbackRect.left + fallbackRect.width / 2
-  const fallbackTransform = fallbackIsScreen
-    ? 'translate3d(-50%, -50%, 0px)'
-    : 'translate3d(-50%, 0%, 0px)'
-  const baseClass = cn('fixed w-max pointer-events-auto', className)
-
-  const fallbackPosition = useMemo(
-    () => ({
-      top,
-      left,
-      transform: fallbackTransform,
-    }),
-    [fallbackTransform, left, top],
-  )
-
-  const centerInitialPosition = useMemo(
-    () => ({
-      top: viewport.height / 2,
-      left: viewport.width / 2,
-      transform: 'translate3d(-50%, -50%, 0px)',
-    }),
-    [viewport.height, viewport.width],
-  )
-
-  const floatingRef = useRef<HTMLDivElement | null>(null)
-  const [floatingPosition, setFloatingPosition] = useState(fallbackPosition)
-
-  useLayoutEffect(() => {
-    if (!onContainerChange) return
-    onContainerChange(floatingRef.current)
-    return () => {
-      onContainerChange(null)
-    }
-  }, [onContainerChange])
-
-  useLayoutEffect(() => {
-    if (layoutMode !== 'floating') return
-    setFloatingPosition(fallbackPosition)
-  }, [fallbackPosition, layoutMode])
-
-  const dockedPosition = useMemo(
-    () => ({
-      top: viewport.height - DOCKED_MARGIN,
-      left: viewport.width - DOCKED_MARGIN,
-      transform: 'translate3d(-100%, -100%, 0px)',
-    }),
-    [viewport.height, viewport.width],
-  )
-
-  const mobilePosition = useMemo(
-    () => ({
-      top: viewport.height - MOBILE_HORIZONTAL_GUTTER,
-      left: viewport.width / 2,
-      transform: 'translate3d(-50%, -100%, 0px)',
-    }),
-    [viewport.height, viewport.width],
-  )
-
-  useEffect(() => {
-    if (layoutMode === 'docked') {
-      setFloatingPosition(dockedPosition)
-    }
-  }, [dockedPosition, layoutMode])
-
-  useEffect(() => {
-    if (layoutMode === 'mobile') {
-      setFloatingPosition(mobilePosition)
-    }
-  }, [layoutMode, mobilePosition])
-
-  useEffect(() => {
-    setDragPosition(null)
-    setLayoutMode(prefersMobileRef.current ? 'mobile' : 'floating')
-  }, [target.stepId])
-
-  useEffect(() => {
-    if (layoutMode !== 'manual') {
-      setDragPosition(null)
-    }
-  }, [layoutMode])
-
-  useEffect(() => {
-    if (prefersMobileLayout) {
-      if (layoutMode !== 'mobile') {
-        setLayoutMode('mobile')
-        setDragPosition(null)
-      }
-      return
-    }
-    if (layoutMode === 'mobile') {
-      setLayoutMode('floating')
-      setFloatingPosition(fallbackPosition)
-    }
-  }, [fallbackPosition, layoutMode, prefersMobileLayout])
-
-  useLayoutEffect(() => {
-    if (!isBrowser) return
-    const floatingEl = floatingRef.current
-    const rectInfo = target.rect
-    if (!floatingEl) return
-    if (target.status !== 'ready') return
-    if (!rectInfo || target.isScreen) return
-    if (layoutMode === 'mobile' || layoutMode === 'manual') return
-
-    const cancelState = { cancelled: false }
-
-    const retryState = overflowRetryRef.current
-    const currentStepId = target.stepId ?? null
-    if (retryState.stepId !== currentStepId) {
-      retryState.stepId = currentStepId
-      retryState.attempts = 0
-    }
-
-    const clearRetryTimeout = () => {
-      if (overflowRetryTimeoutRef.current !== null) {
-        window.clearTimeout(overflowRetryTimeoutRef.current)
-        overflowRetryTimeoutRef.current = null
-      }
-    }
-
-    const virtualReference: VirtualElement = {
-      contextElement: target.element ?? undefined,
-      getBoundingClientRect: () =>
-        DOMRectReadOnly.fromRect({
-          width: rectInfo.width,
-          height: rectInfo.height,
-          x: rectInfo.left,
-          y: rectInfo.top,
-        }),
-    }
-
-    const computePlacement: Placement | undefined = isAutoPlacement
-      ? undefined
-      : (resolvedPlacement as Placement)
-
-    const middleware = [
-      floatingOffset(offset),
-      ...(isAutoPlacement
-        ? [
-            autoPlacement({
-              padding: FLOATING_OFFSET,
-              alignment: autoAlignment,
-            }),
-          ]
-        : [flip({ padding: FLOATING_OFFSET })]),
-      shift({ padding: FLOATING_OFFSET }),
-    ]
-
-    const updatePosition = async () => {
-      const { x, y } = await computePosition(virtualReference, floatingEl, {
-        placement: computePlacement,
-        strategy: 'fixed',
-        middleware,
-      })
-
-      if (cancelState.cancelled) return
-
-      const floatingRect = floatingEl.getBoundingClientRect()
-      const viewportRect = getViewportRect()
-      const overflowLeft = Math.max(0, viewportRect.left + FLOATING_OFFSET - x)
-      const overflowRight = Math.max(
-        0,
-        x +
-          floatingRect.width +
-          FLOATING_OFFSET -
-          (viewportRect.left + viewportRect.width),
-      )
-      const overflowTop = Math.max(0, viewportRect.top + FLOATING_OFFSET - y)
-      const overflowBottom = Math.max(
-        0,
-        y +
-          floatingRect.height +
-          FLOATING_OFFSET -
-          (viewportRect.top + viewportRect.height),
-      )
-
-      const maxOverflow = Math.max(
-        overflowTop,
-        overflowRight,
-        overflowBottom,
-        overflowLeft,
-      )
-
-      const viewportHeight = viewportRect.height
-      const viewportWidth = viewportRect.width
-      const overflowThreshold = Math.max(
-        FLOATING_OFFSET * 2,
-        viewportHeight * 0.05,
-        viewportWidth * 0.05,
-      )
-
-      const targetRect = rectInfo
-      const targetNearlyFillsViewport =
-        !target.isScreen &&
-        (targetRect.height >= viewportHeight - FLOATING_OFFSET * 4 ||
-          targetRect.width >= viewportWidth - FLOATING_OFFSET * 4)
-
-      const shouldDock =
-        targetNearlyFillsViewport || maxOverflow > overflowThreshold
-
-      if (shouldDock) {
-        if (!targetNearlyFillsViewport && retryState.attempts < 2) {
-          retryState.attempts += 1
-          clearRetryTimeout()
-          overflowRetryTimeoutRef.current = window.setTimeout(() => {
-            overflowRetryTimeoutRef.current = null
-            if (cancelState.cancelled) return
-            void updatePosition()
-          }, 120)
-          return
-        }
-        retryState.attempts = 0
-        if (layoutMode !== 'docked') {
-          setLayoutMode('docked')
-          setFloatingPosition(dockedPosition)
-        }
-        return
-      }
-
-      retryState.attempts = 0
-      if (layoutMode !== 'floating') {
-        setLayoutMode('floating')
-      }
-
-      setFloatingPosition({
-        top: y,
-        left: x,
-        transform: 'translate3d(0px, 0px, 0px)',
-      })
-    }
-
-    void updatePosition()
-
-    return () => {
-      cancelState.cancelled = true
-      clearRetryTimeout()
-    }
-  }, [
-    autoAlignment,
-    dockedPosition,
-    isAutoPlacement,
+const renderDefaultShell = (
+  props: TourPopoverPortalRenderProps,
+  className: string | undefined,
+  children: ReactNode,
+) => {
+  const {
+    Container,
+    Content,
+    containerProps,
+    contentProps,
+    showDragHandle,
+    dragHandleProps,
+    descriptionProps,
     layoutMode,
-    offset,
-    target.element,
-    target.isScreen,
-    target.lastUpdated,
-    target.status,
-    target.stepId,
-    resolvedPlacement,
-  ])
+    isDragging,
+  } = props
 
-  useLayoutEffect(() => {
-    if (layoutMode !== 'manual' || !dragPosition) return
-    setFloatingPosition({
-      top: dragPosition.top,
-      left: dragPosition.left,
-      transform: 'translate3d(0px, 0px, 0px)',
-    })
-  }, [dragPosition, layoutMode])
+  const { key: contentKey, ...restContentProps } = contentProps
 
-  const clampToViewport = (rawLeft: number, rawTop: number) => {
-    const rect = getViewportRect()
-    const floatingEl = floatingRef.current
-    const floatingWidth = floatingEl?.offsetWidth ?? 0
-    const floatingHeight = floatingEl?.offsetHeight ?? 0
-    const minLeft = rect.left + FLOATING_OFFSET
-    const maxLeft = rect.left + rect.width - floatingWidth - FLOATING_OFFSET
-    const minTop = rect.top + FLOATING_OFFSET
-    const maxTop = rect.top + rect.height - floatingHeight - FLOATING_OFFSET
-    return {
-      left: Math.min(Math.max(rawLeft, minLeft), Math.max(minLeft, maxLeft)),
-      top: Math.min(Math.max(rawTop, minTop), Math.max(minTop, maxTop)),
-    }
-  }
-
-  const endDrag = () => {
-    const dragState = dragStateRef.current
-    if (!dragState) return
-    const floatingEl = floatingRef.current
-    if (floatingEl && floatingEl.hasPointerCapture(dragState.pointerId)) {
-      try {
-        floatingEl.releasePointerCapture(dragState.pointerId)
-      } catch {
-        // Ignore browsers without pointer capture support.
-      }
-    }
-    dragStateRef.current = null
-    setIsDragging(false)
-    window.removeEventListener('pointermove', onPointerMove)
-    window.removeEventListener('pointerup', handlePointerEnd)
-    window.removeEventListener('pointercancel', handlePointerEnd)
-  }
-
-  const onPointerMove = (event: PointerEvent) => {
-    const dragState = dragStateRef.current
-    if (!dragState) return
-    if (event.pointerId !== dragState.pointerId) return
-    const rawLeft = event.clientX - dragState.offsetX
-    const rawTop = event.clientY - dragState.offsetY
-    const next = clampToViewport(rawLeft, rawTop)
-    setLayoutMode('manual')
-    setDragPosition(next)
-  }
-
-  const handlePointerEnd = (event: PointerEvent) => {
-    const dragState = dragStateRef.current
-    if (!dragState) return
-    if (event.pointerId !== dragState.pointerId) return
-    endDrag()
-  }
-
-  const startDrag: PointerEventHandler<HTMLButtonElement> = (event) => {
-    if (event.button !== 0) return
-    const floatingEl = floatingRef.current
-    if (!floatingEl) return
-    const rect = floatingEl.getBoundingClientRect()
-    dragStateRef.current = {
-      pointerId: event.pointerId,
-      offsetX: event.clientX - rect.left,
-      offsetY: event.clientY - rect.top,
-    }
-    const next = clampToViewport(rect.left, rect.top)
-    setLayoutMode('manual')
-    setDragPosition(next)
-    setIsDragging(true)
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', handlePointerEnd)
-    window.addEventListener('pointercancel', handlePointerEnd)
-    try {
-      floatingEl.setPointerCapture(event.pointerId)
-    } catch {
-      // Ignore browsers that do not support pointer capture.
-    }
-    event.preventDefault()
-  }
-
-  useEffect(() => endDrag, [])
-
-  const shouldUseFallbackInitial =
-    layoutMode !== 'mobile' &&
-    (Boolean(target.lastResolvedRect) || Boolean(cachedTarget))
-
-  const initialTop =
-    layoutMode === 'mobile'
-      ? mobilePosition.top
-      : shouldUseFallbackInitial
-        ? fallbackPosition.top
-        : centerInitialPosition.top
-  const initialLeft =
-    layoutMode === 'mobile'
-      ? mobilePosition.left
-      : shouldUseFallbackInitial
-        ? fallbackPosition.left
-        : centerInitialPosition.left
-  const initialTransform =
-    layoutMode === 'mobile'
-      ? mobilePosition.transform
-      : shouldUseFallbackInitial
-        ? fallbackPosition.transform
-        : centerInitialPosition.transform
-
-  const { MotionDiv } = adapter.components
-  const popoverEntranceTransition =
-    adapter.transitions.popoverEntrance ?? DEFAULT_POPOVER_ENTRANCE_TRANSITION
-  const popoverExitTransition =
-    adapter.transitions.popoverExit ?? DEFAULT_POPOVER_EXIT_TRANSITION
-  const popoverContentTransition =
-    adapter.transitions.popoverContent ?? DEFAULT_POPOVER_CONTENT_TRANSITION
-
-  return createPortal(
-    <MotionDiv
-      ref={floatingRef}
-      transition={popoverEntranceTransition}
+  return (
+    <Container
+      {...containerProps}
       className={cn(
-        baseClass,
-        'overflow-hidden',
+        'fixed w-max pointer-events-auto',
         layoutMode === 'docked' ? 'tour-popover--docked' : null,
         layoutMode === 'manual' ? 'tour-popover--manual' : null,
         layoutMode === 'mobile' ? 'tour-popover--mobile' : null,
+        className,
       )}
-      role={role ?? 'dialog'}
-      aria-modal={ariaModal ?? false}
-      aria-label={ariaLabel}
-      aria-describedby={ariaDescribedBy}
-      tabIndex={-1}
-      data-tour-popover=""
-      data-layout={layoutMode}
-      data-target-visibility={target.visibility}
-      data-rect-source={target.rectSource}
-      style={{
-        zIndex,
-        maxWidth:
-          layoutMode === 'mobile' || typeof maxWidth === 'undefined'
-            ? undefined
-            : maxWidth,
-        width:
-          layoutMode === 'mobile' || typeof width === 'undefined'
-            ? undefined
-            : width,
-        cursor: isDragging ? 'grabbing' : undefined,
-      }}
-      initial={{
-        filter: 'blur(4px)',
-        opacity: 0,
-        top: initialTop,
-        left: initialLeft,
-        transform: initialTransform,
-      }}
-      animate={{
-        filter: 'blur(0px)',
-        opacity: 1,
-        top: floatingPosition.top,
-        left: floatingPosition.left,
-        transform: floatingPosition.transform,
-      }}
-      exit={{
-        filter: 'blur(4px)',
-        opacity: 0,
-        transition: popoverExitTransition,
-      }}
-      aria-live="polite"
     >
-      {descriptionText && descriptionId ? (
-        <span id={descriptionId} className="sr-only">
-          {descriptionText}
+      {descriptionProps.id && descriptionProps.text ? (
+        <span id={descriptionProps.id} className="sr-only">
+          {descriptionProps.text}
         </span>
       ) : null}
       <div className="relative" data-tour-popover-shell="">
-        {layoutMode === 'docked' || layoutMode === 'manual' ? (
+        {showDragHandle ? (
           <button
-            type="button"
+            {...dragHandleProps}
             className={cn(
               'group absolute z-10 -right-3 -top-3 flex h-8 w-8 select-none items-center justify-center rounded-full bg-transparent transition-colors',
               isDragging ? 'cursor-grabbing' : 'cursor-grab',
               'hover:bg-slate-100/40',
             )}
-            onPointerDown={startDrag}
-            aria-label="Move tour popover"
-            style={{ touchAction: 'none' }}
+            style={dragHandleProps.style}
             data-tour-popover-handle=""
           >
             <svg
@@ -599,10 +76,7 @@ export const TourPopover = ({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={cn(
-                'h-4 w-4 text-slate-400 transition-colors',
-                isDragging ? 'text-slate-400' : 'group-hover:text-slate-400/90',
-              )}
+              className="h-4 w-4 text-slate-400 transition-colors group-hover:text-slate-400/90"
             >
               <path d="M12 2v20" />
               <path d="m15 19-3 3-3-3" />
@@ -614,19 +88,30 @@ export const TourPopover = ({
           </button>
         ) : null}
         <AnimatePresence mode="popLayout">
-          <MotionDiv
-            key={target.stepId}
-            data-tour-popover-content=""
-            initial={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, translateX: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, translateX: 0, filter: 'blur(4px)' }}
-            transition={popoverContentTransition}
-          >
+          <Content key={contentKey} {...restContentProps}>
             {children}
-          </MotionDiv>
+          </Content>
         </AnimatePresence>
       </div>
-    </MotionDiv>,
-    host,
+    </Container>
   )
 }
+
+export const TourPopover = ({
+  className,
+  children,
+  ...rest
+}: TourPopoverProps) => {
+  return (
+    <TourPopoverPortal {...rest}>
+      {(portalProps) => renderDefaultShell(portalProps, className, children)}
+    </TourPopoverPortal>
+  )
+}
+
+export type {
+  TourPopoverLayoutMode,
+  TourPopoverPortalProps,
+  TourPopoverPortalRenderProps,
+} from './TourPopoverPortal'
+export { TourPopoverPortal }

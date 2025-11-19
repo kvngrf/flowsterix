@@ -5,10 +5,13 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 export interface AnimationAdapterComponents {
   MotionDiv: typeof motion.div
+  MotionSection: typeof motion.section
   MotionSvg: typeof motion.svg
   MotionDefs: typeof motion.defs
   MotionMask: typeof motion.mask
   MotionRect: typeof motion.rect
+  MotionSpan: typeof motion.span
+  MotionButton: typeof motion.button
 }
 
 export interface AnimationAdapterTransitions {
@@ -28,10 +31,13 @@ export interface AnimationAdapter {
 const defaultAdapter: AnimationAdapter = {
   components: {
     MotionDiv: motion.div,
+    MotionSection: motion.section,
     MotionSvg: motion.svg,
     MotionDefs: motion.defs,
     MotionMask: motion.mask,
     MotionRect: motion.rect,
+    MotionSpan: motion.span,
+    MotionButton: motion.button,
   },
   transitions: {
     overlayHighlight: {

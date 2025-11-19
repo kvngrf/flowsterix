@@ -8,17 +8,69 @@ export type {
 export { useTourTarget } from './hooks/useTourTarget'
 export type { TourTargetInfo } from './hooks/useTourTarget'
 
+export { useHudState } from './hooks/useHudState'
+export type { UseHudStateOptions, UseHudStateResult } from './hooks/useHudState'
+
+export { useHudAppearance } from './hooks/useHudAppearance'
+export type {
+  HudPopoverProps,
+  UseHudAppearanceOptions,
+  UseHudAppearanceResult,
+} from './hooks/useHudAppearance'
+
+export { useHudDescription } from './hooks/useHudDescription'
+export type {
+  UseHudDescriptionOptions,
+  UseHudDescriptionResult,
+} from './hooks/useHudDescription'
+
+export { useHudShortcuts } from './hooks/useHudShortcuts'
+export type { UseHudShortcutsOptions } from './hooks/useHudShortcuts'
+
+export { useTourHud } from './hooks/useTourHud'
+export type {
+  TourHudDescription,
+  TourHudFocusManagerState,
+  TourHudOverlayConfig,
+  TourHudPopoverConfig,
+  UseTourHudOptions,
+  UseTourHudResult,
+} from './hooks/useTourHud'
+
+export { useTourOverlay } from './hooks/useTourOverlay'
+export type {
+  TourOverlayRect,
+  TourOverlaySegment,
+  UseTourOverlayOptions,
+  UseTourOverlayResult,
+} from './hooks/useTourOverlay'
+
+export { TourFocusManager } from './components/TourFocusManager'
+export type { TourFocusManagerProps } from './components/TourFocusManager'
+
+export { useHudTargetIssue } from './hooks/useHudTargetIssue'
+export type {
+  HudTargetIssue,
+  UseHudTargetIssueOptions,
+  UseHudTargetIssueResult,
+} from './hooks/useHudTargetIssue'
+
 export { useTourControls } from './hooks/useTourControls'
 export type { TourControlsState } from './hooks/useTourControls'
 
 export { useDelayAdvance } from './hooks/useDelayAdvance'
 export type { DelayAdvanceProgress } from './hooks/useDelayAdvance'
 
+export { TourPopoverPortal } from './components/TourPopoverPortal'
+export type {
+  TourPopoverLayoutMode,
+  TourPopoverPortalProps,
+  TourPopoverPortalRenderProps,
+} from './components/TourPopoverPortal'
+
 export { useAdvanceRules } from './hooks/useAdvanceRules'
 export { useBodyScrollLock } from './hooks/useBodyScrollLock'
-export {
-  useHiddenTargetFallback,
-} from './hooks/useHiddenTargetFallback'
+export { useHiddenTargetFallback } from './hooks/useHiddenTargetFallback'
 export type {
   UseHiddenTargetFallbackConfig,
   UseHiddenTargetFallbackResult,
@@ -45,6 +97,9 @@ export type {
   AnimationAdapterTransitions,
   UseAnimationAdapterOptions,
 } from './motion/animationAdapter'
+
+export { useHudMotion } from './motion/useHudMotion'
+export type { UseHudMotionResult } from './motion/useHudMotion'
 
 export {
   cssVar,

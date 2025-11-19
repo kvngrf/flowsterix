@@ -1,21 +1,15 @@
 import type { BackdropInteractionMode } from '@tour/core'
 import type { CSSProperties } from 'react'
-import { useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 import { AnimatePresence } from 'motion/react'
+import { useTourOverlay } from '../hooks/useTourOverlay'
 import type { TourTargetInfo } from '../hooks/useTourTarget'
 import { useAnimationAdapter } from '../motion/animationAdapter'
 import type { TourTokenPath } from '../theme/tokens'
 import { cssVar } from '../theme/tokens'
 import { cn } from '../utils/cn'
-import {
-  expandRect,
-  getViewportRect,
-  isBrowser,
-  portalHost,
-  supportsMasking,
-} from '../utils/dom'
+import { isBrowser, portalHost } from '../utils/dom'
 
 export interface TourOverlayProps {
   target: TourTargetInfo
@@ -66,93 +60,26 @@ export const TourOverlay = ({
   const host = portalHost()
   if (!host) return null
 
-  const hasShownRef = useRef(false)
-  const lastReadyTargetRef = useRef<TourTargetInfo | null>(null)
   const adapter = useAnimationAdapter()
-
-  useEffect(() => {
-    if (target.status === 'ready') {
-      hasShownRef.current = true
-      lastReadyTargetRef.current = {
-        ...target,
-        rect: target.rect ? { ...target.rect } : null,
-      }
-    }
-    if (target.status === 'idle') {
-      hasShownRef.current = false
-      lastReadyTargetRef.current = null
-    }
-  }, [target])
-
-  const viewport = getViewportRect()
-
-  const cachedTarget = lastReadyTargetRef.current
-  const highlightTarget = target.status === 'ready' ? target : cachedTarget
-
-  const resolvedRect = highlightTarget?.rect ?? target.rect
-  const resolvedIsScreen = highlightTarget?.isScreen ?? target.isScreen
-
-  const expandedRect =
-    resolvedIsScreen || !resolvedRect
-      ? viewport
-      : expandRect(resolvedRect, padding)
-  const safeBuffer = Math.max(0, edgeBuffer)
-
-  const insetTop =
-    expandedRect.top <= 0
-      ? Math.min(safeBuffer, Math.max(0, expandedRect.height) / 2)
-      : 0
-  const insetLeft =
-    expandedRect.left <= 0
-      ? Math.min(safeBuffer, Math.max(0, expandedRect.width) / 2)
-      : 0
-  const insetBottom =
-    expandedRect.top + expandedRect.height >= viewport.height
-      ? Math.min(safeBuffer, Math.max(0, expandedRect.height) / 2)
-      : 0
-  const insetRight =
-    expandedRect.left + expandedRect.width >= viewport.width
-      ? Math.min(safeBuffer, Math.max(0, expandedRect.width) / 2)
-      : 0
-
-  const highlightTop = expandedRect.top + insetTop
-  const highlightLeft = expandedRect.left + insetLeft
-  const highlightWidth = Math.max(
-    0,
-    expandedRect.width - insetLeft - insetRight,
-  )
-  const highlightHeight = Math.max(
-    0,
-    expandedRect.height - insetTop - insetBottom,
-  )
-  const highlightRadius = Math.max(
-    0,
-    Math.min(radius, highlightWidth / 2, highlightHeight / 2),
-  )
-
-  const highlightCenterX = highlightLeft + highlightWidth / 2
-  const highlightCenterY = highlightTop + highlightHeight / 2
-
-  const maskCapable = useMemo(() => supportsMasking(), [])
-
-  const hasHighlightBounds =
-    !!highlightTarget &&
-    !resolvedIsScreen &&
-    highlightWidth > 0 &&
-    highlightHeight > 0
-
-  const shouldMask = maskCapable && hasHighlightBounds
-
-  const maskId = useMemo(
-    () => `tour-overlay-mask-${Math.random().toString(36).slice(2, 10)}`,
-    [],
-  )
-
-  const maskUrl = shouldMask ? `url(#${maskId})` : undefined
-
-  const isActive =
-    target.status === 'ready' ||
-    (target.status === 'resolving' && cachedTarget !== null)
+  const overlayState = useTourOverlay({
+    target,
+    padding,
+    radius,
+    edgeBuffer,
+    interactionMode,
+  })
+  const {
+    highlight,
+    shouldMask,
+    maskId,
+    maskUrl,
+    fallbackSegments,
+    blockerSegments,
+    showBaseOverlay,
+    isActive,
+    viewport,
+  } = overlayState
+  const hasHighlightBounds = Boolean(highlight.rect)
 
   const rootPointerClass = 'pointer-events-none'
 
@@ -195,16 +122,16 @@ export const TourOverlay = ({
 
   const highlightRectAnimation = shouldMask
     ? {
-        x: highlightLeft,
-        y: highlightTop,
-        width: highlightWidth,
-        height: highlightHeight,
-        rx: highlightRadius,
-        ry: highlightRadius,
+        x: highlight.rect?.left ?? highlight.centerX,
+        y: highlight.rect?.top ?? highlight.centerY,
+        width: highlight.rect?.width ?? 0,
+        height: highlight.rect?.height ?? 0,
+        rx: highlight.rect?.radius ?? 0,
+        ry: highlight.rect?.radius ?? 0,
       }
     : {
-        x: highlightCenterX,
-        y: highlightCenterY,
+        x: highlight.centerX,
+        y: highlight.centerY,
         width: 0,
         height: 0,
         rx: 0,
@@ -213,17 +140,17 @@ export const TourOverlay = ({
 
   const highlightRingAnimation = hasHighlightBounds
     ? {
-        top: highlightCenterY,
-        left: highlightCenterX,
-        width: highlightWidth,
-        height: highlightHeight,
-        borderRadius: highlightRadius,
+        top: highlight.centerY,
+        left: highlight.centerX,
+        width: highlight.rect?.width ?? 0,
+        height: highlight.rect?.height ?? 0,
+        borderRadius: highlight.rect?.radius ?? 0,
         opacity: 1,
         transform: 'translate(-50%, -50%)',
       }
     : {
-        top: highlightCenterY,
-        left: highlightCenterX,
+        top: highlight.centerY,
+        left: highlight.centerX,
         width: 0,
         height: 0,
         borderRadius: 0,
@@ -262,147 +189,6 @@ export const TourOverlay = ({
     overlayStyle.backgroundColor = color
   }
 
-  const fallbackSegments = useMemo(() => {
-    if (!isActive || shouldMask || !hasHighlightBounds) {
-      return null
-    }
-
-    const topEdge = Math.max(0, Math.min(highlightTop, viewport.height))
-    const bottomEdge = Math.max(
-      topEdge,
-      Math.min(highlightTop + highlightHeight, viewport.height),
-    )
-    const leftEdge = Math.max(0, Math.min(highlightLeft, viewport.width))
-    const rightEdge = Math.max(
-      leftEdge,
-      Math.min(highlightLeft + highlightWidth, viewport.width),
-    )
-    const middleHeight = Math.max(0, bottomEdge - topEdge)
-
-    return [
-      {
-        key: 'top',
-        top: 0,
-        left: 0,
-        width: viewport.width,
-        height: topEdge,
-      },
-      {
-        key: 'bottom',
-        top: bottomEdge,
-        left: 0,
-        width: viewport.width,
-        height: Math.max(0, viewport.height - bottomEdge),
-      },
-      {
-        key: 'left',
-        top: topEdge,
-        left: 0,
-        width: leftEdge,
-        height: middleHeight,
-      },
-      {
-        key: 'right',
-        top: topEdge,
-        left: rightEdge,
-        width: Math.max(0, viewport.width - rightEdge),
-        height: middleHeight,
-      },
-    ].filter((segment) => segment.width > 0 && segment.height > 0)
-  }, [
-    hasHighlightBounds,
-    highlightHeight,
-    highlightLeft,
-    highlightTop,
-    highlightWidth,
-    isActive,
-    shouldMask,
-    viewport.height,
-    viewport.width,
-  ])
-
-  type Segment = {
-    key: string
-    top: number
-    left: number
-    width: number
-    height: number
-  }
-
-  const blockerSegments: Array<Segment> | null = useMemo(() => {
-    if (interactionMode !== 'block') {
-      return null
-    }
-
-    if (!hasHighlightBounds) {
-      return [
-        {
-          key: 'blocker-full',
-          top: 0,
-          left: 0,
-          width: viewport.width,
-          height: viewport.height,
-        },
-      ]
-    }
-
-    const topEdge = Math.max(0, Math.min(highlightTop, viewport.height))
-    const bottomEdge = Math.max(
-      topEdge,
-      Math.min(highlightTop + highlightHeight, viewport.height),
-    )
-    const leftEdge = Math.max(0, Math.min(highlightLeft, viewport.width))
-    const rightEdge = Math.max(
-      leftEdge,
-      Math.min(highlightLeft + highlightWidth, viewport.width),
-    )
-    const middleHeight = Math.max(0, bottomEdge - topEdge)
-
-    const segments: Array<Segment> = [
-      {
-        key: 'blocker-top',
-        top: 0,
-        left: 0,
-        width: viewport.width,
-        height: topEdge,
-      },
-      {
-        key: 'blocker-bottom',
-        top: bottomEdge,
-        left: 0,
-        width: viewport.width,
-        height: Math.max(0, viewport.height - bottomEdge),
-      },
-      {
-        key: 'blocker-left',
-        top: topEdge,
-        left: 0,
-        width: leftEdge,
-        height: middleHeight,
-      },
-      {
-        key: 'blocker-right',
-        top: topEdge,
-        left: rightEdge,
-        width: Math.max(0, viewport.width - rightEdge),
-        height: middleHeight,
-      },
-    ]
-
-    return segments.filter((segment) => segment.width > 0 && segment.height > 0)
-  }, [
-    hasHighlightBounds,
-    highlightHeight,
-    highlightLeft,
-    highlightTop,
-    highlightWidth,
-    interactionMode,
-    viewport.height,
-    viewport.width,
-  ])
-
-  const showBaseOverlay = isActive && (shouldMask || !hasHighlightBounds)
-
   return createPortal(
     <MotionDiv
       className={cn('fixed inset-0', rootPointerClass)}
@@ -426,7 +212,7 @@ export const TourOverlay = ({
           >
             <MotionDefs>
               <MotionMask
-                id={maskId}
+                id={maskId ?? undefined}
                 initial={false}
                 maskUnits="userSpaceOnUse"
                 maskContentUnits="userSpaceOnUse"
@@ -452,8 +238,8 @@ export const TourOverlay = ({
                   initial={false}
                   animate={highlightRectAnimation}
                   exit={{
-                    x: highlightCenterX,
-                    y: highlightCenterY,
+                    x: highlight.centerX,
+                    y: highlight.centerY,
                   }}
                   transition={highlightTransition}
                   fill="black"

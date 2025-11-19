@@ -47,8 +47,8 @@ function HeadlessDemoPage() {
           </h1>
           <p className="text-lg text-slate-300 max-w-3xl mx-auto">
             The `@tour/headless` package exposes the provider, hooks, and router
-            helpers without shipping styles. Use it to draw highlights, popovers,
-            and controls that perfectly match your brand.
+            helpers without shipping styles. Use it to draw highlights,
+            popovers, and controls that perfectly match your brand.
           </p>
           <button
             type="button"
@@ -64,7 +64,9 @@ function HeadlessDemoPage() {
             <article
               key={card.title}
               className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3"
-              data-headless-target={card.target === 'panel' ? 'panel' : undefined}
+              data-headless-target={
+                card.target === 'panel' ? 'panel' : undefined
+              }
             >
               <div className="w-12 h-12 rounded-full bg-emerald-400/10 flex items-center justify-center">
                 {card.icon}
@@ -83,9 +85,9 @@ function HeadlessDemoPage() {
           </p>
           <h2 className="text-3xl font-bold">Bring your imagination</h2>
           <p className="text-slate-100/90 text-lg leading-relaxed">
-            The headless bindings keep Flowster&apos;s targeting and progression in
-            sync, but leave the visuals to you. Render multi-step forms, embed
-            videos, or hook into analytics however you like.
+            The headless bindings keep Flowster&apos;s targeting and progression
+            in sync, but leave the visuals to you. Render multi-step forms,
+            embed videos, or hook into analytics however you like.
           </p>
         </section>
       </div>

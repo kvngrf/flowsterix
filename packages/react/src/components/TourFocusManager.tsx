@@ -16,7 +16,7 @@ const runMicrotask = (callback: () => void) => {
   }
 }
 
-interface TourFocusManagerProps {
+export interface TourFocusManagerProps {
   active: boolean
   target: TourTargetInfo
   popoverNode: HTMLElement | null

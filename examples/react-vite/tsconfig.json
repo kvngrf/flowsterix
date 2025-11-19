@@ -4,7 +4,9 @@
     "types": ["vite/client"],
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tour/headless": ["../../packages/headless/src"],
+      "@tour/react/headless": ["../../packages/react/src/headless.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"],

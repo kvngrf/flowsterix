@@ -1,7 +1,7 @@
-import fs from 'node:fs'
-import { useCallback, useState } from 'react'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
+import fs from 'node:fs'
+import { useCallback, useState } from 'react'
 
 /*
 const loggingMiddleware = createMiddleware().server(
@@ -15,21 +15,26 @@ const loggedServerFunction = createServerFn({ method: "GET" }).middleware([
 ]);
 */
 
+type Todo = {
+  id: number
+  name: string
+}
+
 const TODOS_FILE = 'todos.json'
 
-async function readTodos() {
+async function readTodos(): Promise<Array<Todo>> {
   return JSON.parse(
     await fs.promises.readFile(TODOS_FILE, 'utf-8').catch(() =>
       JSON.stringify(
         [
           { id: 1, name: 'Get groceries' },
           { id: 2, name: 'Buy a new phone' },
-        ],
+        ] satisfies Array<Todo>,
         null,
         2,
       ),
     ),
-  )
+  ) as Array<Todo>
 }
 
 const getTodos = createServerFn({
@@ -64,7 +69,7 @@ function Home() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen bg-gradient-to-br from-zinc-800 to-black p-4 text-white"
+      className="flex items-center justify-center min-h-screen bg-linear-to-br from-zinc-800 to-black p-4 text-white"
       style={{
         backgroundImage:
           'radial-gradient(50% 50% at 20% 60%, #23272a 0%, #18181b 50%, #000000 100%)',
@@ -73,7 +78,7 @@ function Home() {
       <div className="w-full max-w-2xl p-8 rounded-xl backdrop-blur-md bg-black/50 shadow-xl border-8 border-black/10">
         <h1 className="text-2xl mb-4">Start Server Functions - Todo Example</h1>
         <ul className="mb-4 space-y-2">
-          {todos?.map((t) => (
+          {todos.map((t) => (
             <li
               key={t.id}
               className="bg-white/10 border border-white/20 rounded-lg p-3 backdrop-blur-sm shadow-md"

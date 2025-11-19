@@ -1,0 +1,136 @@
+import type {
+  FlowHudOptions,
+  FlowHudRenderMode,
+  FlowState,
+  Step,
+} from '@tour/core'
+import type { ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import { useTour } from '../context'
+import { useAdvanceRules } from './useAdvanceRules'
+import { useHiddenTargetFallback } from './useHiddenTargetFallback'
+import type { TourTargetInfo } from './useTourTarget'
+import { useTourTarget } from './useTourTarget'
+import { useViewportRect } from './useViewportRect'
+
+export interface UseHudStateOptions {
+  /**
+   * Limit the HUD runtime to a specific flow or set of flows.
+   * When provided, the hook behaves as if the HUD is idle whenever
+   * the active flow does not match one of the allowed identifiers.
+   */
+  flowId?: string | Array<string>
+}
+
+export interface UseHudStateResult {
+  state: FlowState | null
+  runningState: FlowState | null
+  runningStep: Step<ReactNode> | null
+  shouldRender: boolean
+  canRenderStep: boolean
+  focusTrapActive: boolean
+  target: TourTargetInfo
+  hudTarget: TourTargetInfo
+  flowHudOptions: FlowHudOptions | null
+  hudRenderMode: FlowHudRenderMode
+  matchesFlowFilter: boolean
+  activeFlowId: string | null
+}
+
+const EXIT_BUFFER_MS = 450
+
+const normalizeFlowFilter = (value?: string | Array<string>) => {
+  if (!value) return null
+  return Array.isArray(value) ? value : [value]
+}
+
+export const useHudState = (
+  options: UseHudStateOptions = {},
+): UseHudStateResult => {
+  const { flowId } = options
+  const flowFilter = useMemo(() => normalizeFlowFilter(flowId), [flowId])
+  const { state, activeStep, activeFlowId, flows, next, complete } = useTour()
+  const target = useTourTarget()
+  const viewportRect = useViewportRect()
+
+  useAdvanceRules(target)
+
+  const matchesFlowFilter = useMemo(() => {
+    if (!flowFilter || flowFilter.length === 0) return true
+    if (!activeFlowId) return false
+    return flowFilter.includes(activeFlowId)
+  }, [activeFlowId, flowFilter])
+
+  const isRunning = state?.status === 'running'
+  const runningState = isRunning && matchesFlowFilter ? state : null
+  const runningStep = runningState && activeStep ? activeStep : null
+  const [shouldRender, setShouldRender] = useState<boolean>(
+    Boolean(runningStep),
+  )
+
+  useEffect(() => {
+    if (runningStep) {
+      setShouldRender(true)
+    }
+  }, [runningStep?.id])
+
+  useEffect(() => {
+    if (!shouldRender) return
+    if (runningStep) return
+    if (target.status !== 'idle') return
+
+    const timeoutId = window.setTimeout(() => {
+      setShouldRender(false)
+    }, EXIT_BUFFER_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [runningStep, shouldRender, target.status])
+
+  const skipHiddenStep = useCallback(() => {
+    if (!runningState || runningState.status !== 'running') return
+    if (!activeFlowId) return
+    const flow = flows.get(activeFlowId)
+    if (!flow) return
+    const isLastStep =
+      runningState.stepIndex >= flow.steps.length - 1 && flow.steps.length > 0
+    if (isLastStep) {
+      complete()
+    } else {
+      next()
+    }
+  }, [activeFlowId, complete, flows, next, runningState])
+
+  const { target: hudTarget } = useHiddenTargetFallback({
+    step: runningStep,
+    target,
+    viewportRect,
+    onSkip: skipHiddenStep,
+  })
+
+  const canRenderStep = Boolean(runningStep && runningState)
+  const focusTrapActive = canRenderStep
+
+  const flowHudOptions =
+    matchesFlowFilter && activeFlowId
+      ? (flows.get(activeFlowId)?.hud ?? null)
+      : null
+  const hudRenderMode: FlowHudRenderMode = flowHudOptions?.render ?? 'default'
+
+  return {
+    state,
+    runningState,
+    runningStep,
+    shouldRender,
+    canRenderStep,
+    focusTrapActive,
+    target,
+    hudTarget,
+    flowHudOptions,
+    hudRenderMode,
+    matchesFlowFilter,
+    activeFlowId,
+  }
+}

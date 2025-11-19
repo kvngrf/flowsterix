@@ -82,6 +82,7 @@ const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
         ]}
       />
       <TourHUD />
+      {/* <HeadlessHUD /> */}
     </TourProvider>
   )
 }

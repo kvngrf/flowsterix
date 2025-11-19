@@ -118,6 +118,7 @@ const hudBehaviorSchema = z.object({
 })
 
 const hudSchema = z.object({
+  render: z.union([z.literal('default'), z.literal('none')]).optional(),
   popover: hudPopoverSchema.optional(),
   backdrop: hudBackdropSchema.optional(),
   behavior: hudBehaviorSchema.optional(),

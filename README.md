@@ -79,7 +79,52 @@ export function App() {
 }
 ```
 
+Set `hud: { render: 'none' }` on any flow you plan to render yourself so the built-in `TourHUD` stays hidden while your custom overlay runs.
+
 See `docs/guides/headless.md` for a complete walkthrough, including a minimal highlight and popover implementation you can paste into your project.
+
+#### Fast-tracking custom HUDs
+
+Skip the wiring by importing `useTourHud` from `@tour/headless`. It bundles the same behavior as the default HUD—body scroll locking, keyboard shortcuts, focus management, ARIA wiring, and target diagnostics—so you only provide markup:
+
+```tsx
+import { TourFocusManager, TourPopoverPortal, useTourHud } from '@tour/headless'
+
+function CustomHud() {
+  const hud = useTourHud()
+  const { hudState, popover, description, focusManager, targetIssue } = hud
+
+  if (!hudState.shouldRender || !hudState.runningStep) return null
+
+  return (
+    <>
+      <TourFocusManager
+        active={focusManager.active}
+        target={focusManager.target}
+        popoverNode={focusManager.popoverNode}
+      />
+      <TourPopoverPortal
+        target={hudState.hudTarget}
+        offset={popover.offset}
+        ariaLabel={popover.ariaLabel}
+        ariaDescribedBy={description.combinedAriaDescribedBy}
+        descriptionId={description.descriptionId}
+        descriptionText={description.text ?? undefined}
+        onContainerChange={focusManager.setPopoverNode}
+      >
+        {targetIssue.issue ? (
+          <p data-target-issue>{targetIssue.issue.title}</p>
+        ) : null}
+        {hudState.runningStep.content}
+      </TourPopoverPortal>
+    </>
+  )
+}
+```
+
+Use the hook’s options to override padding, radius, shortcut handling, or scroll locking globally while keeping your HUD markup completely custom.
+
+Need just the highlight math? Pair the snippet above with `useTourOverlay` to reuse Flowster’s overlay geometry (padding, viewport clamping, interaction blockers) inside your own backdrop component. See `docs/guides/headless.md#overlay-helper-hook` for a drop-in example.
 
 ### Customizing Animations
 

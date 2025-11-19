@@ -186,6 +186,8 @@ export interface FlowHudPopoverOptions {
   ariaLabel?: string
   ariaDescribedBy?: string
   ariaModal?: boolean
+  width?: number | string
+  maxWidth?: number | string
 }
 
 export interface FlowHudBackdropOptions {
@@ -196,11 +198,14 @@ export interface FlowHudBehaviorOptions {
   lockBodyScroll?: boolean
 }
 
+export type FlowHudRenderMode = 'default' | 'none'
+
 export interface FlowHudTokenOverrides {
   [key: string]: unknown
 }
 
 export interface FlowHudOptions {
+  render?: FlowHudRenderMode
   popover?: FlowHudPopoverOptions
   tokens?: FlowHudTokenOverrides
   backdrop?: FlowHudBackdropOptions
