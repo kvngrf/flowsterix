@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { Transition } from 'motion/react'
@@ -21,6 +22,12 @@ const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
   mass: 0.7,
 }
 
+const DEFAULT_HIGHLIGHT_COLLAPSE_TRANSITION: Transition = {
+  duration: 0.18,
+  ease: 'easeOut',
+  type: 'tween',
+}
+
 const DEFAULT_OVERLAY_TRANSITION: Transition = {
   duration: 0.35,
   ease: 'easeOut',
@@ -29,7 +36,9 @@ const DEFAULT_OVERLAY_TRANSITION: Transition = {
 export interface OverlayBackdropTransitionsOverride
   extends Partial<
     Pick<AnimationAdapterTransitions, 'overlayHighlight' | 'overlayFade'>
-  > {}
+  > {
+  overlayHighlightCollapse?: Transition
+}
 
 export interface OverlayBackdropProps {
   overlay: UseTourOverlayResult
@@ -60,7 +69,6 @@ export const OverlayBackdrop = ({
   shadow,
   shadowToken,
   shadowClassName,
-  blurAmount,
   ariaHidden,
   rootClassName,
   overlayClassName,
@@ -87,6 +95,16 @@ export const OverlayBackdrop = ({
     viewport,
   } = overlay
   const hasHighlightBounds = Boolean(highlight.rect)
+
+  const prevScreenTargetRef = useRef<boolean | null>(null)
+  const shouldSnapHighlight =
+    prevScreenTargetRef.current === true &&
+    !highlight.isScreen &&
+    hasHighlightBounds
+
+  useEffect(() => {
+    prevScreenTargetRef.current = highlight.isScreen
+  }, [highlight.isScreen])
 
   const rootPointerClass = 'pointer-events-none'
   const baseOverlayPointerClass = 'pointer-events-none'
@@ -126,10 +144,23 @@ export const OverlayBackdrop = ({
     transitionsOverride?.overlayHighlight ??
     adapter.transitions.overlayHighlight ??
     DEFAULT_HIGHLIGHT_TRANSITION
+  const snapTransition: Transition = { type: 'tween', duration: 0 }
+  const resolvedHighlightTransition = shouldSnapHighlight
+    ? snapTransition
+    : highlightTransition
   const overlayTransition =
     transitionsOverride?.overlayFade ??
     adapter.transitions.overlayFade ??
     DEFAULT_OVERLAY_TRANSITION
+
+  const highlightCollapseTransition = highlight.isScreen
+    ? snapTransition
+    : (transitionsOverride?.overlayHighlightCollapse ??
+      DEFAULT_HIGHLIGHT_COLLAPSE_TRANSITION)
+
+  const highlightRectTransition = hasHighlightBounds
+    ? resolvedHighlightTransition
+    : highlightCollapseTransition
 
   const highlightRectAnimation = shouldMask
     ? {
@@ -169,20 +200,7 @@ export const OverlayBackdrop = ({
         transform: 'translate(-50%, -50%)',
       }
 
-  const hasExplicitBlur = typeof blurAmount === 'number' && blurAmount >= 0
-  const blurValue: string | null = hasExplicitBlur ? `${blurAmount}px` : null
-  const blurAnimate: Record<'--tour-overlay-blur', string> | null = blurValue
-    ? { '--tour-overlay-blur': blurValue }
-    : null
-  const blurReset: Record<'--tour-overlay-blur', string> | null = blurValue
-    ? { '--tour-overlay-blur': '0px' }
-    : null
-
-  const overlayStyle: CSSProperties = {
-    zIndex,
-    backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
-    WebkitBackdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
-  }
+  const overlayStyle: CSSProperties = {}
 
   if (shouldMask) {
     overlayStyle.maskRepeat = 'no-repeat'
@@ -252,7 +270,7 @@ export const OverlayBackdrop = ({
                     x: highlight.centerX,
                     y: highlight.centerY,
                   }}
-                  transition={highlightTransition}
+                  transition={highlightRectTransition}
                   fill="black"
                 />
               </MotionMask>
@@ -268,20 +286,21 @@ export const OverlayBackdrop = ({
             data-tour-overlay-layer="backdrop"
             style={{
               ...overlayStyle,
+              zIndex,
               backgroundColor: color ?? undefined,
             }}
             initial={{
               opacity: 0,
-              ...(blurReset ?? {}),
               transition: overlayTransition,
+              backdropFilter: `blur('0px')`,
             }}
             animate={{
               opacity,
-              ...(blurAnimate ?? {}),
+              backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
             }}
             exit={{
               opacity: 0,
-              ...(blurReset ?? {}),
+              backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
             }}
             transition={overlayTransition}
           />
@@ -306,18 +325,19 @@ export const OverlayBackdrop = ({
                   width: segment.width,
                   height: segment.height,
                   backgroundColor: color ?? undefined,
-                  backdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
-                  WebkitBackdropFilter: 'blur(var(--tour-overlay-blur, 0px))',
                 }}
                 initial={{
                   opacity: 0,
-                  ...(blurReset ?? {}),
+                  backdropFilter: `blur(0px))`,
                 }}
                 animate={{
                   opacity,
-                  ...(blurAnimate ?? {}),
+                  backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
                 }}
-                exit={{ opacity: 0, ...(blurReset ?? {}) }}
+                exit={{
+                  opacity: 0,
+                  backdropFilter: `blur(0px))`,
+                }}
                 transition={overlayTransition}
               />
             ))
@@ -364,7 +384,7 @@ export const OverlayBackdrop = ({
                 ease: 'easeOut',
               },
             }}
-            transition={highlightTransition}
+            transition={resolvedHighlightTransition}
           />
         ) : null}
       </AnimatePresence>

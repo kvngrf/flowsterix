@@ -179,17 +179,18 @@ export const useTourOverlay = (
     : null
 
   const maskCapable = useMemo(() => supportsMasking(), [])
-  const shouldMask = maskCapable && hasHighlightBounds
+
+  const isActive =
+    target.status === 'ready' ||
+    (target.status === 'resolving' && cachedTarget !== null)
+
+  const shouldMask = maskCapable && isActive
 
   const maskId = useMemo(
     () => `tour-overlay-mask-${Math.random().toString(36).slice(2, 10)}`,
     [],
   )
   const maskUrl = shouldMask ? `url(#${maskId})` : undefined
-
-  const isActive =
-    target.status === 'ready' ||
-    (target.status === 'resolving' && cachedTarget !== null)
 
   const fallbackSegments = useMemo(() => {
     if (!isActive || shouldMask || !hasHighlightBounds || !highlightRect) {
