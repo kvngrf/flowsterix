@@ -10,10 +10,6 @@ export type HoldToSkipButtonProps = {
   className?: string
 }
 
-const BUTTON_WHILE_TAP_VARIANTS: Variants = {
-  delete: { scale: 0.95 },
-}
-
 const baseClassName =
   'rounded-full relative flex-1 cursor-pointer font-semibold'
 
@@ -38,6 +34,24 @@ export const HoldToSkipButton = ({
       },
     }),
     [holdDurationMs],
+  )
+
+  const tooltipVariants = useMemo<Variants>(
+    () => ({
+      delete: {
+        opacity: 1,
+        filter: 'blur(0px)',
+        y: 0,
+        transition: { duration: 0.2, ease: 'easeOut' },
+      },
+      normal: {
+        opacity: 0,
+        filter: 'blur(2px)',
+        y: 8,
+        transition: { duration: 0.3, ease: 'easeOut' },
+      },
+    }),
+    [],
   )
 
   const clearHoldTimeout = () => {
@@ -94,8 +108,8 @@ export const HoldToSkipButton = ({
       type="button"
       className={combinedClassName}
       whileTap="delete"
-      variants={BUTTON_WHILE_TAP_VARIANTS}
       initial="normal"
+      animate="normal"
       onPointerDown={startHold}
       onPointerUp={completeHold}
       onPointerLeave={resetHoldState}
@@ -104,12 +118,18 @@ export const HoldToSkipButton = ({
       onKeyUp={handleKeyUp}
       onBlur={resetHoldState}
     >
-      <motion.div className="rounded-full px-3 py-1.5 border bg-red-300 text-red-900 absolute inset-0 flex justify-center items-center shrink-0">
+      <motion.div
+        variants={tooltipVariants}
+        className="font-normal min-w-max text-xs absolute -top-[70%] left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-900 px-2 py-1 rounded-md"
+      >
+        Hold to confirm
+      </motion.div>
+      <motion.div className="rounded-full px-1 py-1.5 border bg-red-900 text-red-100 absolute inset-0 flex justify-center items-center shrink-0">
         {label}
       </motion.div>
       <motion.div
         variants={progressVariants}
-        className="rounded-full px-3 py-1.5 border text-black bg-white absolute inset-0 flex justify-center items-center shrink-0"
+        className="rounded-full px-2 py-1.5 border text-black bg-white absolute inset-0 flex justify-center items-center shrink-0"
       >
         {label}
       </motion.div>
