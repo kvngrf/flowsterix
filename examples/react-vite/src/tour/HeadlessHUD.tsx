@@ -11,6 +11,10 @@ import {
   useTourOverlay,
 } from '@tour/headless'
 
+import { HoldToSkipButton } from './HoldToSkipButton'
+
+const SKIP_HOLD_DURATION_MS = 1_000
+
 export const HeadlessHUD = () => {
   const isBrowser =
     typeof window !== 'undefined' && typeof document !== 'undefined'
@@ -219,15 +223,13 @@ export const HeadlessHUD = () => {
                         >
                           {controls.canGoNext ? 'Next' : 'Finish'}
                         </button>
-                        <button
-                          type="button"
-                          onClick={() =>
+                        <HoldToSkipButton
+                          label="Skip"
+                          holdDurationMs={SKIP_HOLD_DURATION_MS}
+                          onConfirm={() =>
                             controls.cancel(activeFlowId ?? undefined)
                           }
-                          style={buttonStyle('ghost')}
-                        >
-                          Skip
-                        </button>
+                        />
                       </div>
                     </Content>
                   </AnimatePresence>
