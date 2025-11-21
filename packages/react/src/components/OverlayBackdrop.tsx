@@ -292,7 +292,7 @@ export const OverlayBackdrop = ({
             initial={{
               opacity: 0,
               transition: overlayTransition,
-              backdropFilter: `blur('0px')`,
+              backdropFilter: `blur(0px)`,
             }}
             animate={{
               opacity,
@@ -328,7 +328,7 @@ export const OverlayBackdrop = ({
                 }}
                 initial={{
                   opacity: 0,
-                  backdropFilter: `blur(0px))`,
+                  backdropFilter: `blur(0px)`,
                 }}
                 animate={{
                   opacity,
@@ -336,7 +336,7 @@ export const OverlayBackdrop = ({
                 }}
                 exit={{
                   opacity: 0,
-                  backdropFilter: `blur(0px))`,
+                  backdropFilter: `blur(0px)`,
                 }}
                 transition={overlayTransition}
               />
