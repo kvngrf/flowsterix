@@ -120,16 +120,17 @@ export const HoldToSkipButton = ({
     >
       <motion.div
         variants={tooltipVariants}
-        className="font-normal min-w-max text-xs absolute -top-[70%] left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-900 px-2 py-1 rounded-md"
+        className="font-normal min-w-max text-xs absolute -top-3 -translate-y-full left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-900 px-2 py-1 rounded-md"
       >
         Hold to confirm
+        <div className="absolute left-1/2 -translate-x-1/2 size-4 bg-zinc-200 rotate-45 -bottom-0.5 -z-10"></div>
       </motion.div>
       <motion.div className="rounded-full px-1 py-1.5 border bg-red-900 text-red-100 absolute inset-0 flex justify-center items-center shrink-0">
         {label}
       </motion.div>
       <motion.div
         variants={progressVariants}
-        className="rounded-full px-2 py-1.5 border text-black bg-white absolute inset-0 flex justify-center items-center shrink-0"
+        className="rounded-full border-white px-2 py-1.5 border text-black bg-white absolute inset-0 flex justify-center items-center shrink-0"
       >
         {label}
       </motion.div>
