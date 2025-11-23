@@ -107,10 +107,7 @@ export const useTourHud = (
   const targetIssue = useHudTargetIssue(hudState.hudTarget)
 
   const shouldLockBodyScroll = Boolean(
-    bodyScrollLock &&
-      !disableDefaultHud &&
-      appearance.lockBodyScroll &&
-      hudState.focusTrapActive,
+    bodyScrollLock && appearance.lockBodyScroll && hudState.focusTrapActive,
   )
   useBodyScrollLock(shouldLockBodyScroll)
 
