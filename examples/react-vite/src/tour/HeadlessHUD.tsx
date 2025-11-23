@@ -119,6 +119,7 @@ export const HeadlessHUD = () => {
           onContainerChange={focusManager.setPopoverNode}
           containerComponent={MotionSection}
           contentComponent={MotionDiv}
+          layoutId="popover"
           transitionsOverride={{
             popoverEntrance: popoverEntranceTransition,
             popoverExit: popoverExitTransition,

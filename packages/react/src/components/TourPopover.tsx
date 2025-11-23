@@ -44,7 +44,7 @@ const renderDefaultShell = (
     <Container
       {...containerProps}
       className={cn(
-        'fixed w-max pointer-events-auto',
+        'fixed w-max pointer-events-auto overflow-hidden',
         layoutMode === 'docked' ? 'tour-popover--docked' : null,
         layoutMode === 'manual' ? 'tour-popover--manual' : null,
         layoutMode === 'mobile' ? 'tour-popover--mobile' : null,
@@ -56,7 +56,7 @@ const renderDefaultShell = (
           {descriptionProps.text}
         </span>
       ) : null}
-      <div className="relative" data-tour-popover-shell="">
+      <div className="relative " data-tour-popover-shell="">
         {showDragHandle ? (
           <button
             {...dragHandleProps}

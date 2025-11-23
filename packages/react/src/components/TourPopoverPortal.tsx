@@ -41,7 +41,7 @@ const DEFAULT_POPOVER_EXIT_TRANSITION: Transition = {
   ease: 'easeOut',
 }
 const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
-  duration: 0.6,
+  duration: 0.4,
   ease: 'easeOut',
 }
 
@@ -194,17 +194,31 @@ export const TourPopoverPortal = ({
   const fallbackRect = resolvedRect ?? viewport
   const fallbackIsScreen = resolvedIsScreen
 
+  const [floatingSize, setFloatingSize] = useState<{
+    width: number
+    height: number
+  } | null>(null)
+
+  const clampVertical = (value: number) =>
+    Math.min(viewport.height - 24, Math.max(24, value))
+  const clampHorizontal = (value: number) =>
+    Math.min(viewport.width - 24, Math.max(24, value))
+
+  const screenCenteredTop =
+    viewport.height / 2 - (floatingSize?.height ?? 0) / 2
+  const screenCenteredLeft = viewport.width / 2 - (floatingSize?.width ?? 0) / 2
+
   const baseTop = fallbackIsScreen
-    ? viewport.height / 2
+    ? screenCenteredTop
     : fallbackRect.top + fallbackRect.height + offset
   const top = fallbackIsScreen
-    ? viewport.height / 2
-    : Math.min(viewport.height - 24, Math.max(24, baseTop))
+    ? clampVertical(screenCenteredTop)
+    : clampVertical(baseTop)
   const left = fallbackIsScreen
-    ? viewport.width / 2
+    ? clampHorizontal(screenCenteredLeft)
     : fallbackRect.left + fallbackRect.width / 2
   const fallbackTransform = fallbackIsScreen
-    ? 'translate3d(-50%, -50%, 0px)'
+    ? 'translate3d(0px, 0px, 0px)'
     : 'translate3d(-50%, 0%, 0px)'
   const fallbackPosition = useMemo(
     () => ({
@@ -226,6 +240,7 @@ export const TourPopoverPortal = ({
 
   const floatingRef = useRef<HTMLElement | null>(null)
   const cachedFloatingPositionRef = useRef<FloatingPositionState | null>(null)
+  const deferredScreenSnapRef = useRef<number | null>(null)
   const [layoutMode, setLayoutMode] = useState<TourPopoverLayoutMode>(() =>
     prefersMobileLayout ? 'mobile' : 'floating',
   )
@@ -246,6 +261,24 @@ export const TourPopoverPortal = ({
     attempts: 0,
   })
   const overflowRetryTimeoutRef = useRef<number | null>(null)
+
+  useLayoutEffect(() => {
+    if (!isBrowser) return
+    const node = floatingRef.current
+    if (!node) return
+
+    const updateSize = () => {
+      const rect = node.getBoundingClientRect()
+      setFloatingSize({ width: rect.width, height: rect.height })
+    }
+
+    updateSize()
+
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(updateSize)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [target.stepId])
 
   const resolvedPlacement: StepPlacement = placement ?? 'bottom'
   const isAutoPlacement = resolvedPlacement.startsWith('auto')
@@ -321,11 +354,58 @@ export const TourPopoverPortal = ({
     }
   }, [fallbackPosition, layoutMode, prefersMobileLayout])
 
+  const shouldDeferScreenSnap =
+    layoutMode === 'floating' && target.isScreen && Boolean(layoutId)
+
+  useEffect(() => {
+    return () => {
+      if (deferredScreenSnapRef.current !== null) {
+        cancelAnimationFrame(deferredScreenSnapRef.current)
+        deferredScreenSnapRef.current = null
+      }
+    }
+  }, [])
+
   useLayoutEffect(() => {
     if (layoutMode !== 'floating') return
     if (target.status === 'ready' && !target.isScreen) return
+    if (shouldDeferScreenSnap) return
     setFloatingPosition(fallbackPosition)
-  }, [fallbackPosition, layoutMode, target.isScreen, target.status])
+  }, [
+    fallbackPosition,
+    layoutMode,
+    shouldDeferScreenSnap,
+    target.isScreen,
+    target.status,
+  ])
+
+  useEffect(() => {
+    if (!shouldDeferScreenSnap) return
+    if (deferredScreenSnapRef.current !== null) {
+      cancelAnimationFrame(deferredScreenSnapRef.current)
+      deferredScreenSnapRef.current = null
+    }
+    let nextFrame: number | null = null
+    deferredScreenSnapRef.current = requestAnimationFrame(() => {
+      nextFrame = requestAnimationFrame(() => {
+        setFloatingPosition(fallbackPosition)
+        deferredScreenSnapRef.current = null
+        if (nextFrame !== null) {
+          cancelAnimationFrame(nextFrame)
+        }
+      })
+    })
+    return () => {
+      if (deferredScreenSnapRef.current !== null) {
+        cancelAnimationFrame(deferredScreenSnapRef.current)
+        deferredScreenSnapRef.current = null
+      }
+      if (nextFrame !== null) {
+        cancelAnimationFrame(nextFrame)
+        nextFrame = null
+      }
+    }
+  }, [fallbackPosition, shouldDeferScreenSnap])
 
   useEffect(() => {
     return () => {
