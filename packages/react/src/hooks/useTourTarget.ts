@@ -50,6 +50,10 @@ const INITIAL_TARGET_INFO: TourTargetInfo = {
 
 const DEFAULT_SCROLL_MODE: StepScrollMode = 'center'
 
+const MAX_AUTO_SCROLL_CHECKS = 10
+const STALLED_CHECKS_BEFORE_AUTO = 4
+const RECT_PROGRESS_THRESHOLD = 0.5
+
 const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 
 type ScrollBehaviorSetting = ScrollBehavior | undefined
@@ -273,9 +277,11 @@ export const useTourTarget = (): TourTargetInfo => {
     useState<TourTargetInfo>(INITIAL_TARGET_INFO)
   const autoScrollStateRef = useRef<{
     stepId: string | null
-    attempts: number
+    checks: number
+    stalledChecks: number
     done: boolean
-  }>({ stepId: null, attempts: 0, done: false })
+    lastRect: ClientRectLike | null
+  }>({ stepId: null, checks: 0, stalledChecks: 0, done: false, lastRect: null })
   const autoScrollRafRef = useRef<number | null>(null)
   const autoScrollTimeoutRef = useRef<ReturnType<
     typeof globalThis.setTimeout
@@ -325,17 +331,13 @@ export const useTourTarget = (): TourTargetInfo => {
     const scrollMode: ScrollMode =
       activeStep.targetBehavior?.scrollMode ?? DEFAULT_SCROLL_MODE
 
-    const rect = targetInfo.rect ?? targetInfo.lastResolvedRect
-    const viewport = getViewportRect()
-    const needsImmediateScroll = rect
-      ? rect.bottom < viewport.top + margin.top ||
-        rect.top > viewport.bottom - margin.bottom ||
-        rect.right < viewport.left + margin.left ||
-        rect.left > viewport.right - margin.right
-      : false
+    const hasLiveRect = targetInfo.rectSource === 'live'
+    const scrollBehavior: ScrollBehaviorSetting = hasLiveRect
+      ? 'smooth'
+      : 'auto'
 
     ensureElementInView(targetInfo.element, margin, {
-      behavior: needsImmediateScroll ? 'auto' : 'smooth',
+      behavior: scrollBehavior,
       mode: scrollMode,
     })
   }, [
@@ -347,12 +349,19 @@ export const useTourTarget = (): TourTargetInfo => {
     targetInfo.element,
     targetInfo.isScreen,
     targetInfo.status,
+    targetInfo.rectSource,
   ])
 
   useEffect(() => {
     if (!activeStep || !state || state.status !== 'running') {
       setTargetInfo(INITIAL_TARGET_INFO)
-      autoScrollStateRef.current = { stepId: null, attempts: 0, done: false }
+      autoScrollStateRef.current = {
+        stepId: null,
+        checks: 0,
+        stalledChecks: 0,
+        done: false,
+        lastRect: null,
+      }
       cancelAutoScrollLoop()
       return
     }
@@ -773,8 +782,10 @@ export const useTourTarget = (): TourTargetInfo => {
     const autoState = autoScrollStateRef.current
     if (autoState.stepId !== activeStep.id) {
       autoState.stepId = activeStep.id
-      autoState.attempts = 0
+      autoState.checks = 0
+      autoState.stalledChecks = 0
       autoState.done = false
+      autoState.lastRect = null
       cancelAutoScrollLoop()
     } else if (autoState.done) {
       cancelAutoScrollLoop()
@@ -821,15 +832,32 @@ export const useTourTarget = (): TourTargetInfo => {
         return
       }
 
-      if (autoState.attempts >= 6) {
+      autoState.checks += 1
+      if (autoState.checks >= MAX_AUTO_SCROLL_CHECKS) {
         autoState.done = true
         return
       }
 
-      autoState.attempts += 1
+      const previousRect = autoState.lastRect
+      const hasProgress =
+        !previousRect ||
+        Math.abs(previousRect.top - rect.top) > RECT_PROGRESS_THRESHOLD ||
+        Math.abs(previousRect.left - rect.left) > RECT_PROGRESS_THRESHOLD ||
+        Math.abs(previousRect.bottom - rect.bottom) > RECT_PROGRESS_THRESHOLD ||
+        Math.abs(previousRect.right - rect.right) > RECT_PROGRESS_THRESHOLD
+
+      autoState.lastRect = rect
+
+      if (hasProgress) {
+        autoState.stalledChecks = 0
+      } else {
+        autoState.stalledChecks += 1
+      }
 
       const behavior: ScrollBehaviorSetting =
-        autoState.attempts >= 4 ? 'auto' : 'smooth'
+        autoState.stalledChecks >= STALLED_CHECKS_BEFORE_AUTO
+          ? 'auto'
+          : 'smooth'
 
       ensureElementInView(element, margin, {
         behavior,

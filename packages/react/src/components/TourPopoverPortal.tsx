@@ -208,18 +208,19 @@ export const TourPopoverPortal = ({
     viewport.height / 2 - (floatingSize?.height ?? 0) / 2
   const screenCenteredLeft = viewport.width / 2 - (floatingSize?.width ?? 0) / 2
 
+  const floatingWidth = floatingSize?.width ?? 0
+
   const baseTop = fallbackIsScreen
     ? screenCenteredTop
     : fallbackRect.top + fallbackRect.height + offset
   const top = fallbackIsScreen
     ? clampVertical(screenCenteredTop)
     : clampVertical(baseTop)
-  const left = fallbackIsScreen
-    ? clampHorizontal(screenCenteredLeft)
-    : fallbackRect.left + fallbackRect.width / 2
-  const fallbackTransform = fallbackIsScreen
-    ? 'translate3d(0px, 0px, 0px)'
-    : 'translate3d(-50%, 0%, 0px)'
+  const leftBase = fallbackIsScreen
+    ? screenCenteredLeft
+    : fallbackRect.left + fallbackRect.width / 2 - floatingWidth / 2
+  const left = clampHorizontal(leftBase)
+  const fallbackTransform = 'translate3d(0px, 0px, 0px)'
   const fallbackPosition = useMemo(
     () => ({
       top,
@@ -240,6 +241,7 @@ export const TourPopoverPortal = ({
 
   const floatingRef = useRef<HTMLElement | null>(null)
   const cachedFloatingPositionRef = useRef<FloatingPositionState | null>(null)
+  const appliedFloatingCacheRef = useRef<string | null>(null)
   const deferredScreenSnapRef = useRef<number | null>(null)
   const [layoutMode, setLayoutMode] = useState<TourPopoverLayoutMode>(() =>
     prefersMobileLayout ? 'mobile' : 'floating',
@@ -294,6 +296,7 @@ export const TourPopoverPortal = ({
     setDragPosition(null)
     setLayoutMode(prefersMobileRef.current ? 'mobile' : 'floating')
     cachedFloatingPositionRef.current = null
+    appliedFloatingCacheRef.current = null
   }, [target.stepId])
 
   useEffect(() => {
@@ -353,6 +356,32 @@ export const TourPopoverPortal = ({
       setFloatingPosition(fallbackPosition)
     }
   }, [fallbackPosition, layoutMode, prefersMobileLayout])
+
+  useEffect(() => {
+    if (layoutMode !== 'floating') return
+    const stepId = target.stepId
+    if (!stepId) return
+    if (appliedFloatingCacheRef.current === stepId) return
+    const cacheKey = getFloatingCacheKey(target)
+    const cached = cacheKey
+      ? (floatingPositionCache.get(cacheKey) ?? null)
+      : null
+    if (cached) {
+      appliedFloatingCacheRef.current = stepId
+      setFloatingPosition(cached)
+      return
+    }
+    appliedFloatingCacheRef.current = stepId
+    if (target.status !== 'ready' || target.isScreen) {
+      setFloatingPosition(fallbackPosition)
+    }
+  }, [
+    fallbackPosition,
+    layoutMode,
+    target.isScreen,
+    target.status,
+    target.stepId,
+  ])
 
   const shouldDeferScreenSnap =
     layoutMode === 'floating' && target.isScreen && Boolean(layoutId)
@@ -478,6 +507,10 @@ export const TourPopoverPortal = ({
 
       const floatingBox = floatingEl.getBoundingClientRect()
       const viewportRect = getViewportRect()
+      const viewportTop = viewportRect.top
+      const viewportBottom = viewportRect.top + viewportRect.height
+      const viewportLeft = viewportRect.left
+      const viewportRight = viewportRect.left + viewportRect.width
       const overflowLeft = Math.max(0, viewportRect.left + FLOATING_OFFSET - x)
       const overflowRight = Math.max(
         0,
@@ -511,13 +544,19 @@ export const TourPopoverPortal = ({
       )
 
       const targetRect = rectInfo
+      const intersectsViewport =
+        targetRect.bottom > viewportTop + FLOATING_OFFSET &&
+        targetRect.top < viewportBottom - FLOATING_OFFSET &&
+        targetRect.right > viewportLeft + FLOATING_OFFSET &&
+        targetRect.left < viewportRight - FLOATING_OFFSET
       const targetNearlyFillsViewport =
         !target.isScreen &&
         (targetRect.height >= viewportHeight - FLOATING_OFFSET * 4 ||
           targetRect.width >= viewportWidth - FLOATING_OFFSET * 4)
 
       const shouldDock =
-        targetNearlyFillsViewport || maxOverflow > overflowThreshold
+        intersectsViewport &&
+        (targetNearlyFillsViewport || maxOverflow > overflowThreshold)
 
       if (shouldDock) {
         if (!targetNearlyFillsViewport && retryState.attempts < 2) {
@@ -582,12 +621,12 @@ export const TourPopoverPortal = ({
   const clampToViewport = (rawLeft: number, rawTop: number) => {
     const rect = getViewportRect()
     const floatingEl = floatingRef.current
-    const floatingWidth = floatingEl?.offsetWidth ?? 0
-    const floatingHeight = floatingEl?.offsetHeight ?? 0
+    const floatingElWidth = floatingEl?.offsetWidth ?? 0
+    const floatingElHeight = floatingEl?.offsetHeight ?? 0
     const minLeft = rect.left + FLOATING_OFFSET
-    const maxLeft = rect.left + rect.width - floatingWidth - FLOATING_OFFSET
+    const maxLeft = rect.left + rect.width - floatingElWidth - FLOATING_OFFSET
     const minTop = rect.top + FLOATING_OFFSET
-    const maxTop = rect.top + rect.height - floatingHeight - FLOATING_OFFSET
+    const maxTop = rect.top + rect.height - floatingElHeight - FLOATING_OFFSET
     return {
       left: Math.min(Math.max(rawLeft, minLeft), Math.max(minLeft, maxLeft)),
       top: Math.min(Math.max(rawTop, minTop), Math.max(minTop, maxTop)),
