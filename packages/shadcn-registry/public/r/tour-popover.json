@@ -1,0 +1,26 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tour-popover",
+  "type": "registry:component",
+  "title": "Tour Popover",
+  "description": "A floating popover card that displays step content with smart positioning via Floating UI.",
+  "dependencies": [
+    "@flowsterix/headless",
+    "motion",
+    "@floating-ui/react"
+  ],
+  "registryDependencies": [
+    "tour-provider"
+  ],
+  "files": [
+    {
+      "path": "registry/flowsterix/tour-popover.tsx",
+      "content": "'use client'\n\nimport {\n  arrow,\n  autoUpdate,\n  flip,\n  offset,\n  shift,\n  useFloating,\n  type Placement,\n} from '@floating-ui/react'\nimport { useTour, useTourTarget } from '@flowsterix/headless'\nimport { AnimatePresence, motion } from 'motion/react'\nimport * as React from 'react'\nimport { createPortal } from 'react-dom'\n\nimport { cn } from '@/lib/utils'\n\nexport interface TourPopoverProps {\n  /** Additional class names for the popover container */\n  className?: string\n  /** Offset distance from the target element (default: 12) */\n  offset?: number\n  /** Preferred placement relative to target (default: \"bottom\") */\n  placement?: Placement\n  /** Whether to show the arrow pointer (default: true) */\n  showArrow?: boolean\n  /** Custom content renderer, receives step content as children */\n  children?: React.ReactNode\n}\n\nexport function TourPopover({\n  className,\n  offset: offsetValue = 12,\n  placement = 'bottom',\n  showArrow = true,\n  children,\n}: TourPopoverProps) {\n  const { state, activeStep } = useTour()\n  const target = useTourTarget()\n  const arrowRef = React.useRef<HTMLDivElement>(null)\n\n  const isRunning = state?.status === 'running'\n  const rect = target.rect ?? target.lastResolvedRect\n  const isScreenTarget = activeStep?.target === 'screen'\n\n  // Virtual element for Floating UI when targeting a DOM element\n  const virtualElement = React.useMemo(() => {\n    if (!rect || isScreenTarget) return null\n    return {\n      getBoundingClientRect: () => rect,\n    }\n  }, [rect, isScreenTarget])\n\n  const { refs, floatingStyles, middlewareData } = useFloating({\n    placement,\n    elements: {\n      reference: virtualElement ?? undefined,\n    },\n    middleware: [\n      offset(offsetValue),\n      flip({ padding: 8 }),\n      shift({ padding: 8 }),\n      ...(showArrow ? [arrow({ element: arrowRef })] : []),\n    ],\n    whileElementsMounted: autoUpdate,\n  })\n\n  // Don't render if tour isn't running or no active step\n  if (!isRunning || !activeStep) {\n    return null\n  }\n\n  const popoverContent = (\n    <AnimatePresence mode=\"wait\">\n      <motion.div\n        key={activeStep.id}\n        ref={refs.setFloating}\n        role=\"dialog\"\n        aria-modal=\"true\"\n        aria-label={`Tour step: ${activeStep.id}`}\n        initial={{ opacity: 0, scale: 0.96, y: 8 }}\n        animate={{ opacity: 1, scale: 1, y: 0 }}\n        exit={{ opacity: 0, scale: 0.96, y: 8 }}\n        transition={{ duration: 0.2, ease: 'easeOut' }}\n        className={cn(\n          'z-[1001] w-[320px] max-w-[calc(100vw-2rem)]',\n          'rounded-lg border bg-popover p-4 text-popover-foreground shadow-lg',\n          'outline-none focus-visible:ring-2 focus-visible:ring-ring',\n          isScreenTarget &&\n            'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',\n          className,\n        )}\n        style={isScreenTarget ? undefined : floatingStyles}\n      >\n        {/* Popover content */}\n        {children ?? activeStep.content}\n\n        {/* Arrow */}\n        {showArrow && !isScreenTarget && middlewareData.arrow && (\n          <div\n            ref={arrowRef}\n            className=\"absolute h-3 w-3 rotate-45 border-b border-r bg-popover\"\n            style={{\n              left: middlewareData.arrow.x,\n              top: middlewareData.arrow.y,\n              [placement.includes('top') ? 'bottom' : 'top']: -6,\n            }}\n          />\n        )}\n      </motion.div>\n    </AnimatePresence>\n  )\n\n  // Render in a portal to avoid z-index issues\n  if (typeof document === 'undefined') {\n    return null\n  }\n\n  return createPortal(popoverContent, document.body)\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "categories": [
+    "tour",
+    "popover"
+  ]
+}

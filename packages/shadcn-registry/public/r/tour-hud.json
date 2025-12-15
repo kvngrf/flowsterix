@@ -1,0 +1,31 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tour-hud",
+  "type": "registry:block",
+  "title": "Tour HUD",
+  "description": "A complete heads-up display combining overlay, popover, and controls into a ready-to-use tour UI.",
+  "dependencies": [
+    "@flowsterix/headless",
+    "motion",
+    "@floating-ui/react"
+  ],
+  "registryDependencies": [
+    "tour-provider",
+    "tour-overlay",
+    "tour-popover",
+    "tour-controls",
+    "tour-progress",
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/flowsterix/blocks/tour-hud.tsx",
+      "content": "'use client'\n\nimport { useTour } from '@flowsterix/headless'\nimport * as React from 'react'\n\nimport { cn } from '@/lib/utils'\nimport { TourControls } from '@/registry/flowsterix/tour-controls'\nimport { TourOverlay } from '@/registry/flowsterix/tour-overlay'\nimport { TourPopover } from '@/registry/flowsterix/tour-popover'\nimport { TourProgress } from '@/registry/flowsterix/tour-progress'\n\nexport interface TourHUDProps {\n  /** Additional class names for the HUD container */\n  className?: string\n  /** Overlay configuration */\n  overlay?: {\n    padding?: number\n    radius?: number\n    backdropColor?: string\n    showRing?: boolean\n  }\n  /** Popover configuration */\n  popover?: {\n    offset?: number\n    showArrow?: boolean\n    className?: string\n  }\n  /** Controls configuration */\n  controls?: {\n    showSkip?: boolean\n    showBack?: boolean\n    labels?: {\n      back?: string\n      next?: string\n      finish?: string\n      skip?: string\n    }\n  }\n  /** Progress indicator configuration */\n  progress?: {\n    show?: boolean\n    variant?: 'dots' | 'bar' | 'fraction' | 'steps'\n    position?: 'top' | 'bottom'\n  }\n  /** Custom content to render inside the popover */\n  children?: React.ReactNode\n  /** Custom step content renderer */\n  renderContent?: (step: any) => React.ReactNode\n}\n\n/**\n * A complete heads-up display combining overlay, popover, controls, and progress.\n * This is the recommended starting point for most tour implementations.\n *\n * @example\n * ```tsx\n * import { TourProvider } from \"@/components/tour/tour-provider\"\n * import { TourHUD } from \"@/components/tour/blocks/tour-hud\"\n * import { myFlow } from \"@/lib/tours/my-flow\"\n *\n * export function App() {\n *   return (\n *     <TourProvider flows={[myFlow]}>\n *       <TourHUD\n *         overlay={{ padding: 12, showRing: true }}\n *         progress={{ show: true, variant: \"dots\" }}\n *       />\n *       <YourApp />\n *     </TourProvider>\n *   )\n * }\n * ```\n */\nexport function TourHUD({\n  className,\n  overlay = {},\n  popover = {},\n  controls = {},\n  progress = { show: true, variant: 'dots', position: 'bottom' },\n  children,\n  renderContent,\n}: TourHUDProps) {\n  const { state, activeStep } = useTour()\n\n  const isRunning = state?.status === 'running'\n\n  if (!isRunning || !activeStep) {\n    return null\n  }\n\n  const stepContent = renderContent\n    ? renderContent(activeStep)\n    : activeStep.content\n\n  return (\n    <>\n      {/* Spotlight overlay */}\n      <TourOverlay\n        padding={overlay.padding}\n        radius={overlay.radius}\n        backdropColor={overlay.backdropColor}\n        showRing={overlay.showRing}\n      />\n\n      {/* Content popover */}\n      <TourPopover\n        offset={popover.offset}\n        showArrow={popover.showArrow}\n        className={cn(popover.className, className)}\n      >\n        <div className=\"space-y-3\">\n          {/* Progress indicator (top position) */}\n          {progress.show && progress.position === 'top' && (\n            <TourProgress variant={progress.variant} size=\"sm\" />\n          )}\n\n          {/* Step content */}\n          <div>{children ?? stepContent}</div>\n\n          {/* Progress indicator (bottom position - default) */}\n          {progress.show && progress.position !== 'top' && (\n            <TourProgress variant={progress.variant} size=\"sm\" />\n          )}\n\n          {/* Navigation controls */}\n          <TourControls\n            showSkip={controls.showSkip}\n            showBack={controls.showBack}\n            labels={controls.labels}\n          />\n        </div>\n      </TourPopover>\n    </>\n  )\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "categories": [
+    "tour",
+    "block"
+  ]
+}
