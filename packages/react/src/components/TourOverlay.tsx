@@ -1,4 +1,4 @@
-import type { BackdropInteractionMode } from '@tour/core'
+import type { BackdropInteractionMode } from '@flowsterix/core'
 
 import { useTourOverlay } from '../hooks/useTourOverlay'
 import type { TourTargetInfo } from '../hooks/useTourTarget'

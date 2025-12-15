@@ -2,7 +2,7 @@ import type {
   AdvancePredicateContext,
   AdvanceRule,
   FlowDefinition,
-} from '@tour/core'
+} from '@flowsterix/core'
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 

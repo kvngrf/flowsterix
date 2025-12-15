@@ -1,7 +1,7 @@
 export {
+  TanStackRouterSync,
   getTanStackRouter,
   getTourRouter,
   setTanStackRouter,
   setTourRouter,
-  TanStackRouterSync,
-} from '@tour/react'
+} from '@flowsterix/react'

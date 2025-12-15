@@ -4,7 +4,7 @@ The React bindings ship with a default look so the overlay, popover, and control
 
 ## Custom properties
 
-Import `@tour/react/styles.css` once, then override any of the exported CSS variables from your own stylesheet. The variables are grouped by surface:
+Import `@flowsterix/react/styles.css` once, then override any of the exported CSS variables from your own stylesheet. The variables are grouped by surface:
 
 ### Popover
 
@@ -129,7 +129,7 @@ On narrow viewports the HUD automatically switches to a mobile-friendly layout t
 - `[data-tour-popover][data-layout='mobile']` – adjust padding, radius, and safe-area spacing for the sheet container.
 - Override the same surface via the mobile-specific tokens above when you’d prefer declarative theme control instead of authoring selectors.
 - `[data-tour-controls]` within the mobile selector – stack controls vertically or make the primary button span the full width.
-- `[data-target-visibility]` / `[data-rect-source]` – badge the popover when the target is missing or Flowster is relying on cached geometry.
+- `[data-target-visibility]` / `[data-rect-source]` – badge the popover when the target is missing or Flowsterix is relying on cached geometry.
 - `[data-tour-target-alert]` – restyle or replace the built-in status banner.
 
 ## Token helpers & runtime overrides
@@ -146,7 +146,7 @@ import {
   defaultTokens,
   mergeTokens,
   TourProvider,
-} from '@tour/react'
+} from '@flowsterix/react'
 
 const brandTokens = mergeTokens(defaultTokens, {
   overlay: {
@@ -230,10 +230,10 @@ If you want to increase or decrease the default gap between a target and the HUD
 
 ## Preset theme package
 
-If you would rather start from a curated palette, install the optional `@tour/themes` package that now ships with the repo. It exports a growing list of presets (Classic, Aurora, Nebula to start) plus helpers for enumerating them:
+If you would rather start from a curated palette, install the optional `@flowsterix/themes` package that now ships with the repo. It exports a growing list of presets (Classic, Aurora, Nebula to start) plus helpers for enumerating them:
 
 ```ts
-import { auroraTokens, listTourThemePresets } from '@tour/themes'
+import { auroraTokens, listTourThemePresets } from '@flowsterix/themes'
 
 const presets = listTourThemePresets()
 

@@ -1,6 +1,6 @@
 # Accessibility Defaults
 
-Flowster ships with opinionated accessibility support so you can keep onboarding tours inclusive without extra wiring.
+Flowsterix ships with opinionated accessibility support so you can keep onboarding tours inclusive without extra wiring.
 
 ## Focus Management
 
@@ -36,7 +36,7 @@ Add matching IDs inside your content when you need a custom description, or rely
 
 ## Backdrop Interaction Modes
 
-Not every tour should freeze the UI behind it. Flowster now treats backdrop interaction as a first-class setting so you can decide whether the dimmed scrim absorbs pointer events or lets them pass through.
+Not every tour should freeze the UI behind it. Flowsterix now treats backdrop interaction as a first-class setting so you can decide whether the dimmed scrim absorbs pointer events or lets them pass through.
 
 - Set `backdropInteraction="passthrough"` (the default) at the provider level to keep the highlight purely visual—users can continue interacting with the page even while a step is active.
 - Use `backdropInteraction="block"` to turn the overlay into a modal scrim. Pointer events are trapped by the backdrop, but the punched-out highlight and popover remain interactive.
@@ -68,7 +68,7 @@ Under the hood the overlay toggles pointer events on every backdrop layer, so yo
 
 ## Scroll Locking
 
-When a tour step grabs the user’s attention, drifting content can be just as distracting as stray clicks. Flowster now lets you opt into body scroll locking independently of backdrop interaction modes.
+When a tour step grabs the user's attention, drifting content can be just as distracting as stray clicks. Flowsterix now lets you opt into body scroll locking independently of backdrop interaction modes.
 
 - Enable it everywhere by passing `lockBodyScroll` to `TourProvider`.
 - Override specific flows through `hud.behavior.lockBodyScroll` when only certain experiences need to freeze the page position.
@@ -98,7 +98,7 @@ The React binding reference-counts locks, so even if multiple tours mount (or a 
 
 ## Hidden Target Fallbacks
 
-Sometimes a step’s element technically exists but is collapsed to `display: none`, zero width/height, or otherwise hidden from assistive tech. Flowster watches for that state and, after a short grace period (900&nbsp;ms by default), either centers the HUD on the screen or silently skips to the next step.
+Sometimes a step's element technically exists but is collapsed to `display: none`, zero width/height, or otherwise hidden from assistive tech. Flowsterix watches for that state and, after a short grace period (900&nbsp;ms by default), either centers the HUD on the screen or silently skips to the next step.
 
 Control the behavior per step with `targetBehavior`:
 
@@ -157,9 +157,9 @@ const flow = createFlow({
 Details:
 
 - `scrollMargin` accepts either a single number (applied to all sides) or per-side values for `top`, `bottom`, `left`, and `right`.
-- Flowster already detects nested scroll containers, so the same margin keeps targets inside overflow panels padded as they animate into view.
+- Flowsterix already detects nested scroll containers, so the same margin keeps targets inside overflow panels padded as they animate into view.
 - The helper clamps negative values to zero and falls back to the default 16 px margin whenever a side isn’t provided.
-- Add `targetBehavior.scrollMode` when you want Flowster to reposition the viewport even if the target is technically visible. Use `'start'` to pin the element just below the margin buffer, `'center'` (the default) to center it inside the available space, or `'preserve'` to keep the lighter-touch behavior that only scrolls when the element would otherwise be clipped.
+- Add `targetBehavior.scrollMode` when you want Flowsterix to reposition the viewport even if the target is technically visible. Use `'start'` to pin the element just below the margin buffer, `'center'` (the default) to center it inside the available space, or `'preserve'` to keep the lighter-touch behavior that only scrolls when the element would otherwise be clipped.
 
 In the demo app, the “Sticky Header Safe Zone” step uses this option to keep the popover just below the persistent navigation bar, making it obvious how the HUD will behave in real products.
 
@@ -182,6 +182,6 @@ Keep `autoDetectReducedMotion` enabled unless you have a very specific reason to
 
 ## Restoring Focus
 
-When the tour ends or pauses, keyboard focus returns to the element that was active beforehand. If that element disappears during the tour, Flowster simply leaves focus where it is—avoiding confusing jumps.
+When the tour ends or pauses, keyboard focus returns to the element that was active beforehand. If that element disappears during the tour, Flowsterix simply leaves focus where it is—avoiding confusing jumps.
 
 These defaults aim to cover most accessibility needs out of the box. For additional requirements, reach out via issues or extend the components—every piece is built with customisation in mind.

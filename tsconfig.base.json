@@ -2,8 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@tour/headless": ["packages/headless/src"],
-      "@tour/react/headless": ["packages/react/src/headless.ts"]
+      "@flowsterix/headless": ["packages/headless/src"],
+      "@flowsterix/react/headless": ["packages/react/src/headless.ts"]
     },
     "target": "ES2022",
     "module": "ESNext",

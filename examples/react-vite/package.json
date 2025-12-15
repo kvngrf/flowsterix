@@ -1,5 +1,5 @@
 {
-  "name": "@tour/example-react-vite",
+  "name": "@flowsterix/example-react-vite",
   "private": true,
   "type": "module",
   "scripts": {
@@ -21,10 +21,10 @@
     "@tanstack/react-router-ssr-query": "^1.131.7",
     "@tanstack/react-start": "^1.132.0",
     "@tanstack/router-plugin": "^1.132.0",
-    "@tour/core": "workspace:*",
-    "@tour/headless": "workspace:*",
-    "@tour/react": "workspace:*",
-    "@tour/themes": "workspace:*",
+    "@flowsterix/core": "workspace:*",
+    "@flowsterix/headless": "workspace:*",
+    "@flowsterix/react": "workspace:*",
+    "@flowsterix/themes": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",

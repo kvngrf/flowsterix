@@ -1,6 +1,10 @@
-import type { FlowDefinition } from '@tour/core'
-import { createFlow } from '@tour/core'
-import { DelayProgressBar, getTourRouter, useDelayAdvance } from '@tour/react'
+import type { FlowDefinition } from '@flowsterix/core'
+import { createFlow } from '@flowsterix/core'
+import {
+  DelayProgressBar,
+  getTourRouter,
+  useDelayAdvance,
+} from '@flowsterix/react'
 import type { ReactNode } from 'react'
 
 const STICKY_HEADER_OFFSET = 96
@@ -87,7 +91,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       content: (
         <div style={{ display: 'grid', gap: 12 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-            Welcome to Flowster
+            Welcome to Flowsterix
           </h2>
           <p style={{ margin: 0, lineHeight: 1.5 }}>
             This short tour points out a few key areas of the demo application.
@@ -370,7 +374,7 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
             <p style={{ margin: 0, lineHeight: 1.5 }}>
               This flow uses the headless tour HUD package to render a
               completely custom overlay and controls. The tour logic, targeting,
-              and routing all still come from Flowster.
+              and routing all still come from Flowsterix.
             </p>
           </div>
         ),
@@ -390,8 +394,9 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
             </h2>
             <p style={{ margin: 0, lineHeight: 1.5 }}>
               This flow renders a bespoke overlay and controls powered by
-              <code style={{ paddingInline: 4 }}>@tour/headless</code>. All the
-              targeting, routing, and analytics logic still comes from Flowster.
+              <code style={{ paddingInline: 4 }}>@flowsterix/headless</code>.
+              All the targeting, routing, and analytics logic still comes from
+              Flowsterix.
             </p>
           </div>
         ),

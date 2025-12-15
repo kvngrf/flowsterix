@@ -17,7 +17,7 @@ import {
   offset as floatingOffset,
   shift,
 } from '@floating-ui/dom'
-import type { StepPlacement } from '@tour/core'
+import type { StepPlacement } from '@flowsterix/core'
 import type { MotionProps, MotionStyle, Transition } from 'motion/react'
 
 import type { TourTargetInfo } from '../hooks/useTourTarget'

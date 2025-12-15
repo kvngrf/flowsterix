@@ -1,10 +1,10 @@
 {
-  "name": "flowster",
+  "name": "flowsterix",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "dev": "pnpm --filter @tour/example-react-vite dev",
+    "dev": "pnpm --filter @flowsterix/example-react-vite dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",

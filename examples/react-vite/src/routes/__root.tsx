@@ -1,8 +1,8 @@
+import { TanStackRouterSync, TourHUD, TourProvider } from '@flowsterix/react'
+import '@flowsterix/react/styles.css'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackRouterSync, TourHUD, TourProvider } from '@tour/react'
-import '@tour/react/styles.css'
 import type { ReactNode } from 'react'
 
 import Header from '../components/Header'
@@ -59,7 +59,7 @@ const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
   return (
     <TourProvider
       flows={demoFlows}
-      storageNamespace="flowster-demo"
+      storageNamespace="flowsterix-demo"
       autoDetectReducedMotion
       defaultDebug={false}
       analytics={demoAnalytics}

@@ -1,5 +1,5 @@
+import type { Step } from '@flowsterix/core'
 import { render } from '@testing-library/react'
-import type { Step } from '@tour/core'
 import type { ReactNode } from 'react'
 import { act, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'

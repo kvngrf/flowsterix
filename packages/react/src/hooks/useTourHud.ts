@@ -1,4 +1,4 @@
-import type { BackdropInteractionMode, Step } from '@tour/core'
+import type { BackdropInteractionMode, Step } from '@flowsterix/core'
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 

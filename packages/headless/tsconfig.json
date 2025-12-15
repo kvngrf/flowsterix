@@ -11,9 +11,9 @@
     "tsBuildInfoFile": "tsconfig.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
-      "@tour/react": ["../react/dist"],
-      "@tour/react/*": ["../react/dist/*"],
-      "@tour/react/headless": ["../react/dist/headless"]
+      "@flowsterix/react": ["../react/dist"],
+      "@flowsterix/react/*": ["../react/dist/*"],
+      "@flowsterix/react/headless": ["../react/dist/headless"]
     }
   },
   "include": ["src"],

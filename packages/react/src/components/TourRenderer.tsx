@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import type { FlowState, Step } from '@tour/core'
+import type { FlowState, Step } from '@flowsterix/core'
 import { useTour } from '../context'
 
 export interface TourRendererProps {

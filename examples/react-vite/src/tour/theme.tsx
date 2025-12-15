@@ -1,9 +1,9 @@
 import type { PropsWithChildren } from 'react'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
-import type { TourTokensOverride } from '@tour/react'
-import type { TourThemePreset, TourThemePresetId } from '@tour/themes'
-import { listTourThemePresets } from '@tour/themes'
+import type { TourTokensOverride } from '@flowsterix/react'
+import type { TourThemePreset, TourThemePresetId } from '@flowsterix/themes'
+import { listTourThemePresets } from '@flowsterix/themes'
 
 export type TourThemeId = TourThemePresetId
 
@@ -20,7 +20,7 @@ interface TourThemeContextValue {
   tokensOverride?: TourTokensOverride
 }
 
-const STORAGE_KEY = 'flowster-demo-tour-theme'
+const STORAGE_KEY = 'flowsterix-demo-tour-theme'
 const isBrowser = typeof window !== 'undefined'
 
 const PRESET_METADATA: Array<TourThemePreset> = listTourThemePresets()

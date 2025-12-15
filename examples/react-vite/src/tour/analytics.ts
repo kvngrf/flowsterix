@@ -1,4 +1,4 @@
-import type { FlowAnalyticsHandlers } from '@tour/core'
+import type { FlowAnalyticsHandlers } from '@flowsterix/core'
 import type { ReactNode } from 'react'
 
 type AnalyticsLevel = 'info' | 'warn' | 'error'

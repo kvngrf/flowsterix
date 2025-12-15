@@ -1,5 +1,5 @@
 {
-  "name": "@tour/headless",
+  "name": "@flowsterix/headless",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -22,7 +22,7 @@
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
-    "@tour/react": "workspace:*"
+    "@flowsterix/react": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18",

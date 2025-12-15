@@ -9,8 +9,8 @@ import type {
   StartFlowOptions,
   Step,
   StorageAdapter,
-} from '@tour/core'
-import { createFlowStore, createLocalStorageAdapter } from '@tour/core'
+} from '@flowsterix/core'
+import { createFlowStore, createLocalStorageAdapter } from '@flowsterix/core'
 import type {
   Dispatch,
   PropsWithChildren,

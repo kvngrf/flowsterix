@@ -150,7 +150,7 @@ const detectMaskSupport = () => {
       }
     } catch (error) {
       if (typeof console !== 'undefined') {
-        console.warn('Flowster: CSS.supports check failed', error)
+        console.warn('Flowsterix: CSS.supports check failed', error)
       }
     }
   }

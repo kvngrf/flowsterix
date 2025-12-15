@@ -1,4 +1,4 @@
-# Flowster MVP Weekly Plan
+# Flowsterix MVP Weekly Plan
 
 ## Week 1 – Core Foundations
 

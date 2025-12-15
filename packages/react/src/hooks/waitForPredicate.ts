@@ -1,4 +1,4 @@
-import type { StepHookContext, StepWaitFor } from '@tour/core'
+import type { StepHookContext, StepWaitFor } from '@flowsterix/core'
 
 export interface WaitForPredicateControllerOptions<TContent = unknown> {
   waitFor?: StepWaitFor<TContent>

@@ -11,11 +11,11 @@ We want an onboarding tour system that can ship an ergonomic React MVP while pre
 ## Decision
 
 - Use a pnpm + Turborepo monorepo with `packages/*` for publishable libraries and `examples/*` for runnable sandboxes.
-- Implement `@tour/core` as a React-free engine that provides:
+- Implement `@flowsterix/core` as a React-free engine that provides:
   - Typed flow definitions (`createFlow`) validated via Zod.
   - A serialisable finite-state machine with persistence hooks and an event bus.
   - Storage and router adapter interfaces for platform-specific integrations.
-- Implement `@tour/react` as the first binding layer, wiring React context/hooks to the core engine while deferring UI rendering to future components.
+- Implement `@flowsterix/react` as the first binding layer, wiring React context/hooks to the core engine while deferring UI rendering to future components.
 - Keep example applications (starting with Vite + React Router) in `examples/` so real-world usage can evolve without leaking app-specific concerns into publishable packages.
 
 ## Consequences

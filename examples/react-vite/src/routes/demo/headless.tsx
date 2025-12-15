@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Play, Sparkles, Wand2 } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { useTour } from '@tour/headless'
+import { useTour } from '@flowsterix/headless'
 
 import { HeadlessHUD } from '../../tour/HeadlessHUD'
 
@@ -21,7 +21,7 @@ function HeadlessDemoPage() {
       {
         icon: <Sparkles className="w-6 h-6 text-emerald-300" />,
         title: 'Design system ready',
-        body: 'Render whatever markup and typography fits your product. Flowster only supplies the logic.',
+        body: 'Render whatever markup and typography fits your product. Flowsterix only supplies the logic.',
         target: 'panel',
       },
       {
@@ -46,8 +46,8 @@ function HeadlessDemoPage() {
             Compose your own tour HUD
           </h1>
           <p className="text-lg text-slate-300 max-w-3xl mx-auto">
-            The `@tour/headless` package exposes the provider, hooks, and router
-            helpers without shipping styles. Use it to draw highlights,
+            The `@flowsterix/headless` package exposes the provider, hooks, and
+            router helpers without shipping styles. Use it to draw highlights,
             popovers, and controls that perfectly match your brand.
           </p>
           <button
@@ -85,9 +85,9 @@ function HeadlessDemoPage() {
           </p>
           <h2 className="text-3xl font-bold">Bring your imagination</h2>
           <p className="text-slate-100/90 text-lg leading-relaxed">
-            The headless bindings keep Flowster&apos;s targeting and progression
-            in sync, but leave the visuals to you. Render multi-step forms,
-            embed videos, or hook into analytics however you like.
+            The headless bindings keep Flowsterix&apos;s targeting and
+            progression in sync, but leave the visuals to you. Render multi-step
+            forms, embed videos, or hook into analytics however you like.
           </p>
         </section>
       </div>

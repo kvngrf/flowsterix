@@ -1,4 +1,4 @@
-import type { FlowState, Step } from '@tour/core'
+import type { FlowState, Step } from '@flowsterix/core'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 

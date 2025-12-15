@@ -1,4 +1,4 @@
-import type { BackdropInteractionMode } from '@tour/core'
+import type { BackdropInteractionMode } from '@flowsterix/core'
 import { useEffect, useMemo, useRef } from 'react'
 
 import type { ClientRectLike } from '../utils/dom'

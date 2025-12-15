@@ -1,19 +1,19 @@
 # Routing & Async Integration
 
-This guide shows how to keep Flowster tours in sync with single-page routers and how to wait for lazily rendered content before revealing a step.
+This guide shows how to keep Flowsterix tours in sync with single-page routers and how to wait for lazily rendered content before revealing a step.
 
 ## Synchronize the Tour with Your Router
 
 The React bindings expose lightweight adapters that report navigation events into the tour runtime. Add the adapter that matches your environment inside a component that renders under `TourProvider`.
 
 ```tsx
-import { TanStackRouterSync, TourProvider } from '@tour/react'
+import { TanStackRouterSync, TourProvider } from '@flowsterix/react'
 
 import { demoFlows } from './flows'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <TourProvider flows={demoFlows} storageNamespace="flowster-demo">
+    <TourProvider flows={demoFlows} storageNamespace="flowsterix-demo">
       <TanStackRouterSync />
       {children}
     </TourProvider>
@@ -35,7 +35,7 @@ Each hook reads the active location, converts it to a normalized path via `creat
 If you use a router without a built-in adapter, call `notifyRouteChange(path)` whenever your location changes. You can also read the last known path with `getCurrentRoutePath()`.
 
 ```ts
-import { notifyRouteChange } from '@tour/react'
+import { notifyRouteChange } from '@flowsterix/react'
 
 router.subscribe((state) => {
   notifyRouteChange(state.fullPath)
@@ -47,9 +47,9 @@ router.subscribe((state) => {
 When a flow resumes after the user reloads or navigates away, the previous step may belong to a different route. Use the step-level `onResume` hook to rerun any UI setup or spa navigation.
 
 ```ts
-import { getTourRouter } from '@tour/react'
+import { getTourRouter } from '@flowsterix/react'
 
-import { createFlow } from '@tour/core'
+import { createFlow } from '@flowsterix/core'
 
 const flow = createFlow({
   id: 'demo-flow',
@@ -130,7 +130,7 @@ These safeguards pair nicely with `waitFor`, route gating, and `onResume` hooks:
 Virtualized scrollers often render targets only after you scroll them into view or after a batching loop flushes. Instead of guessing when that happens, use the expanded `waitFor` API:
 
 - `waitFor.predicate` lets you express arbitrary readiness logic (for example, "item 42 is mounted"), optionally polled via `waitFor.pollMs`.
-- `waitFor.subscribe` wires into whatever event stream your virtualizer exposes. Flowster passes a `notify` helper so you can re-run the predicate or flip readiness manually.
+- `waitFor.subscribe` wires into whatever event stream your virtualizer exposes. Flowsterix passes a `notify` helper so you can re-run the predicate or flip readiness manually.
 
 ```ts
 const employeeFlow = createFlow({

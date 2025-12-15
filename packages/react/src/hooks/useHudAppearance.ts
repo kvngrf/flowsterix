@@ -1,4 +1,4 @@
-import type { BackdropInteractionMode, FlowHudOptions } from '@tour/core'
+import type { BackdropInteractionMode, FlowHudOptions } from '@flowsterix/core'
 import { useEffect, useMemo } from 'react'
 
 import type { TourTokens } from '../theme/tokens'

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 
-import type { AdvanceRule } from '@tour/core'
+import type { AdvanceRule } from '@flowsterix/core'
 
 import type { TourContextValue } from '../context'
 import { useTour } from '../context'

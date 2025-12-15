@@ -1,4 +1,4 @@
-import type { Step, StepScrollMode } from '@tour/core'
+import type { Step, StepScrollMode } from '@flowsterix/core'
 import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 

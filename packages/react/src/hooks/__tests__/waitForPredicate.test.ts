@@ -1,4 +1,4 @@
-import type { FlowDefinition, FlowState, Step } from '@tour/core'
+import type { FlowDefinition, FlowState, Step } from '@flowsterix/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createWaitForPredicateController } from '../waitForPredicate'

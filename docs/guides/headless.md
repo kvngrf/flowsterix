@@ -1,36 +1,36 @@
 # Headless React bindings
 
-`@tour/headless` exposes the Flowster provider, hooks, router adapters, and animation utilities without shipping any HUD components or CSS. Use it when you want to render your own overlay, popover, and controls from scratch while reusing the flow runtime, targeting, and scroll management.
+`@flowsterix/headless` exposes the Flowsterix provider, hooks, router adapters, and animation utilities without shipping any HUD components or CSS. Use it when you want to render your own overlay, popover, and controls from scratch while reusing the flow runtime, targeting, and scroll management.
 
 ## Installation
 
 ```bash
-pnpm add @tour/headless
+pnpm add @flowsterix/headless
 ```
 
-The package depends on `@tour/core` and `@tour/react`, so those peer dependencies will be satisfied automatically in this monorepo.
+The package depends on `@flowsterix/core` and `@flowsterix/react`, so those peer dependencies will be satisfied automatically in this monorepo.
 
 ## What it exports
 
-- `TourProvider`, `useTour`, `useTourEvents`, and all of the store helpers from `@tour/react`.
+- `TourProvider`, `useTour`, `useTourEvents`, and all of the store helpers from `@flowsterix/react`.
 - Target/geometry hooks: `useTourTarget`, `useViewportRect`, `useHiddenTargetFallback`.
 - Progression helpers: `useTourControls`, `useAdvanceRules`, `useDelayAdvance`, `useBodyScrollLock`, `createWaitForPredicateController`.
 - HUD hooks: `useTourHud` for the bundled experience, `useTourOverlay` for reusable highlight geometry, plus the lower-level `useHudState`, `useHudAppearance`, `useHudDescription`, `useHudShortcuts`, `useHudTargetIssue` when you need to pick and choose pieces.
-- Visual primitives: `OverlayBackdrop`, the same component Flowster uses under the hood for `TourOverlay`, which renders the mask/backdrop/interaction blocker using the data from `useTourOverlay`.
-- Router + animation utilities if you still want Flowster to sync with TanStack/Next/React Router or reuse the default motion adapter.
+- Visual primitives: `OverlayBackdrop`, the same component Flowsterix uses under the hood for `TourOverlay`, which renders the mask/backdrop/interaction blocker using the data from `useTourOverlay`.
+- Router + animation utilities if you still want Flowsterix to sync with TanStack/Next/React Router or reuse the default motion adapter.
 
 Everything that renders UI (`TourHUD`, `TourOverlay`, `TourPopover`, `DelayProgressBar`, etc.) is intentionally omitted.
 
 ## Minimal example
 
 ```tsx
-import { createFlow } from '@tour/core'
+import { createFlow } from '@flowsterix/core'
 import {
   TourProvider,
   useTour,
   useTourControls,
   useTourTarget,
-} from '@tour/headless'
+} from '@flowsterix/headless'
 import { createPortal } from 'react-dom'
 
 const flow = createFlow({
@@ -106,14 +106,18 @@ function HeadlessHud() {
 }
 ```
 
-Add your own layout, animations, and state syncing—the Flowster store handles target resolution, advancement rules, and analytics exactly like the default HUD.
+Add your own layout, animations, and state syncing—the Flowsterix store handles target resolution, advancement rules, and analytics exactly like the default HUD.
 
 > **Heads up:** set `hud.render = 'none'` (as shown above) on any flow you plan to drive with your own HUD. Otherwise the built-in `TourHUD` will render alongside your custom UI.
 
 ## HUD helper hooks in practice
 
 ```tsx
-import { TourFocusManager, TourPopoverPortal, useTourHud } from '@tour/headless'
+import {
+  TourFocusManager,
+  TourPopoverPortal,
+  useTourHud,
+} from '@flowsterix/headless'
 
 function HeadlessHud() {
   const hud = useTourHud({ overlayRadius: 24 })
@@ -147,14 +151,18 @@ function HeadlessHud() {
 }
 ```
 
-`useTourHud` mirrors the behavior of Flowster’s default HUD—body scroll locking, keyboard shortcuts, focus management, description wiring, and target diagnostics all stay in sync. You can still reach for the lower-level hooks if you need to override any particular piece.
+`useTourHud` mirrors the behavior of Flowsterix's default HUD—body scroll locking, keyboard shortcuts, focus management, description wiring, and target diagnostics all stay in sync. You can still reach for the lower-level hooks if you need to override any particular piece.
 
 ## Overlay helpers
 
-Need the highlight math without recreating Flowster’s overlay logic? Call `useTourOverlay` with the active `hudTarget` and feed that data into the new `OverlayBackdrop` component (exported from both `@tour/react` and `@tour/headless`). It renders the same mask/backdrop/interaction-blocker stack used by the default HUD, but you can fully customize color, blur, and transitions:
+Need the highlight math without recreating Flowsterix's overlay logic? Call `useTourOverlay` with the active `hudTarget` and feed that data into the new `OverlayBackdrop` component (exported from both `@flowsterix/react` and `@flowsterix/headless`). It renders the same mask/backdrop/interaction-blocker stack used by the default HUD, but you can fully customize color, blur, and transitions:
 
 ```tsx
-import { OverlayBackdrop, useTourHud, useTourOverlay } from '@tour/headless'
+import {
+  OverlayBackdrop,
+  useTourHud,
+  useTourOverlay,
+} from '@flowsterix/headless'
 
 function HighlightOverlay() {
   const hud = useTourHud()

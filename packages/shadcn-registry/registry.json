@@ -1,0 +1,147 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "flowsterix",
+  "homepage": "https://flowsterix.dev",
+  "items": [
+    {
+      "name": "tour-provider",
+      "type": "registry:component",
+      "title": "Tour Provider",
+      "description": "The root provider component that manages tour state and flow definitions.",
+      "dependencies": ["@flowsterix/headless", "motion"],
+      "files": [
+        {
+          "path": "registry/flowsterix/tour-provider.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "provider"]
+    },
+    {
+      "name": "tour-overlay",
+      "type": "registry:component",
+      "title": "Tour Overlay",
+      "description": "A customizable spotlight overlay that highlights the target element with a dimmed backdrop.",
+      "dependencies": ["@flowsterix/headless", "motion"],
+      "registryDependencies": ["tour-provider"],
+      "files": [
+        {
+          "path": "registry/flowsterix/tour-overlay.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "overlay"]
+    },
+    {
+      "name": "tour-popover",
+      "type": "registry:component",
+      "title": "Tour Popover",
+      "description": "A floating popover card that displays step content with smart positioning via Floating UI.",
+      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/react"],
+      "registryDependencies": ["tour-provider"],
+      "files": [
+        {
+          "path": "registry/flowsterix/tour-popover.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "popover"]
+    },
+    {
+      "name": "tour-controls",
+      "type": "registry:component",
+      "title": "Tour Controls",
+      "description": "Navigation buttons (Back, Next, Skip) for tour step progression.",
+      "dependencies": ["@flowsterix/headless"],
+      "registryDependencies": ["tour-provider", "button"],
+      "files": [
+        {
+          "path": "registry/flowsterix/tour-controls.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "controls"]
+    },
+    {
+      "name": "tour-progress",
+      "type": "registry:component",
+      "title": "Tour Progress",
+      "description": "A step progress indicator showing current position in the tour.",
+      "dependencies": ["@flowsterix/headless"],
+      "registryDependencies": ["tour-provider"],
+      "files": [
+        {
+          "path": "registry/flowsterix/tour-progress.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "progress"]
+    },
+    {
+      "name": "tour-tooltip",
+      "type": "registry:component",
+      "title": "Tour Tooltip",
+      "description": "A lightweight tooltip variant for simpler tour implementations.",
+      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/react"],
+      "registryDependencies": ["tour-provider"],
+      "files": [
+        {
+          "path": "registry/flowsterix/tour-tooltip.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "tooltip"]
+    },
+    {
+      "name": "use-tour",
+      "type": "registry:hook",
+      "title": "useTour Hook",
+      "description": "Core hook for accessing tour state, controls, and active step information.",
+      "dependencies": ["@flowsterix/headless"],
+      "files": [
+        {
+          "path": "registry/flowsterix/hooks/use-tour.ts",
+          "type": "registry:hook"
+        }
+      ],
+      "categories": ["tour", "hook"]
+    },
+    {
+      "name": "tour-hud",
+      "type": "registry:block",
+      "title": "Tour HUD",
+      "description": "A complete heads-up display combining overlay, popover, and controls into a ready-to-use tour UI.",
+      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/react"],
+      "registryDependencies": [
+        "tour-provider",
+        "tour-overlay",
+        "tour-popover",
+        "tour-controls",
+        "tour-progress",
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/flowsterix/blocks/tour-hud.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "block"]
+    },
+    {
+      "name": "onboarding-flow",
+      "type": "registry:block",
+      "title": "Onboarding Flow Example",
+      "description": "A complete onboarding tour example with welcome screen, feature highlights, and completion step.",
+      "dependencies": ["@flowsterix/headless", "motion"],
+      "registryDependencies": ["tour-hud"],
+      "files": [
+        {
+          "path": "registry/flowsterix/blocks/onboarding-flow.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "block", "example"]
+    }
+  ]
+}

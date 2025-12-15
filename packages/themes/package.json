@@ -1,5 +1,5 @@
 {
-  "name": "@tour/themes",
+  "name": "@flowsterix/themes",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -23,6 +23,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@tour/react": "workspace:*"
+    "@flowsterix/react": "workspace:*"
   }
 }

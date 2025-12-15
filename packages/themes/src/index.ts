@@ -1,4 +1,4 @@
-import type { TourTokensOverride } from '@tour/react'
+import type { TourTokensOverride } from '@flowsterix/react'
 
 export const auroraTokens: TourTokensOverride = {
   font: {
@@ -162,7 +162,7 @@ export const tourThemePresets: Record<TourThemePresetId, TourThemePreset> = {
   classic: {
     id: 'classic',
     label: 'Classic',
-    description: 'Ships the default Flowster tokens',
+    description: 'Ships the default Flowsterix tokens',
   },
   aurora: {
     id: 'aurora',

@@ -1,4 +1,4 @@
-# Flowster MVP Plan
+# Flowsterix MVP Plan
 
 ## Status Checklist
 
@@ -23,16 +23,16 @@
 
 ## 2. Architecture Overview (keep it portable)
 
-- [x] `@tour/core` framework-agnostic engine (flows, transitions, advance rules)
+- [x] `@flowsterix/core` framework-agnostic engine (flows, transitions, advance rules)
 - [x] DOM anchoring utilities (query target, compute rect, observer hooks)
 - [x] Scroll manager
 - [x] StorageAdapter interface with LocalStorage implementation
 - [x] RouterAdapter interface without runtime dependency
 - [x] Event bus with analytics hooks
-- [x] `@tour/react` bindings (Provider, hooks, components)
+- [x] `@flowsterix/react` bindings (Provider, hooks, components)
 - [x] AnimationAdapter using Framer Motion
-- [x] Router adapters (`@tour/react-router-adapter`, `@tour/next-adapter`)
-- [x] Optional packages (`@tour/themes`, example apps)
+- [x] Router adapters (`@flowsterix/react-router-adapter`, `@flowsterix/next-adapter`)
+- [x] Optional packages (`@flowsterix/themes`, example apps)
 
 ## 3. Core Types and DSL
 

@@ -130,7 +130,7 @@ function App() {
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed">
             This callout sits far enough down the page to require scrolling. It
-            makes a perfect target for verifying Flowster&apos;s scroll margin
+            makes a perfect target for verifying Flowsterix&apos;s scroll margin
             offsets when a sticky header hugs the top of the viewport.
           </p>
           <div
@@ -152,7 +152,7 @@ function App() {
             </p>
             <div className="flex flex-wrap gap-3">
               <a
-                href="https://flowster.dev/docs"
+                href="https://flowsterix.dev/docs"
                 className="px-5 py-2 rounded-full bg-white/90 text-slate-900 font-semibold shadow-lg hover:bg-white"
                 target="_blank"
                 rel="noreferrer"

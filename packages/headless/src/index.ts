@@ -1,15 +1,15 @@
-export * from '@tour/react/headless'
+export * from '@flowsterix/react/headless'
 
-export { useHudState } from '@tour/react/headless'
+export { useHudState } from '@flowsterix/react/headless'
 export type {
   UseHudStateOptions,
   UseHudStateResult,
-} from '@tour/react/headless'
+} from '@flowsterix/react/headless'
 
-export { useHudShortcuts } from '@tour/react/headless'
-export type { UseHudShortcutsOptions } from '@tour/react/headless'
+export { useHudShortcuts } from '@flowsterix/react/headless'
+export type { UseHudShortcutsOptions } from '@flowsterix/react/headless'
 
-export { useTourHud } from '@tour/react/headless'
+export { useTourHud } from '@flowsterix/react/headless'
 export type {
   TourHudDescription,
   TourHudFocusManagerState,
@@ -17,38 +17,38 @@ export type {
   TourHudPopoverConfig,
   UseTourHudOptions,
   UseTourHudResult,
-} from '@tour/react/headless'
+} from '@flowsterix/react/headless'
 
-export { useTourOverlay } from '@tour/react/headless'
+export { useTourOverlay } from '@flowsterix/react/headless'
 export type {
   TourOverlayRect,
   TourOverlaySegment,
   UseTourOverlayOptions,
   UseTourOverlayResult,
-} from '@tour/react/headless'
+} from '@flowsterix/react/headless'
 
-export { useHudTargetIssue } from '@tour/react/headless'
+export { useHudTargetIssue } from '@flowsterix/react/headless'
 export type {
   HudTargetIssue,
   UseHudTargetIssueOptions,
   UseHudTargetIssueResult,
-} from '@tour/react/headless'
+} from '@flowsterix/react/headless'
 
-export { useHudAppearance } from '@tour/react/headless'
+export { useHudAppearance } from '@flowsterix/react/headless'
 export type {
   HudPopoverProps,
   UseHudAppearanceOptions,
   UseHudAppearanceResult,
-} from '@tour/react/headless'
+} from '@flowsterix/react/headless'
 
-export { useHudDescription } from '@tour/react/headless'
+export { useHudDescription } from '@flowsterix/react/headless'
 export type {
   UseHudDescriptionOptions,
   UseHudDescriptionResult,
-} from '@tour/react/headless'
+} from '@flowsterix/react/headless'
 
-export { useHudMotion } from '@tour/react/headless'
-export type { UseHudMotionResult } from '@tour/react/headless'
+export { useHudMotion } from '@flowsterix/react/headless'
+export type { UseHudMotionResult } from '@flowsterix/react/headless'
 
-export { TourFocusManager } from '@tour/react/headless'
-export type { TourFocusManagerProps } from '@tour/react/headless'
+export { TourFocusManager } from '@flowsterix/react/headless'
+export type { TourFocusManagerProps } from '@flowsterix/react/headless'

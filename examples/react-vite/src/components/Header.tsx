@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-import { useTour } from '@tour/react'
+import { useTour } from '@flowsterix/react'
 import {
   ChevronDown,
   ChevronRight,

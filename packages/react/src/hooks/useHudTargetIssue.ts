@@ -33,7 +33,7 @@ const deriveTargetIssue = (target: TourTargetInfo): HudTargetIssue | null => {
       return {
         type: 'missing',
         title: 'Looking for the target',
-        body: 'Flowster is still trying to find this element. Make sure the UI piece is mounted or adjust the selector.',
+        body: 'Flowsterix is still trying to find this element. Make sure the UI piece is mounted or adjust the selector.',
         hint:
           target.rectSource === 'stored'
             ? 'Showing the last known position until the element returns.'

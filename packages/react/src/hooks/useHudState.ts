@@ -3,7 +3,7 @@ import type {
   FlowHudRenderMode,
   FlowState,
   Step,
-} from '@tour/core'
+} from '@flowsterix/core'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 

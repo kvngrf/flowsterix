@@ -31,21 +31,21 @@ This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
 ### Tour HUD Styles
 
-When using the `@tour/react` package, import its bundled CSS once in your application entry point so the overlay and popover render with the correct styles:
+When using the `@flowsterix/react` package, import its bundled CSS once in your application entry point so the overlay and popover render with the correct styles:
 
 ```ts
-import '@tour/react/styles.css'
+import '@flowsterix/react/styles.css'
 ```
 
 See `docs/guides/theming.md` for the full list of CSS variables and `data-tour-*` hooks you can override to match your design system.
 
 #### Theme presets
 
-Prefer to start from an opinionated palette? Install `@tour/themes` from this workspace to grab drop-in token overrides:
+Prefer to start from an opinionated palette? Install `@flowsterix/themes` from this workspace to grab drop-in token overrides:
 
 ```tsx
-import { auroraTokens } from '@tour/themes'
-import { TourProvider } from '@tour/react'
+import { auroraTokens } from '@flowsterix/themes'
+import { TourProvider } from '@flowsterix/react'
 
 export function App() {
   return (
@@ -60,7 +60,7 @@ The package also exposes `listTourThemePresets()` so you can build a selector UI
 
 ### Headless React bindings
 
-Need total control over the markup, styling, and controls? Install the new `@tour/headless` package. It re-exports the Flowster provider, hooks, router adapters, and animation utilities without bundling any HUD components or CSS, so you can render your own overlay/popover/buttons from scratch:
+Need total control over the markup, styling, and controls? Install the new `@flowsterix/headless` package. It re-exports the Flowsterix provider, hooks, router adapters, and animation utilities without bundling any HUD components or CSS, so you can render your own overlay/popover/buttons from scratch:
 
 ```tsx
 import {
@@ -68,7 +68,7 @@ import {
   useTour,
   useTourTarget,
   useTourControls,
-} from '@tour/headless'
+} from '@flowsterix/headless'
 
 export function App() {
   return (
@@ -85,10 +85,14 @@ See `docs/guides/headless.md` for a complete walkthrough, including a minimal hi
 
 #### Fast-tracking custom HUDs
 
-Skip the wiring by importing `useTourHud` from `@tour/headless`. It bundles the same behavior as the default HUD—body scroll locking, keyboard shortcuts, focus management, ARIA wiring, and target diagnostics—so you only provide markup:
+Skip the wiring by importing `useTourHud` from `@flowsterix/headless`. It bundles the same behavior as the default HUD—body scroll locking, keyboard shortcuts, focus management, ARIA wiring, and target diagnostics—so you only provide markup:
 
 ```tsx
-import { TourFocusManager, TourPopoverPortal, useTourHud } from '@tour/headless'
+import {
+  TourFocusManager,
+  TourPopoverPortal,
+  useTourHud,
+} from '@flowsterix/headless'
 
 function CustomHud() {
   const hud = useTourHud()
@@ -124,14 +128,14 @@ function CustomHud() {
 
 Use the hook’s options to override padding, radius, shortcut handling, or scroll locking globally while keeping your HUD markup completely custom.
 
-Need just the highlight math? Pair the snippet above with `useTourOverlay` to reuse Flowster’s overlay geometry (padding, viewport clamping, interaction blockers) inside your own backdrop component. See `docs/guides/headless.md#overlay-helper-hook` for a drop-in example.
+Need just the highlight math? Pair the snippet above with `useTourOverlay` to reuse Flowsterix's overlay geometry (padding, viewport clamping, interaction blockers) inside your own backdrop component. See `docs/guides/headless.md#overlay-helper-hook` for a drop-in example.
 
 ### Customizing Animations
 
 The React bindings drive motion through an `AnimationAdapter` that ships with a Framer Motion-backed default. `TourProvider` accepts several options so you can adjust timing or respect user preferences without rewriting components:
 
 ```tsx
-import { TourProvider, reducedMotionAnimationAdapter } from '@tour/react'
+import { TourProvider, reducedMotionAnimationAdapter } from '@flowsterix/react'
 
 export function App() {
   return (
@@ -156,7 +160,7 @@ import {
   TourProvider,
   defaultAnimationAdapter,
   usePreferredAnimationAdapter,
-} from '@tour/react'
+} from '@flowsterix/react'
 
 const brandAnimationAdapter = {
   ...defaultAnimationAdapter,
@@ -253,7 +257,7 @@ Every `FlowStore` exposes an event bus so you can subscribe to lifecycle changes
 For zero-boilerplate tracking, pass an `analytics` object to `TourProvider`. Each handler mirrors the event name (e.g. `onFlowStart`, `onStepExit`, `onFlowError`) and receives the typed payload from the core runtime:
 
 ```tsx
-import { TourProvider } from '@tour/react'
+import { TourProvider } from '@flowsterix/react'
 
 const analytics = {
   onFlowStart: ({ flow }) => console.log('Flow started', flow.id),

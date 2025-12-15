@@ -37,7 +37,7 @@ const normalizeExternalPath = (path: string) => {
   }
 
   try {
-    const parsed = new URL(path, 'http://flowster.local')
+    const parsed = new URL(path, 'http://flowsterix.local')
     return (
       normalizePathname(parsed.pathname) +
       normalizePrefixedSegment(parsed.search, '?') +
