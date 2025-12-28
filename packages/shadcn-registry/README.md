@@ -12,6 +12,7 @@ npx shadcn@latest add https://flowsterix.vercel.app/r/tour-popover.json
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-controls.json
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-overlay.json
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-progress.json
+npx shadcn@latest add https://flowsterix.vercel.app/r/delay-progress-bar.json
 
 # Or install the complete HUD block
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-hud.json
@@ -41,6 +42,7 @@ The build output will be in `public/r/` and can be served by any static file ser
 | `tour-popover`  | Floating popover for step content             |
 | `tour-controls` | Navigation buttons (Back, Next, Skip)         |
 | `tour-progress` | Step progress indicator (dots, bar, fraction) |
+| `delay-progress-bar` | Countdown bar for auto-advance steps |
 | `tour-tooltip`  | Lightweight tooltip variant                   |
 | `use-tour`      | Hook for accessing tour state and controls    |
 

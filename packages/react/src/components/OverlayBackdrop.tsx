@@ -10,8 +10,47 @@ import type { AnimationAdapterTransitions } from '../motion/animationAdapter'
 import { useAnimationAdapter } from '../motion/animationAdapter'
 import type { TourTokenPath } from '../theme/tokens'
 import { cssVar } from '../theme/tokens'
-import { cn } from '../utils/cn'
 import { isBrowser, portalHost } from '../utils/dom'
+
+// =============================================================================
+// Inline style helpers (replacing Tailwind classes for headless compatibility)
+// =============================================================================
+
+const styles = {
+  root: {
+    position: 'fixed' as const,
+    inset: 0,
+    pointerEvents: 'none' as const,
+  },
+  svgMask: {
+    position: 'absolute' as const,
+  },
+  overlay: {
+    position: 'absolute' as const,
+    transformOrigin: 'center',
+    inset: 0,
+    pointerEvents: 'none' as const,
+  },
+  segment: {
+    position: 'absolute' as const,
+    transformOrigin: 'center',
+    pointerEvents: 'none' as const,
+  },
+  blockerContainer: {
+    position: 'absolute' as const,
+    inset: 0,
+    pointerEvents: 'none' as const,
+  },
+  blockerSegment: {
+    position: 'absolute' as const,
+    pointerEvents: 'auto' as const,
+  },
+  highlightRing: {
+    position: 'absolute' as const,
+    transformOrigin: 'center',
+    pointerEvents: 'none' as const,
+  },
+} as const
 
 const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
   duration: 0.35,
@@ -43,17 +82,30 @@ export interface OverlayBackdropTransitionsOverride
 export interface OverlayBackdropProps {
   overlay: UseTourOverlayResult
   zIndex?: number
+  /** Background color of the overlay */
   color?: string
+  /**
+   * @deprecated Use `color` prop instead. This is kept for backwards compatibility but has no effect.
+   */
   colorClassName?: string
   opacity?: number
+  /** Box shadow for the highlight ring */
   shadow?: string
+  /** CSS variable token path for the shadow */
   shadowToken?: TourTokenPath
+  /**
+   * @deprecated Use `shadow` or `shadowToken` props instead. This is kept for backwards compatibility but has no effect.
+   */
   shadowClassName?: string
   blurAmount?: number
   ariaHidden?: boolean
+  /** Additional class name for the root element */
   rootClassName?: string
+  /** Additional class name for the overlay backdrop */
   overlayClassName?: string
+  /** Additional class name for fallback segments */
   segmentClassName?: string
+  /** Additional class name for the highlight ring */
   ringClassName?: string
   showHighlightRing?: boolean
   showInteractionBlocker?: boolean
@@ -64,11 +116,12 @@ export const OverlayBackdrop = ({
   overlay,
   zIndex = 1000,
   color,
-  colorClassName,
+  colorClassName: _colorClassName,
   opacity = 1,
   shadow,
   shadowToken,
-  shadowClassName,
+  shadowClassName: _shadowClassName,
+  blurAmount,
   ariaHidden,
   rootClassName,
   overlayClassName,
@@ -106,24 +159,11 @@ export const OverlayBackdrop = ({
     prevScreenTargetRef.current = highlight.isScreen
   }, [highlight.isScreen])
 
-  const rootPointerClass = 'pointer-events-none'
-  const baseOverlayPointerClass = 'pointer-events-none'
-  const segmentPointerClass = baseOverlayPointerClass
-
-  const resolvedOverlayClassName = cn(
-    'absolute origin-center inset-0',
-    baseOverlayPointerClass,
-    shouldMask ? '[mask-mode:luminance]' : null,
-    shouldMask ? '[mask-repeat:no-repeat]' : null,
-    shouldMask ? '[mask-size:100%_100%]' : null,
-    color ? null : colorClassName,
-    overlayClassName,
-  )
-  const resolvedRingClassName = cn(
-    'pointer-events-none absolute origin-center',
-    shadow || shadowToken ? null : shadowClassName,
-    ringClassName,
-  )
+  // Compute blur value: use prop if provided, otherwise fall back to CSS var
+  const resolvedBlur =
+    typeof blurAmount === 'number'
+      ? `${blurAmount}px`
+      : cssVar('overlay.blur', '0px')
 
   const defaultInsetShadow =
     'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
@@ -133,9 +173,7 @@ export const OverlayBackdrop = ({
     ? { boxShadow: shadow }
     : shadowToken
       ? { boxShadow: cssVar(shadowToken) }
-      : shadowClassName
-        ? undefined
-        : { boxShadow: defaultRingVar }
+      : { boxShadow: defaultRingVar }
 
   const { MotionDiv, MotionSvg, MotionDefs, MotionMask, MotionRect } =
     adapter.components
@@ -220,8 +258,8 @@ export const OverlayBackdrop = ({
 
   return createPortal(
     <MotionDiv
-      className={cn('fixed inset-0', rootPointerClass, rootClassName)}
-      style={{ zIndex }}
+      className={rootClassName}
+      style={{ ...styles.root, zIndex }}
       aria-hidden={ariaHidden}
       data-tour-overlay=""
     >
@@ -233,7 +271,7 @@ export const OverlayBackdrop = ({
             height="0"
             aria-hidden
             focusable="false"
-            className="absolute"
+            style={styles.svgMask}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -282,9 +320,10 @@ export const OverlayBackdrop = ({
         {showBaseOverlay ? (
           <MotionDiv
             key="tour-overlay"
-            className={resolvedOverlayClassName || undefined}
+            className={overlayClassName}
             data-tour-overlay-layer="backdrop"
             style={{
+              ...styles.overlay,
               ...overlayStyle,
               zIndex,
               backgroundColor: color ?? undefined,
@@ -296,11 +335,11 @@ export const OverlayBackdrop = ({
             }}
             animate={{
               opacity,
-              backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
+              backdropFilter: `blur(${resolvedBlur})`,
             }}
             exit={{
               opacity: 0,
-              backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
+              backdropFilter: `blur(${resolvedBlur})`,
             }}
             transition={overlayTransition}
           />
@@ -311,14 +350,10 @@ export const OverlayBackdrop = ({
           ? fallbackSegments.map((segment) => (
               <MotionDiv
                 key={`tour-overlay-fallback-${segment.key}`}
-                className={cn(
-                  'absolute origin-center',
-                  segmentPointerClass,
-                  color ? null : colorClassName,
-                  segmentClassName,
-                )}
+                className={segmentClassName}
                 data-tour-overlay-layer="segment"
                 style={{
+                  ...styles.segment,
                   zIndex,
                   top: segment.top,
                   left: segment.left,
@@ -332,7 +367,7 @@ export const OverlayBackdrop = ({
                 }}
                 animate={{
                   opacity,
-                  backdropFilter: `blur(${cssVar('overlay.blur', '0px')})`,
+                  backdropFilter: `blur(${resolvedBlur})`,
                 }}
                 exit={{
                   opacity: 0,
@@ -345,16 +380,15 @@ export const OverlayBackdrop = ({
       </AnimatePresence>
       {showInteractionBlocker && blockerSegments ? (
         <div
-          className="pointer-events-none absolute inset-0"
+          style={{ ...styles.blockerContainer, zIndex }}
           data-tour-overlay-layer="interaction-blocker"
           aria-hidden
-          style={{ zIndex }}
         >
           {blockerSegments.map((segment) => (
             <div
               key={segment.key}
-              className="absolute pointer-events-auto"
               style={{
+                ...styles.blockerSegment,
                 top: segment.top,
                 left: segment.left,
                 width: segment.width,
@@ -368,9 +402,9 @@ export const OverlayBackdrop = ({
         {showHighlightRing && isActive && hasHighlightBounds ? (
           <MotionDiv
             key="tour-ring"
-            className={resolvedRingClassName || undefined}
+            className={ringClassName}
             style={{
-              position: 'absolute',
+              ...styles.highlightRing,
               zIndex: zIndex + 1,
               ...highlightAppearance,
             }}

@@ -19,11 +19,11 @@
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18",
-    "@floating-ui/react": ">=0.26",
+    "@floating-ui/dom": ">=1.6",
     "motion": ">=11"
   },
   "peerDependenciesMeta": {
-    "@floating-ui/react": {
+    "@floating-ui/dom": {
       "optional": true
     },
     "motion": {

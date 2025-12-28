@@ -549,10 +549,25 @@ export const TourPopoverPortal = ({
         targetRect.top < viewportBottom - FLOATING_OFFSET &&
         targetRect.right > viewportLeft + FLOATING_OFFSET &&
         targetRect.left < viewportRight - FLOATING_OFFSET
+
+      // Calculate available space around the target for popover placement
+      const spaceAbove = targetRect.top - viewportTop
+      const spaceBelow = viewportBottom - targetRect.bottom
+      const spaceLeft = targetRect.left - viewportLeft
+      const spaceRight = viewportRight - targetRect.right
+
+      // Minimum space needed to place the popover (popover height/width estimate + offset)
+      const minSpaceNeeded = floatingBox.height + FLOATING_OFFSET * 2
+
+      // Target nearly fills viewport only when there's insufficient space in ALL directions
+      // This allows full-width elements to still have floating popovers above/below them
+      const hasVerticalSpace =
+        spaceAbove >= minSpaceNeeded || spaceBelow >= minSpaceNeeded
+      const hasHorizontalSpace =
+        spaceLeft >= minSpaceNeeded || spaceRight >= minSpaceNeeded
+
       const targetNearlyFillsViewport =
-        !target.isScreen &&
-        (targetRect.height >= viewportHeight - FLOATING_OFFSET * 4 ||
-          targetRect.width >= viewportWidth - FLOATING_OFFSET * 4)
+        !target.isScreen && !hasVerticalSpace && !hasHorizontalSpace
 
       const shouldDock =
         intersectsViewport &&

@@ -1,121 +1,167 @@
 'use client'
 
+import type { StepPlacement } from '@flowsterix/core'
 import {
-  arrow,
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  useFloating,
-  type Placement,
-} from '@floating-ui/react'
-import { useTour, useTourTarget } from '@flowsterix/headless'
-import { AnimatePresence, motion } from 'motion/react'
+  TourPopoverPortal,
+  useTour,
+  useTourTarget,
+  type TourPopoverLayoutMode,
+  type TourPopoverPortalRenderProps,
+} from '@flowsterix/headless'
 import * as React from 'react'
-import { createPortal } from 'react-dom'
 
 import { cn } from '@/lib/utils'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export type { TourPopoverLayoutMode }
 
 export interface TourPopoverProps {
   /** Additional class names for the popover container */
   className?: string
-  /** Offset distance from the target element (default: 12) */
+  /** Additional class names for the content wrapper */
+  contentClassName?: string
+  /** Offset distance from the target element (default: 16) */
   offset?: number
-  /** Preferred placement relative to target (default: "bottom") */
-  placement?: Placement
-  /** Whether to show the arrow pointer (default: true) */
-  showArrow?: boolean
-  /** Custom content renderer, receives step content as children */
+  /** Preferred placement relative to target */
+  placement?: StepPlacement
+  /** Fixed width for the popover */
+  width?: number | string
+  /** Maximum width for the popover */
+  maxWidth?: number | string
+  /** Z-index for the popover (default: 1001) */
+  zIndex?: number
+  /** ARIA role for the popover (default: "dialog") */
+  role?: string
+  /** ARIA label for the popover */
+  ariaLabel?: string
+  /** Whether the popover is modal (default: false) */
+  ariaModal?: boolean
+  /** Show drag handle for docked/manual mode (default: true) */
+  showDragHandle?: boolean
+  /** Custom content renderer */
   children?: React.ReactNode
 }
 
+// =============================================================================
+// Drag Handle Component
+// =============================================================================
+
+interface DragHandleProps {
+  dragHandleProps: TourPopoverPortalRenderProps['dragHandleProps']
+  className?: string
+}
+
+function DragHandle({ dragHandleProps, className }: DragHandleProps) {
+  const { style, ...rest } = dragHandleProps
+  return (
+    <button
+      {...rest}
+      style={style as React.CSSProperties}
+      className={cn(
+        'absolute -top-2 left-1/2 -translate-x-1/2 cursor-grab active:cursor-grabbing',
+        'h-5 w-10 flex items-center justify-center',
+        'text-muted-foreground hover:text-foreground transition-colors',
+        className,
+      )}
+    >
+      <svg
+        width="24"
+        height="4"
+        viewBox="0 0 24 4"
+        fill="currentColor"
+        aria-hidden
+      >
+        <rect x="0" y="0" width="24" height="1.5" rx="0.75" />
+        <rect x="0" y="2.5" width="24" height="1.5" rx="0.75" />
+      </svg>
+    </button>
+  )
+}
+
+// =============================================================================
+// Main Component
+// =============================================================================
+
 export function TourPopover({
   className,
-  offset: offsetValue = 12,
-  placement = 'bottom',
-  showArrow = true,
+  contentClassName,
+  offset = 16,
+  placement,
+  width,
+  maxWidth = 360,
+  zIndex = 1001,
+  role = 'dialog',
+  ariaLabel,
+  ariaModal = false,
+  showDragHandle = true,
   children,
 }: TourPopoverProps) {
   const { state, activeStep } = useTour()
   const target = useTourTarget()
-  const arrowRef = React.useRef<HTMLDivElement>(null)
 
   const isRunning = state?.status === 'running'
-  const rect = target.rect ?? target.lastResolvedRect
-  const isScreenTarget = activeStep?.target === 'screen'
 
-  // Virtual element for Floating UI when targeting a DOM element
-  const virtualElement = React.useMemo(() => {
-    if (!rect || isScreenTarget) return null
-    return {
-      getBoundingClientRect: () => rect,
-    }
-  }, [rect, isScreenTarget])
-
-  const { refs, floatingStyles, middlewareData } = useFloating({
-    placement,
-    elements: {
-      reference: virtualElement ?? undefined,
-    },
-    middleware: [
-      offset(offsetValue),
-      flip({ padding: 8 }),
-      shift({ padding: 8 }),
-      ...(showArrow ? [arrow({ element: arrowRef })] : []),
-    ],
-    whileElementsMounted: autoUpdate,
-  })
-
-  // Don't render if tour isn't running or no active step
   if (!isRunning || !activeStep) {
     return null
   }
 
-  const popoverContent = (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={activeStep.id}
-        ref={refs.setFloating}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Tour step: ${activeStep.id}`}
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        className={cn(
-          'z-[1001] w-[320px] max-w-[calc(100vw-2rem)]',
-          'rounded-lg border bg-popover p-4 text-popover-foreground shadow-lg',
-          'outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          isScreenTarget &&
-            'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
-          className,
-        )}
-        style={isScreenTarget ? undefined : floatingStyles}
-      >
-        {/* Popover content */}
-        {children ?? activeStep.content}
+  // Get placement from step or props
+  const resolvedPlacement = activeStep.placement ?? placement ?? 'bottom'
 
-        {/* Arrow */}
-        {showArrow && !isScreenTarget && middlewareData.arrow && (
-          <div
-            ref={arrowRef}
-            className="absolute h-3 w-3 rotate-45 border-b border-r bg-popover"
-            style={{
-              left: middlewareData.arrow.x,
-              top: middlewareData.arrow.y,
-              [placement.includes('top') ? 'bottom' : 'top']: -6,
-            }}
-          />
-        )}
-      </motion.div>
-    </AnimatePresence>
+  return (
+    <TourPopoverPortal
+      target={target}
+      offset={offset}
+      placement={resolvedPlacement}
+      width={width}
+      maxWidth={maxWidth}
+      zIndex={zIndex}
+      role={role}
+      ariaLabel={ariaLabel}
+      ariaModal={ariaModal}
+    >
+      {({
+        Container,
+        Content,
+        containerProps,
+        contentProps,
+        layoutMode,
+        showDragHandle: shouldShowHandle,
+        dragHandleProps,
+        descriptionProps,
+      }) => (
+        <Container
+          {...containerProps}
+          className={cn(
+            // Base styles
+            'rounded-xl border bg-popover text-popover-foreground shadow-lg',
+            // Mobile mode takes full width
+            layoutMode === 'mobile' && 'w-[calc(100vw-24px)] max-w-md',
+            className,
+          )}
+        >
+          {/* Drag handle for docked/manual mode */}
+          {showDragHandle && shouldShowHandle && (
+            <DragHandle dragHandleProps={dragHandleProps} />
+          )}
+
+          {/* Content with crossfade animation */}
+          <Content {...contentProps} className={cn('p-4', contentClassName)}>
+            {/* Screen reader description */}
+            {descriptionProps.id && descriptionProps.text && (
+              <span id={descriptionProps.id} className="sr-only">
+                {descriptionProps.text}
+              </span>
+            )}
+
+            {/* Render step content or custom children */}
+            {children ?? activeStep.content}
+          </Content>
+        </Container>
+      )}
+    </TourPopoverPortal>
   )
-
-  // Render in a portal to avoid z-index issues
-  if (typeof document === 'undefined') {
-    return null
-  }
-
-  return createPortal(popoverContent, document.body)
 }

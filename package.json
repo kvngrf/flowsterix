@@ -5,6 +5,8 @@
   "packageManager": "pnpm@9.12.0",
   "scripts": {
     "dev": "pnpm --filter @flowsterix/example-react-vite dev",
+    "dev:shadcn": "pnpm --filter @flowsterix/shadcn-demo dev",
+    "build:shadcn-registry": "pnpm --filter @flowsterix/shadcn-registry registry:build",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",

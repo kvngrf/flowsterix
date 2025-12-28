@@ -78,6 +78,21 @@
       "categories": ["tour", "progress"]
     },
     {
+      "name": "delay-progress-bar",
+      "type": "registry:component",
+      "title": "Delay Progress Bar",
+      "description": "Countdown progress bar for auto-advance delay steps.",
+      "dependencies": ["@flowsterix/headless"],
+      "registryDependencies": ["tour-provider"],
+      "files": [
+        {
+          "path": "registry/flowsterix/delay-progress-bar.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "progress", "delay"]
+    },
+    {
       "name": "tour-tooltip",
       "type": "registry:component",
       "title": "Tour Tooltip",

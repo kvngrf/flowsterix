@@ -1,56 +1,117 @@
 'use client'
 
-import { useTour } from '@flowsterix/headless'
+import type { StepPlacement } from '@flowsterix/core'
+import {
+  OverlayBackdrop,
+  TourFocusManager,
+  TourPopoverPortal,
+  useHudMotion,
+  useTourControls,
+  type UseHudShortcutsOptions,
+  useTourHud,
+  useTourOverlay,
+} from '@flowsterix/headless'
+import { AnimatePresence } from 'motion/react'
 import * as React from 'react'
+import { createPortal } from 'react-dom'
 
 import { cn } from '@/lib/utils'
 import { TourControls } from '@/registry/flowsterix/tour-controls'
-import { TourOverlay } from '@/registry/flowsterix/tour-overlay'
-import { TourPopover } from '@/registry/flowsterix/tour-popover'
 import { TourProgress } from '@/registry/flowsterix/tour-progress'
 
+// =============================================================================
+// Types
+// =============================================================================
+
 export interface TourHUDProps {
-  /** Additional class names for the HUD container */
+  /** Additional class names for the popover */
   className?: string
   /** Overlay configuration */
   overlay?: {
+    /** Padding around the highlighted target (default: 12) */
     padding?: number
+    /** Border radius of the highlight cutout (default: 12) */
     radius?: number
+    /** Background color of the overlay */
     backdropColor?: string
+    /** Backdrop blur amount in pixels (default: 6) */
+    blurAmount?: number
+    /** Opacity of the backdrop (default: 1) */
+    opacity?: number
+    /** Whether to show the highlight ring (default: true) */
     showRing?: boolean
+    /** Custom box-shadow for the highlight ring */
+    ringShadow?: string
+    /** Z-index for the overlay (default: 2000) */
+    zIndex?: number
   }
   /** Popover configuration */
   popover?: {
+    /** Offset distance from the target (default: 16) */
     offset?: number
-    showArrow?: boolean
+    /** Preferred placement relative to target */
+    placement?: StepPlacement
+    /** Fixed width for the popover */
+    width?: number | string
+    /** Maximum width for the popover (default: 360) */
+    maxWidth?: number | string
+    /** Z-index for the popover (default: 2002) */
+    zIndex?: number
+    /** Additional class names for the popover container */
     className?: string
+    /** Additional class names for the content wrapper */
+    contentClassName?: string
   }
   /** Controls configuration */
   controls?: {
+    /** Whether to show the skip button (default: true) */
     showSkip?: boolean
-    showBack?: boolean
+    /** Custom labels for buttons */
     labels?: {
       back?: string
       next?: string
       finish?: string
       skip?: string
     }
+    /** Button variant for primary action */
+    primaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
+    /** Button variant for secondary actions */
+    secondaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
   }
   /** Progress indicator configuration */
   progress?: {
+    /** Whether to show progress indicator (default: true) */
     show?: boolean
+    /** Progress variant */
     variant?: 'dots' | 'bar' | 'fraction' | 'steps'
+    /** Position within the popover */
     position?: 'top' | 'bottom'
+    /** Size of the progress indicator */
+    size?: 'sm' | 'md' | 'lg'
   }
-  /** Custom content to render inside the popover */
+  /** Keyboard shortcut configuration */
+  shortcuts?: boolean | UseHudShortcutsOptions
+  /** Custom content to render inside the popover (overrides step content) */
   children?: React.ReactNode
   /** Custom step content renderer */
   renderContent?: (step: any) => React.ReactNode
 }
 
+// =============================================================================
+// Main Component
+// =============================================================================
+
 /**
  * A complete heads-up display combining overlay, popover, controls, and progress.
  * This is the recommended starting point for most tour implementations.
+ *
+ * Features:
+ * - SVG mask-based spotlight overlay with smooth spring animations
+ * - Backdrop blur and highlight ring effects
+ * - Smart popover positioning with floating/docked/mobile layouts
+ * - Focus management for accessibility
+ * - Step progress indicator
+ * - Navigation controls with proper state management
  *
  * @example
  * ```tsx
@@ -62,7 +123,8 @@ export interface TourHUDProps {
  *   return (
  *     <TourProvider flows={[myFlow]}>
  *       <TourHUD
- *         overlay={{ padding: 12, showRing: true }}
+ *         overlay={{ padding: 12, showRing: true, blurAmount: 6 }}
+ *         popover={{ maxWidth: 360 }}
  *         progress={{ show: true, variant: "dots" }}
  *       />
  *       <YourApp />
@@ -76,60 +138,222 @@ export function TourHUD({
   overlay = {},
   popover = {},
   controls = {},
-  progress = { show: true, variant: 'dots', position: 'bottom' },
+  progress = { show: true, variant: 'dots', position: 'bottom', size: 'sm' },
+  shortcuts = { escape: false },
   children,
   renderContent,
 }: TourHUDProps) {
-  const { state, activeStep } = useTour()
+  const isBrowser =
+    typeof window !== 'undefined' && typeof document !== 'undefined'
+  const portalTarget = isBrowser ? document.body : null
 
-  const isRunning = state?.status === 'running'
+  const hud = useTourHud({ shortcuts })
+  const {
+    hudState,
+    popover: popoverConfig,
+    description,
+    focusManager,
+    targetIssue,
+    overlay: overlayConfig,
+  } = hud
+  const { runningStep, shouldRender, hudTarget, hudRenderMode, activeFlowId } =
+    hudState
 
-  if (!isRunning || !activeStep) {
-    return null
-  }
+  // Enable HUD for headless flows (hud: { render: 'none' }) or default flows
+  const isHeadlessFlow = hudRenderMode === 'none' && Boolean(activeFlowId)
+  const isDefaultFlow = hudRenderMode !== 'none' && shouldRender
+  const hudEnabled = (isHeadlessFlow || isDefaultFlow) && shouldRender
+
+  const tourControls = useTourControls()
+  const { components, transitions } = useHudMotion()
+  const { MotionDiv, MotionSection } = components
+  const {
+    highlight: highlightTransition,
+    overlayFade: overlayFadeTransition,
+    popoverEntrance: popoverEntranceTransition,
+    popoverExit: popoverExitTransition,
+    popoverContent: popoverContentTransition,
+  } = transitions
+
+  // Overlay configuration with defaults
+  const overlayPadding = overlay.padding ?? overlayConfig.padding ?? 12
+  const overlayRadius = overlay.radius ?? overlayConfig.radius ?? 12
+  const overlayZIndex = overlay.zIndex ?? 2000
+  const overlayColor = overlay.backdropColor ?? 'rgba(0, 0, 0, 0.5)'
+  const overlayBlur = overlay.blurAmount ?? 6
+  const overlayOpacity = overlay.opacity ?? 1
+  const showRing = overlay.showRing ?? true
+  const ringShadow =
+    overlay.ringShadow ??
+    '0 0 0 2px hsl(var(--primary)), 0 0 20px hsl(var(--primary) / 0.5)'
+
+  // Compute overlay geometry
+  const overlayGeometry = useTourOverlay({
+    target: hudTarget,
+    padding: overlayPadding,
+    radius: overlayRadius,
+    interactionMode: overlayConfig.interactionMode,
+  })
+
+  // Popover configuration with defaults
+  const popoverOffset = popover.offset ?? popoverConfig.offset ?? 16
+  const popoverPlacement =
+    runningStep?.placement ??
+    popover.placement ??
+    popoverConfig.placement ??
+    'bottom'
+  const popoverWidth = popover.width ?? popoverConfig.width
+  const popoverMaxWidth = popover.maxWidth ?? popoverConfig.maxWidth ?? 360
+  const popoverZIndex = popover.zIndex ?? 2002
+
+  if (!hudEnabled || !runningStep) return null
+  if (!portalTarget) return null
 
   const stepContent = renderContent
-    ? renderContent(activeStep)
-    : activeStep.content
+    ? renderContent(runningStep)
+    : runningStep.content
 
-  return (
-    <>
-      {/* Spotlight overlay */}
-      <TourOverlay
-        padding={overlay.padding}
-        radius={overlay.radius}
-        backdropColor={overlay.backdropColor}
-        showRing={overlay.showRing}
+  return createPortal(
+    <div data-tour-hud="">
+      {/* Focus management for accessibility */}
+      <TourFocusManager
+        active={focusManager.active}
+        target={focusManager.target}
+        popoverNode={focusManager.popoverNode}
       />
 
-      {/* Content popover */}
-      <TourPopover
-        offset={popover.offset}
-        showArrow={popover.showArrow}
-        className={cn(popover.className, className)}
-      >
-        <div className="space-y-3">
-          {/* Progress indicator (top position) */}
-          {progress.show && progress.position === 'top' && (
-            <TourProgress variant={progress.variant} size="sm" />
-          )}
+      {/* Spotlight overlay with SVG masking and animations */}
+      <OverlayBackdrop
+        overlay={overlayGeometry}
+        zIndex={overlayZIndex}
+        color={overlayColor}
+        opacity={overlayOpacity}
+        blurAmount={overlayBlur}
+        shadow={showRing ? ringShadow : undefined}
+        transitionsOverride={{
+          overlayHighlight: highlightTransition,
+          overlayFade: overlayFadeTransition,
+        }}
+      />
 
-          {/* Step content */}
-          <div>{children ?? stepContent}</div>
+      {/* Content popover with smart positioning */}
+      <AnimatePresence>
+        <TourPopoverPortal
+          target={hudTarget}
+          offset={popoverOffset}
+          placement={popoverPlacement}
+          width={popoverWidth}
+          maxWidth={popoverMaxWidth}
+          zIndex={popoverZIndex}
+          role={popoverConfig.role}
+          ariaModal={Boolean(popoverConfig.ariaModal)}
+          ariaLabel={popoverConfig.ariaLabel}
+          ariaDescribedBy={description.combinedAriaDescribedBy}
+          descriptionId={description.descriptionId}
+          descriptionText={description.text ?? undefined}
+          onContainerChange={focusManager.setPopoverNode}
+          containerComponent={MotionSection}
+          contentComponent={MotionDiv}
+          layoutId="popover"
+          transitionsOverride={{
+            popoverEntrance: popoverEntranceTransition,
+            popoverExit: popoverExitTransition,
+            popoverContent: popoverContentTransition,
+          }}
+        >
+          {({
+            Container,
+            Content,
+            containerProps,
+            contentProps,
+            descriptionProps,
+          }) => {
+            const { key: contentKey, ...restContentProps } = contentProps
+            return (
+              <Container
+                {...containerProps}
+                className={cn(
+                  'rounded-xl border bg-popover text-popover-foreground shadow-lg',
+                  popover.className,
+                  className,
+                )}
+              >
+                {/* Screen reader description */}
+                {descriptionProps.id && descriptionProps.text && (
+                  <span id={descriptionProps.id} className="sr-only">
+                    {descriptionProps.text}
+                  </span>
+                )}
 
-          {/* Progress indicator (bottom position - default) */}
-          {progress.show && progress.position !== 'top' && (
-            <TourProgress variant={progress.variant} size="sm" />
-          )}
+                <div className="relative" data-tour-popover-shell="">
+                  <AnimatePresence mode="popLayout">
+                    <Content
+                      key={contentKey}
+                      {...restContentProps}
+                      className={cn('p-4 space-y-3', popover.contentClassName)}
+                    >
+                      {/* Progress indicator (top position) */}
+                      {progress.show && progress.position === 'top' && (
+                        <TourProgress
+                          variant={progress.variant}
+                          size={progress.size}
+                        />
+                      )}
 
-          {/* Navigation controls */}
-          <TourControls
-            showSkip={controls.showSkip}
-            showBack={controls.showBack}
-            labels={controls.labels}
-          />
-        </div>
-      </TourPopover>
-    </>
+                      {/* Description text if provided */}
+                      {description.text && (
+                        <p
+                          id={description.descriptionId ?? undefined}
+                          className="text-sm text-muted-foreground"
+                        >
+                          {description.text}
+                        </p>
+                      )}
+
+                      {/* Step content */}
+                      <div>{children ?? stepContent}</div>
+
+                      {/* Target issue warning */}
+                      {targetIssue.issue && (
+                        <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200">
+                          <strong className="block mb-1">
+                            {targetIssue.issue.title}
+                          </strong>
+                          <p className="text-sm leading-relaxed">
+                            {targetIssue.issue.body}
+                          </p>
+                          {targetIssue.issue.hint && (
+                            <p className="mt-1 text-xs opacity-90">
+                              {targetIssue.issue.hint}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Progress indicator (bottom position - default) */}
+                      {progress.show && progress.position !== 'top' && (
+                        <TourProgress
+                          variant={progress.variant}
+                          size={progress.size}
+                        />
+                      )}
+
+                      {/* Navigation controls */}
+                      <TourControls
+                        showSkip={controls.showSkip}
+                        labels={controls.labels}
+                        primaryVariant={controls.primaryVariant}
+                        secondaryVariant={controls.secondaryVariant}
+                      />
+                    </Content>
+                  </AnimatePresence>
+                </div>
+              </Container>
+            )
+          }}
+        </TourPopoverPortal>
+      </AnimatePresence>
+    </div>,
+    portalTarget,
   )
 }

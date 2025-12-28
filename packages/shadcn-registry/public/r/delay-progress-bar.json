@@ -1,0 +1,29 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "delay-progress-bar",
+  "type": "registry:component",
+  "title": "Delay Progress Bar",
+  "description": "Countdown progress bar for auto-advance delay steps.",
+  "dependencies": [
+    "@flowsterix/headless"
+  ],
+  "registryDependencies": [
+    "tour-provider"
+  ],
+  "files": [
+    {
+      "path": "registry/flowsterix/delay-progress-bar.tsx",
+      "content": "'use client'\n\nimport { useDelayAdvance } from '@flowsterix/headless'\n\nimport { cn } from '@/lib/utils'\n\nexport interface DelayProgressBarProps {\n  className?: string\n  trackClassName?: string\n  indicatorClassName?: string\n  labelClassName?: string\n  showCountdown?: boolean\n  formatRemaining?: (milliseconds: number) => string\n}\n\nconst defaultFormatter = (milliseconds: number) => {\n  const seconds = Math.max(0, Math.ceil(milliseconds / 1000))\n  return `${seconds}s remaining`\n}\n\nexport function DelayProgressBar({\n  className,\n  trackClassName,\n  indicatorClassName,\n  labelClassName,\n  showCountdown = true,\n  formatRemaining = defaultFormatter,\n}: DelayProgressBarProps) {\n  const progress = useDelayAdvance()\n\n  if (!progress.flowId || progress.totalMs <= 0) {\n    return null\n  }\n\n  const fillRatio = Math.min(1, Math.max(0, progress.fractionElapsed))\n  const elapsedMs = Math.max(0, progress.totalMs - progress.remainingMs)\n\n  return (\n    <div className={cn('flex w-full flex-col gap-2', className)}>\n      <div\n        className={cn(\n          'h-2 w-full overflow-hidden rounded-full bg-muted',\n          trackClassName,\n        )}\n        role=\"progressbar\"\n        aria-valuemin={0}\n        aria-valuemax={progress.totalMs}\n        aria-valuenow={elapsedMs}\n        aria-label=\"Auto-advance progress\"\n      >\n        <div\n          className={cn(\n            'h-full w-full bg-primary transition-transform duration-200 ease-out',\n            indicatorClassName,\n          )}\n          style={{
+            transform: `scaleX(${fillRatio})`,
+            transformOrigin: 'left center',
+            willChange: 'transform',
+          }}\n        />\n      </div>\n      {showCountdown ? (\n        <span\n          className={cn(\n            'text-xs font-medium text-muted-foreground',\n            labelClassName,\n          )}\n        >\n          {formatRemaining(progress.remainingMs)}\n        </span>\n      ) : null}\n    </div>\n  )\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "categories": [
+    "tour",
+    "progress",
+    "delay"
+  ]
+}

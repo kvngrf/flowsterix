@@ -115,6 +115,7 @@ export const TourProvider = ({
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
+  const stepHooksUnsubscribeRef = useRef<(() => void) | null>(null)
   const fallbackStorageRef = useRef<StorageAdapter | undefined>(undefined)
   const pendingResumeRef = useRef<Set<string>>(new Set())
 
@@ -129,6 +130,8 @@ export const TourProvider = ({
   const teardownStore = useCallback(() => {
     unsubscribeRef.current?.()
     unsubscribeRef.current = null
+    stepHooksUnsubscribeRef.current?.()
+    stepHooksUnsubscribeRef.current = null
     storeRef.current?.destroy()
     storeRef.current = null
     setDelayInfo(null)
@@ -154,6 +157,36 @@ export const TourProvider = ({
       setActiveFlowId(null)
     }
   }, [activeFlowId, flowMap, teardownStore])
+
+  // Standalone function for invoking step hooks (not a hook itself)
+  const invokeStepHookSync = (
+    hook:
+      | Step<ReactNode>['onEnter']
+      | Step<ReactNode>['onResume']
+      | Step<ReactNode>['onExit'],
+    context: {
+      flow: FlowDefinition<ReactNode>
+      state: FlowState
+      step: Step<ReactNode>
+    },
+    phase: 'enter' | 'resume' | 'exit',
+  ): void => {
+    if (!hook) return
+    try {
+      const result = hook(context)
+      if (
+        typeof result === 'object' &&
+        result !== null &&
+        typeof (result as PromiseLike<unknown>).then === 'function'
+      ) {
+        ;(result as Promise<void>).catch((error: unknown) => {
+          console.warn(`[tour][step] ${phase} hook rejected`, error)
+        })
+      }
+    } catch (error) {
+      console.warn(`[tour][step] ${phase} hook failed`, error)
+    }
+  }
 
   const ensureStore = useCallback(
     (flowId: string): FlowStore<ReactNode> => {
@@ -185,6 +218,32 @@ export const TourProvider = ({
         persistOnChange,
         analytics,
       })
+
+      // Subscribe to step lifecycle events immediately (before start() is called)
+      const unsubscribeEnter = store.events.on('stepEnter', (payload) => {
+        const step = payload.currentStep
+        if (!step.onEnter) return
+        invokeStepHookSync(
+          step.onEnter,
+          { flow: definition, state: payload.state, step },
+          'enter',
+        )
+      })
+
+      const unsubscribeExit = store.events.on('stepExit', (payload) => {
+        const step = payload.previousStep
+        if (!step.onExit) return
+        invokeStepHookSync(
+          step.onExit,
+          { flow: definition, state: payload.state, step },
+          'exit',
+        )
+      })
+
+      stepHooksUnsubscribeRef.current = () => {
+        unsubscribeEnter()
+        unsubscribeExit()
+      }
 
       unsubscribeRef.current = store.subscribe(setState)
       setEvents(store.events)
@@ -220,22 +279,23 @@ export const TourProvider = ({
   }
 
   const invokeStepHook = useCallback(
-    (
-      hook: Step<ReactNode>['onResume'] | Step<ReactNode>['onExit'],
+    async (
+      hook:
+        | Step<ReactNode>['onEnter']
+        | Step<ReactNode>['onResume']
+        | Step<ReactNode>['onExit'],
       context: {
         flow: FlowDefinition<ReactNode>
         state: FlowState
         step: Step<ReactNode>
       },
-      phase: 'resume' | 'exit',
-    ) => {
+      phase: 'enter' | 'resume' | 'exit',
+    ): Promise<void> => {
       if (!hook) return
       try {
         const result = hook(context)
         if (isPromiseLike(result)) {
-          result.then(undefined, (error: unknown) => {
-            console.warn(`[tour][step] ${phase} hook rejected`, error)
-          })
+          await result
         }
       } catch (error) {
         console.warn(`[tour][step] ${phase} hook failed`, error)
@@ -245,7 +305,7 @@ export const TourProvider = ({
   )
 
   const runResumeHooks = useCallback(
-    (definition: FlowDefinition<ReactNode>, flowState: FlowState) => {
+    async (definition: FlowDefinition<ReactNode>, flowState: FlowState) => {
       if (flowState.status !== 'running') return
       const maxIndex = Math.min(
         flowState.stepIndex,
@@ -255,7 +315,8 @@ export const TourProvider = ({
       for (let index = 0; index <= maxIndex; index += 1) {
         const step = definition.steps[index]
         if (!step.onResume) continue
-        invokeStepHook(
+        // Await each hook sequentially so DOM has time to update
+        await invokeStepHook(
           step.onResume,
           {
             flow: definition,
@@ -290,7 +351,7 @@ export const TourProvider = ({
       if (previousState.stepIndex >= 0 && nextState.status === 'running') {
         pendingResumeRef.current.delete(flowId)
         if (nextState.stepIndex > 0) {
-          runResumeHooks(store.definition, nextState)
+          void runResumeHooks(store.definition, nextState)
         }
       } else if (nextState.status !== 'idle' && nextState.stepIndex <= 0) {
         pendingResumeRef.current.delete(flowId)
@@ -324,7 +385,7 @@ export const TourProvider = ({
       nextState.stepIndex > 0
     ) {
       pendingResumeRef.current.delete(store.definition.id)
-      runResumeHooks(store.definition, nextState)
+      void runResumeHooks(store.definition, nextState)
     }
 
     return nextState
@@ -361,7 +422,7 @@ export const TourProvider = ({
     if (!definition) return
 
     pendingResumeRef.current.delete(activeFlowId)
-    runResumeHooks(definition, state)
+    void runResumeHooks(definition, state)
   }, [activeFlowId, flowMap, runResumeHooks, state])
 
   const contextValue: TourContextValue = useMemo(

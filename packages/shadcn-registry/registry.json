@@ -21,7 +21,7 @@
       "name": "tour-overlay",
       "type": "registry:component",
       "title": "Tour Overlay",
-      "description": "A customizable spotlight overlay that highlights the target element with a dimmed backdrop.",
+      "description": "Production-quality spotlight overlay with SVG masking, backdrop blur, spring animations, and highlight ring effects.",
       "dependencies": ["@flowsterix/headless", "motion"],
       "registryDependencies": ["tour-provider"],
       "files": [
@@ -36,8 +36,8 @@
       "name": "tour-popover",
       "type": "registry:component",
       "title": "Tour Popover",
-      "description": "A floating popover card that displays step content with smart positioning via Floating UI.",
-      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/react"],
+      "description": "Smart popover with floating/docked/mobile layouts, drag support, and smooth animations via Floating UI.",
+      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/dom"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -51,7 +51,7 @@
       "name": "tour-controls",
       "type": "registry:component",
       "title": "Tour Controls",
-      "description": "Navigation buttons (Back, Next, Skip) for tour step progression.",
+      "description": "Navigation buttons (Back, Next, Skip) with proper state management via useTourControls hook.",
       "dependencies": ["@flowsterix/headless"],
       "registryDependencies": ["tour-provider", "button"],
       "files": [
@@ -78,11 +78,26 @@
       "categories": ["tour", "progress"]
     },
     {
+      "name": "delay-progress-bar",
+      "type": "registry:component",
+      "title": "Delay Progress Bar",
+      "description": "Countdown progress bar for auto-advance delay steps.",
+      "dependencies": ["@flowsterix/headless"],
+      "registryDependencies": ["tour-provider"],
+      "files": [
+        {
+          "path": "registry/flowsterix/delay-progress-bar.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "progress", "delay"]
+    },
+    {
       "name": "tour-tooltip",
       "type": "registry:component",
       "title": "Tour Tooltip",
       "description": "A lightweight tooltip variant for simpler tour implementations.",
-      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/react"],
+      "dependencies": ["@flowsterix/headless"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -110,12 +125,10 @@
       "name": "tour-hud",
       "type": "registry:block",
       "title": "Tour HUD",
-      "description": "A complete heads-up display combining overlay, popover, and controls into a ready-to-use tour UI.",
-      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/react"],
+      "description": "Complete heads-up display with SVG spotlight overlay, smart popover positioning, blur effects, and navigation controls.",
+      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/dom"],
       "registryDependencies": [
         "tour-provider",
-        "tour-overlay",
-        "tour-popover",
         "tour-controls",
         "tour-progress",
         "button"

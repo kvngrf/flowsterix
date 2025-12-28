@@ -53,23 +53,27 @@ describe('TourOverlay interaction modes', () => {
     const target = createTarget()
     render(<TourOverlay target={target} />)
 
-    const overlayRoot = document.querySelector('[data-tour-overlay]')
-    expect(overlayRoot?.className).toContain('pointer-events-none')
+    const overlayRoot = document.querySelector(
+      '[data-tour-overlay]',
+    ) as HTMLElement
+    expect(overlayRoot?.style.pointerEvents).toBe('none')
   })
 
   it('blocks pointer events when interactionMode="block"', () => {
     const target = createTarget()
     render(<TourOverlay target={target} interactionMode="block" />)
 
-    const overlayRoot = document.querySelector('[data-tour-overlay]')
+    const overlayRoot = document.querySelector(
+      '[data-tour-overlay]',
+    ) as HTMLElement
     const blockerLayer = document.querySelector(
       '[data-tour-overlay-layer="interaction-blocker"]',
     )
     const blockerSegments = blockerLayer?.querySelectorAll(
-      '.pointer-events-auto',
+      '[style*="pointer-events: auto"]',
     )
 
-    expect(overlayRoot?.className).toContain('pointer-events-none')
+    expect(overlayRoot?.style.pointerEvents).toBe('none')
     expect(blockerLayer).not.toBeNull()
     expect(blockerSegments && blockerSegments.length).toBeGreaterThan(0)
   })

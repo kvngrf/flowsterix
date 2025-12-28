@@ -1,7 +1,6 @@
 'use client'
 
-import { useTour } from '@flowsterix/headless'
-import * as React from 'react'
+import { useTour, useTourControls } from '@flowsterix/headless'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -11,8 +10,6 @@ export interface TourControlsProps {
   className?: string
   /** Whether to show the skip button (default: true) */
   showSkip?: boolean
-  /** Whether to show the back button (default: true) */
-  showBack?: boolean
   /** Custom labels for buttons */
   labels?: {
     back?: string
@@ -29,38 +26,25 @@ export interface TourControlsProps {
 export function TourControls({
   className,
   showSkip = true,
-  showBack = true,
   labels,
   primaryVariant = 'default',
   secondaryVariant = 'outline',
 }: TourControlsProps) {
-  const { state, activeStep, next, back, cancel } = useTour()
+  const { cancel } = useTour()
+  const {
+    showBackButton,
+    backDisabled,
+    showNextButton,
+    nextDisabled,
+    isLast,
+    isActive,
+    goBack,
+    goNext,
+  } = useTourControls()
 
-  const isRunning = state?.status === 'running'
-  const currentIndex = state?.stepIndex ?? 0
-  const isFirstStep = currentIndex === 0
-  const isLastStep = activeStep
-    ? state?.stepIndex === (state as any)?.flow?.steps?.length - 1
-    : false
-
-  // Check if step has manual advance rule (shows next button)
-  const hasManualAdvance = React.useMemo(() => {
-    if (!activeStep?.advance) return true // Default to manual
-    return activeStep.advance.some((rule: any) => rule.type === 'manual')
-  }, [activeStep])
-
-  // Check if back is disabled by advance rules
-  const backLocked = React.useMemo(() => {
-    if (!activeStep?.advance) return false
-    return activeStep.advance.some((rule: any) => rule.lockBack)
-  }, [activeStep])
-
-  if (!isRunning || !activeStep) {
+  if (!isActive) {
     return null
   }
-
-  const showBackButton = showBack && !isFirstStep && !backLocked
-  const showNextButton = hasManualAdvance
 
   return (
     <div
@@ -73,7 +57,8 @@ export function TourControls({
           <Button
             variant={secondaryVariant}
             size="sm"
-            onClick={() => back()}
+            onClick={goBack}
+            disabled={backDisabled}
             data-tour-button="back"
           >
             {labels?.back ?? 'Back'}
@@ -96,10 +81,11 @@ export function TourControls({
         <Button
           variant={primaryVariant}
           size="sm"
-          onClick={() => next()}
-          data-tour-button={isLastStep ? 'finish' : 'next'}
+          onClick={goNext}
+          disabled={nextDisabled}
+          data-tour-button={isLast ? 'finish' : 'next'}
         >
-          {isLastStep ? (labels?.finish ?? 'Finish') : (labels?.next ?? 'Next')}
+          {isLast ? (labels?.finish ?? 'Finish') : (labels?.next ?? 'Next')}
         </Button>
       )}
     </div>

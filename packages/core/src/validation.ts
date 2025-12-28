@@ -167,6 +167,11 @@ const stepSchema = z.object({
       (...args: Array<unknown>) => unknown
     >((value) => typeof value === 'function')
     .optional(),
+  onEnter: z
+    .custom<
+      (...args: Array<unknown>) => unknown
+    >((value) => typeof value === 'function')
+    .optional(),
   onExit: z
     .custom<
       (...args: Array<unknown>) => unknown

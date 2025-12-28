@@ -26,7 +26,7 @@ export interface UseTourHudOptions {
    * Disable automatic keyboard shortcut handling.
    * Enabled by default.
    */
-  shortcuts?: boolean
+  shortcuts?: boolean | UseHudShortcutsOptions
   /**
    * Disable automatic body scroll locking when the HUD traps focus.
    * Enabled by default.
@@ -80,9 +80,9 @@ export const useTourHud = (
   const {
     overlayPadding,
     overlayRadius,
-    shortcuts = DEFAULT_SHORTCUTS,
     bodyScrollLock = DEFAULT_BODY_SCROLL_LOCK,
   } = options
+  const shortcuts = options.shortcuts ?? DEFAULT_SHORTCUTS
 
   const { backdropInteraction, lockBodyScroll } = useTour()
   const hudState = useHudState()
@@ -111,8 +111,14 @@ export const useTourHud = (
   )
   useBodyScrollLock(shouldLockBodyScroll)
 
-  const shortcutsEnabled = Boolean(shortcuts && hudState.shouldRender)
+  const shortcutOptions: UseHudShortcutsOptions =
+    typeof shortcuts === 'object' ? shortcuts : {}
+  const shortcutsEnabled = Boolean(
+    (typeof shortcuts === 'boolean' ? shortcuts : shortcuts.enabled ?? true) &&
+      hudState.shouldRender,
+  )
   useHudShortcuts(shortcutsEnabled ? hudState.hudTarget : null, {
+    ...shortcutOptions,
     enabled: shortcutsEnabled,
   } satisfies UseHudShortcutsOptions)
 

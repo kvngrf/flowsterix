@@ -1,0 +1,170 @@
+'use client'
+
+import type { Variants } from 'motion/react'
+import { motion } from 'motion/react'
+import type { KeyboardEventHandler } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+
+import { cn } from '@/lib/utils'
+
+export interface HoldToSkipButtonProps {
+  /** Button label text */
+  label?: string
+  /** Duration in ms to hold before confirming (default: 1000) */
+  holdDurationMs?: number
+  /** Callback when hold is completed */
+  onConfirm: () => void
+  /** Tooltip text shown while holding */
+  tooltipText?: string
+  /** Additional class names */
+  className?: string
+}
+
+export function HoldToSkipButton({
+  label = 'Skip tour',
+  holdDurationMs = 1000,
+  onConfirm,
+  tooltipText = 'Hold to confirm',
+  className,
+}: HoldToSkipButtonProps) {
+  const holdTimeoutRef = useRef<number | null>(null)
+  const holdReadyRef = useRef(false)
+
+  const progressVariants = useMemo<Variants>(
+    () => ({
+      holding: {
+        clipPath: 'inset(0% 0% 0% 100%)',
+        transition: { duration: holdDurationMs / 1000, ease: 'linear' },
+      },
+      idle: {
+        clipPath: 'inset(0% 0% 0% 0%)',
+        transition: { duration: 0.3, ease: 'easeOut' },
+      },
+    }),
+    [holdDurationMs],
+  )
+
+  const tooltipVariants = useMemo<Variants>(
+    () => ({
+      holding: {
+        opacity: 1,
+        filter: 'blur(0px)',
+        y: 0,
+        transition: { duration: 0.2, ease: 'easeOut' },
+      },
+      idle: {
+        opacity: 0,
+        filter: 'blur(2px)',
+        y: 8,
+        transition: { duration: 0.3, ease: 'easeOut' },
+      },
+    }),
+    [],
+  )
+
+  const clearHoldTimeout = () => {
+    if (holdTimeoutRef.current !== null) {
+      clearTimeout(holdTimeoutRef.current)
+      holdTimeoutRef.current = null
+    }
+  }
+
+  const resetHoldState = () => {
+    holdReadyRef.current = false
+    clearHoldTimeout()
+  }
+
+  const startHold = () => {
+    resetHoldState()
+    holdTimeoutRef.current = window.setTimeout(() => {
+      holdTimeoutRef.current = null
+      holdReadyRef.current = true
+    }, holdDurationMs)
+  }
+
+  const completeHold = () => {
+    const shouldConfirm = holdReadyRef.current
+    resetHoldState()
+    if (shouldConfirm) {
+      onConfirm()
+    }
+  }
+
+  const handleKeyDown: KeyboardEventHandler<HTMLButtonElement> = (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    if (event.repeat) return
+    event.preventDefault()
+    startHold()
+  }
+
+  const handleKeyUp: KeyboardEventHandler<HTMLButtonElement> = (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    completeHold()
+  }
+
+  useEffect(() => {
+    return () => {
+      resetHoldState()
+    }
+  }, [])
+
+  return (
+    <motion.button
+      type="button"
+      className={cn(
+        'relative inline-flex h-8 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium',
+        'select-none outline-none',
+        'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+        className,
+      )}
+      whileTap="holding"
+      initial="idle"
+      animate="idle"
+      onPointerDown={startHold}
+      onPointerUp={completeHold}
+      onPointerLeave={resetHoldState}
+      onPointerCancel={resetHoldState}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+      onBlur={resetHoldState}
+      data-tour-button="skip"
+    >
+      <div aria-hidden="true">{label}</div>
+      {/* Tooltip */}
+      <motion.div
+        variants={tooltipVariants}
+        className={cn(
+          'pointer-events-none absolute -top-2 left-1/2 min-w-max -translate-x-1/2 -translate-y-full',
+          'rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md',
+          'border border-border',
+        )}
+      >
+        {tooltipText}
+        <div className="absolute -bottom-1 left-1/2 -z-10 size-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-popover" />
+      </motion.div>
+
+      {/* Confirm state (red/destructive) - revealed as progress */}
+      <motion.div
+        className={cn(
+          'absolute inset-0 flex border border-border shrink-0 items-center justify-center rounded-md',
+          'bg-destructive text-background',
+        )}
+      >
+        {label}
+      </motion.div>
+
+      {/* Idle state - clips away during hold */}
+      <motion.div
+        variants={progressVariants}
+        className={cn(
+          'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
+          'border border-input bg-background text-foreground',
+          'hover:bg-accent hover:text-accent-foreground',
+        )}
+      >
+        {label}
+      </motion.div>
+    </motion.button>
+  )
+}

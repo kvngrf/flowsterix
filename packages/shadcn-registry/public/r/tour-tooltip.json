@@ -5,9 +5,7 @@
   "title": "Tour Tooltip",
   "description": "A lightweight tooltip variant for simpler tour implementations.",
   "dependencies": [
-    "@flowsterix/headless",
-    "motion",
-    "@floating-ui/react"
+    "@flowsterix/headless"
   ],
   "registryDependencies": [
     "tour-provider"

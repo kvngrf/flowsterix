@@ -7,6 +7,7 @@ import type { TourTargetInfo } from './useTourTarget'
 
 export interface UseHudShortcutsOptions {
   enabled?: boolean
+  escape?: boolean
 }
 
 const isInteractiveElement = (node: Element | null) => {
@@ -23,6 +24,7 @@ export const useHudShortcuts = (
   options?: UseHudShortcutsOptions,
 ) => {
   const enabled = options?.enabled ?? true
+  const escapeEnabled = options?.escape ?? true
   const { state } = useTour()
   const { cancel, canGoBack, goBack, canGoNext, goNext, isActive } =
     useTourControls()
@@ -37,7 +39,7 @@ export const useHudShortcuts = (
     const handler = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return
 
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && escapeEnabled) {
         cancel('keyboard')
         event.preventDefault()
         return
