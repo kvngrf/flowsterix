@@ -74,6 +74,29 @@ const flow = createFlow({
 
 Because the adapter keeps `routeGatingChannel` updated, the tour will pause rendering the HUD until navigation finishes and the target route is active.
 
+## Resume Strategy
+
+By default, Flowsterix replays every `onResume` hook from step 0 through the current step. This keeps UI setup consistent after refreshes but can cause flicker when earlier steps open or close UI that no longer matters.
+
+Set a `resumeStrategy` to control that behavior:
+
+```ts
+const flow = createFlow({
+  id: 'demo-flow',
+  version: 1,
+  resumeStrategy: 'current',
+  steps: [
+    {
+      id: 'modal',
+      target: { selector: '[data-tour-target="modal"]' },
+      onResume: () => openModal(),
+    },
+  ],
+})
+```
+
+`resumeStrategy: 'current'` runs only the current step's `onResume`, so that step must handle any required UI setup itself. You can also override the strategy per call with `startFlow({ resume: true, resumeStrategy: 'current' })`.
+
 ## Route-Based Advance Rules
 
 Use an advance rule with `type: 'route'` when a step should complete after navigation.

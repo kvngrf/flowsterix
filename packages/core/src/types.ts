@@ -205,6 +205,8 @@ export interface FlowHudTokenOverrides {
   [key: string]: unknown
 }
 
+export type ResumeStrategy = 'chain' | 'current'
+
 export interface FlowHudOptions {
   render?: FlowHudRenderMode
   popover?: FlowHudPopoverOptions
@@ -218,6 +220,7 @@ export interface FlowDefinition<TContent = unknown> {
   version: number
   steps: Array<Step<TContent>>
   hud?: FlowHudOptions
+  resumeStrategy?: ResumeStrategy
   metadata?: Record<string, unknown>
 }
 
@@ -276,6 +279,7 @@ export interface StartFlowOptions {
   fromStepId?: string
   fromStepIndex?: number
   resume?: boolean
+  resumeStrategy?: ResumeStrategy
 }
 
 export interface FlowStore<TContent = unknown> {

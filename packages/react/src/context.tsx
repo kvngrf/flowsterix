@@ -6,6 +6,7 @@ import type {
   FlowEvents,
   FlowState,
   FlowStore,
+  ResumeStrategy,
   StartFlowOptions,
   Step,
   StorageAdapter,
@@ -305,8 +306,29 @@ export const TourProvider = ({
   )
 
   const runResumeHooks = useCallback(
-    async (definition: FlowDefinition<ReactNode>, flowState: FlowState) => {
+    async (
+      definition: FlowDefinition<ReactNode>,
+      flowState: FlowState,
+      strategy: ResumeStrategy,
+    ) => {
       if (flowState.status !== 'running') return
+      if (strategy === 'current') {
+        const index = flowState.stepIndex
+        if (index < 0 || index >= definition.steps.length) return
+        const step = definition.steps[index]
+        if (!step.onResume) return
+        await invokeStepHook(
+          step.onResume,
+          {
+            flow: definition,
+            state: flowState,
+            step,
+          },
+          'resume',
+        )
+        return
+      }
+
       const maxIndex = Math.min(
         flowState.stepIndex,
         definition.steps.length - 1,
@@ -330,6 +352,16 @@ export const TourProvider = ({
     [invokeStepHook],
   )
 
+  const resolveResumeStrategy = useCallback(
+    (
+      definition: FlowDefinition<ReactNode>,
+      options?: StartFlowOptions,
+    ): ResumeStrategy => {
+      return options?.resumeStrategy ?? definition.resumeStrategy ?? 'chain'
+    },
+    [],
+  )
+
   const startFlow = useCallback(
     (flowId: string, options?: StartFlowOptions) => {
       const store = ensureStore(flowId)
@@ -350,8 +382,13 @@ export const TourProvider = ({
 
       if (previousState.stepIndex >= 0 && nextState.status === 'running') {
         pendingResumeRef.current.delete(flowId)
-        if (nextState.stepIndex > 0) {
-          void runResumeHooks(store.definition, nextState)
+        const resumeStrategy = resolveResumeStrategy(store.definition, options)
+        const shouldRunResumeHooks =
+          resumeStrategy === 'current'
+            ? nextState.stepIndex >= 0
+            : nextState.stepIndex > 0
+        if (shouldRunResumeHooks) {
+          void runResumeHooks(store.definition, nextState, resumeStrategy)
         }
       } else if (nextState.status !== 'idle' && nextState.stepIndex <= 0) {
         pendingResumeRef.current.delete(flowId)
@@ -359,7 +396,7 @@ export const TourProvider = ({
 
       return nextState
     },
-    [ensureStore, runResumeHooks],
+    [ensureStore, resolveResumeStrategy, runResumeHooks],
   )
 
   const next = useCallback(() => getActiveStore().next(), [getActiveStore])
@@ -382,14 +419,19 @@ export const TourProvider = ({
     if (
       previousState.status === 'paused' &&
       nextState.status === 'running' &&
-      nextState.stepIndex > 0
+      nextState.stepIndex >= 0
     ) {
       pendingResumeRef.current.delete(store.definition.id)
-      void runResumeHooks(store.definition, nextState)
+      const resumeStrategy = resolveResumeStrategy(store.definition)
+      const shouldRunResumeHooks =
+        resumeStrategy === 'current' ? true : nextState.stepIndex > 0
+      if (shouldRunResumeHooks) {
+        void runResumeHooks(store.definition, nextState, resumeStrategy)
+      }
     }
 
     return nextState
-  }, [getActiveStore, runResumeHooks])
+  }, [getActiveStore, resolveResumeStrategy, runResumeHooks])
   const cancel = useCallback(
     (reason?: string) => getActiveStore().cancel(reason),
     [getActiveStore],
@@ -413,17 +455,20 @@ export const TourProvider = ({
     if (!activeFlowId) return
     if (!pendingResumeRef.current.has(activeFlowId)) return
     if (!state || state.status !== 'running') return
-    if (state.stepIndex <= 0) {
+
+    const definition = flowMap.get(activeFlowId)
+    if (!definition) return
+    const resumeStrategy = resolveResumeStrategy(definition)
+    const shouldRunResumeHooks =
+      resumeStrategy === 'current' ? state.stepIndex >= 0 : state.stepIndex > 0
+    if (!shouldRunResumeHooks) {
       pendingResumeRef.current.delete(activeFlowId)
       return
     }
 
-    const definition = flowMap.get(activeFlowId)
-    if (!definition) return
-
     pendingResumeRef.current.delete(activeFlowId)
-    void runResumeHooks(definition, state)
-  }, [activeFlowId, flowMap, runResumeHooks, state])
+    void runResumeHooks(definition, state, resumeStrategy)
+  }, [activeFlowId, flowMap, resolveResumeStrategy, runResumeHooks, state])
 
   const contextValue: TourContextValue = useMemo(
     () => ({

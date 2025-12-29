@@ -68,6 +68,7 @@ const demoFlow = createFlow<ReactNode>({
     behavior: { lockBodyScroll: true },
     backdrop: { interaction: 'block' },
   },
+  resumeStrategy: 'current',
   version: 1,
   steps: [
     {

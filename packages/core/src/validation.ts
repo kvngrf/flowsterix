@@ -125,6 +125,11 @@ const hudSchema = z.object({
   tokens: z.record(z.string(), z.any()).optional(),
 })
 
+const resumeStrategySchema = z.union([
+  z.literal('chain'),
+  z.literal('current'),
+])
+
 const placementSchema = z.union([
   z.literal('auto'),
   z.literal('top'),
@@ -190,6 +195,7 @@ export const flowDefinitionSchema = z.object({
   version: z.number().nonnegative().int(),
   steps: z.array(stepSchema).min(1),
   hud: hudSchema.optional(),
+  resumeStrategy: resumeStrategySchema.optional(),
   metadata: z.record(z.string(), z.any()).optional(),
 })
 
