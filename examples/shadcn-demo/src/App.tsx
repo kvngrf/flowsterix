@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 
 import { createFlow } from '@flowsterix/core'
-import { useTour } from '@flowsterix/headless'
+import { useRadixDialogAdapter, useTour } from '@flowsterix/headless'
 import { Bell, Settings, User, Zap } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -254,15 +254,16 @@ function SettingsDialog({
 }) {
   const [darkMode, setDarkMode] = useState(false)
   const [notifications, setNotifications] = useState(true)
+  const { dialogProps, contentProps } = useRadixDialogAdapter()
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} {...dialogProps}>
       <DialogTrigger asChild>
         <Button id="settings-trigger" variant="outline" size="icon-sm">
           <Settings className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" {...contentProps}>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>

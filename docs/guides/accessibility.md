@@ -10,6 +10,34 @@ If you need to exclude an element from the trap, add `data-tour-focus-skip="true
 
 Target descriptions (`target.description`) are announced via an off-screen description that is referenced by the popover’s `aria-describedby`, so users get context about what the highlight represents.
 
+## Dominating Other Focus Traps
+
+When a modal library traps focus, it can prevent keyboard access to the tour popover. If you want Flowsterix to be the only focus trap, disable the modal’s trap while the tour is running.
+
+```tsx
+import { useRadixDialogAdapter } from '@flowsterix/react'
+
+function SettingsDialog() {
+  const { dialogProps, contentProps } = useRadixDialogAdapter()
+
+  return (
+    <Dialog {...dialogProps}>
+      <DialogContent {...contentProps}>
+        {/* ... */}
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+The Radix adapter also prevents focus-outside from dismissing the dialog
+while the tour is active, so the dialog stays open when focus moves to
+the tour popover.
+
+For other UI libraries, call `useTourFocusDominance()` and map
+`suspendExternalFocusTrap` to the equivalent props (e.g. `inert`,
+`disableEnforceFocus`, `trapFocus`, etc.).
+
 ## Popover Roles and Labels
 
 Popover dialogs use `role="dialog"` by default with `aria-modal="false"` so users can still interact with the highlighted area. You can override or extend the ARIA metadata through HUD popover options:

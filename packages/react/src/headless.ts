@@ -55,6 +55,18 @@ export type {
   UseHudTargetIssueResult,
 } from './hooks/useHudTargetIssue'
 
+export { useRadixDialogAdapter } from './adapters/radixDialog'
+export type {
+  RadixDialogAdapterResult,
+  UseRadixDialogAdapterOptions,
+} from './adapters/radixDialog'
+
+export { useTourFocusDominance } from './hooks/useTourFocusDominance'
+export type {
+  UseTourFocusDominanceOptions,
+  UseTourFocusDominanceResult,
+} from './hooks/useTourFocusDominance'
+
 export { useTourControls } from './hooks/useTourControls'
 export type { TourControlsState } from './hooks/useTourControls'
 
