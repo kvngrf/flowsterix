@@ -254,7 +254,9 @@ function SettingsDialog({
 }) {
   const [darkMode, setDarkMode] = useState(false)
   const [notifications, setNotifications] = useState(true)
-  const { dialogProps, contentProps } = useRadixDialogAdapter()
+  const { dialogProps, contentProps } = useRadixDialogAdapter({
+    disableEscapeClose: true,
+  })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...dialogProps}>

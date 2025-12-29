@@ -2,7 +2,9 @@ import type { UseTourFocusDominanceOptions } from '../hooks/useTourFocusDominanc
 import { useTourFocusDominance } from '../hooks/useTourFocusDominance'
 
 export interface UseRadixDialogAdapterOptions
-  extends UseTourFocusDominanceOptions {}
+  extends UseTourFocusDominanceOptions {
+  disableEscapeClose?: boolean
+}
 
 export interface RadixDialogAdapterResult {
   dialogProps: {
@@ -12,6 +14,7 @@ export interface RadixDialogAdapterResult {
     trapFocus: boolean
     onInteractOutside: (event: Event) => void
     onFocusOutside: (event: Event) => void
+    onEscapeKeyDown: (event: Event) => void
   }
   suspendExternalFocusTrap: boolean
 }
@@ -20,8 +23,14 @@ export const useRadixDialogAdapter = (
   options: UseRadixDialogAdapterOptions = {},
 ): RadixDialogAdapterResult => {
   const { suspendExternalFocusTrap } = useTourFocusDominance(options)
+  const { disableEscapeClose = false } = options
   const preventDismiss = (event: Event) => {
     if (suspendExternalFocusTrap) {
+      event.preventDefault()
+    }
+  }
+  const preventEscape = (event: Event) => {
+    if (suspendExternalFocusTrap && disableEscapeClose) {
       event.preventDefault()
     }
   }
@@ -34,6 +43,7 @@ export const useRadixDialogAdapter = (
       trapFocus: !suspendExternalFocusTrap,
       onInteractOutside: preventDismiss,
       onFocusOutside: preventDismiss,
+      onEscapeKeyDown: preventEscape,
     },
     suspendExternalFocusTrap,
   }

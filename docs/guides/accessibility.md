@@ -18,7 +18,9 @@ When a modal library traps focus, it can prevent keyboard access to the tour pop
 import { useRadixDialogAdapter } from '@flowsterix/react'
 
 function SettingsDialog() {
-  const { dialogProps, contentProps } = useRadixDialogAdapter()
+  const { dialogProps, contentProps } = useRadixDialogAdapter({
+    disableEscapeClose: true,
+  })
 
   return (
     <Dialog {...dialogProps}>
@@ -32,7 +34,8 @@ function SettingsDialog() {
 
 The Radix adapter also prevents focus-outside from dismissing the dialog
 while the tour is active, so the dialog stays open when focus moves to
-the tour popover.
+the tour popover. Set `disableEscapeClose: true` if you want to suppress
+Escape-to-close while the tour is running.
 
 For other UI libraries, call `useTourFocusDominance()` and map
 `suspendExternalFocusTrap` to the equivalent props (e.g. `inert`,
