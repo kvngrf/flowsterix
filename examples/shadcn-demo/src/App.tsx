@@ -100,7 +100,7 @@ const demoFlow = createFlow<ReactNode>({
     },
     {
       id: 'user-avatar',
-      target: { selector: '#user-avatar' },
+      target: { selector: '#user-avatarr' },
       content: (
         <div className="space-y-2">
           <h3 className="font-semibold">Your Profile</h3>

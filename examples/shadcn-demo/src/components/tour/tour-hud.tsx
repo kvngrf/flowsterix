@@ -323,7 +323,7 @@ export function TourHUD({
 
                       {/* Target issue warning */}
                       {targetIssue.issue && (
-                        <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200">
+                        <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700">
                           <strong className="block mb-1">
                             {targetIssue.issue.title}
                           </strong>
