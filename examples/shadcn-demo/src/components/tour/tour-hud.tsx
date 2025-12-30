@@ -10,7 +10,7 @@ import {
   useTourHud,
   useTourOverlay,
 } from '@flowsterix/headless'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 
@@ -287,11 +287,11 @@ export function TourHUD({
                   </span>
                 )}
 
-                <div
+                <motion.div
                   className="relative overflow-hidden"
                   data-tour-popover-shell=""
                 >
-                  <AnimatePresence mode="popLayout">
+                  <AnimatePresence mode="wait">
                     <Content
                       key={contentKey}
                       {...restContentProps}
@@ -347,17 +347,17 @@ export function TourHUD({
                       )}
 
                       {/* Navigation controls */}
-                      <TourControls
-                        showSkip={controls.showSkip}
-                        skipMode={controls.skipMode}
-                        skipHoldDurationMs={controls.skipHoldDurationMs}
-                        labels={controls.labels}
-                        primaryVariant={controls.primaryVariant}
-                        secondaryVariant={controls.secondaryVariant}
-                      />
                     </Content>
                   </AnimatePresence>
-                </div>
+                  <TourControls
+                    showSkip={controls.showSkip}
+                    skipMode={controls.skipMode}
+                    skipHoldDurationMs={controls.skipHoldDurationMs}
+                    labels={controls.labels}
+                    primaryVariant={controls.primaryVariant}
+                    secondaryVariant={controls.secondaryVariant}
+                  />
+                </motion.div>
               </Container>
             )
           }}

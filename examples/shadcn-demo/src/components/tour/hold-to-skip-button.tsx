@@ -5,6 +5,7 @@ import { motion } from 'motion/react'
 import type { KeyboardEventHandler } from 'react'
 import { useEffect, useMemo, useRef } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export interface HoldToSkipButtonProps {
@@ -110,61 +111,70 @@ export function HoldToSkipButton({
   }, [])
 
   return (
-    <motion.button
-      type="button"
+    <Button
+      asChild
+      variant="ghost"
+      size="sm"
       className={cn(
-        'relative inline-flex h-8 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium',
-        'select-none outline-none',
+        'relative cursor-pointer select-none',
         'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
         className,
       )}
-      whileTap="holding"
-      initial="idle"
-      animate="idle"
-      onPointerDown={startHold}
-      onPointerUp={completeHold}
-      onPointerLeave={resetHoldState}
-      onPointerCancel={resetHoldState}
-      onKeyDown={handleKeyDown}
-      onKeyUp={handleKeyUp}
-      onBlur={resetHoldState}
       data-tour-button="skip"
     >
-      <div aria-hidden="true">{label}</div>
-      {/* Tooltip */}
-      <motion.div
-        variants={tooltipVariants}
-        className={cn(
-          'pointer-events-none absolute -top-2 left-1/2 min-w-max -translate-x-1/2 -translate-y-full',
-          'rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md',
-          'border border-border',
-        )}
+      <motion.button
+        type="button"
+        layout="position"
+        transition={{
+          layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
+        }}
+        whileTap="holding"
+        initial="idle"
+        animate="idle"
+        onPointerDown={startHold}
+        onPointerUp={completeHold}
+        onPointerLeave={resetHoldState}
+        onPointerCancel={resetHoldState}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+        onBlur={resetHoldState}
       >
-        {tooltipText}
-        <div className="absolute -bottom-1 left-1/2 -z-10 size-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-popover" />
-      </motion.div>
+        <span aria-hidden="true">{label}</span>
+        {/* Tooltip */}
+        <motion.div
+          variants={tooltipVariants}
+          className={cn(
+            'pointer-events-none absolute -top-2 left-1/2 min-w-max -translate-x-1/2 -translate-y-full',
+            'rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md',
+            'border border-border',
+          )}
+        >
+          {tooltipText}
+          <div className="absolute -bottom-1 left-1/2 -z-10 size-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-popover" />
+        </motion.div>
 
-      {/* Confirm state (red/destructive) - revealed as progress */}
-      <motion.div
-        className={cn(
-          'absolute inset-0 flex border border-border shrink-0 items-center justify-center rounded-md',
-          'bg-destructive text-background',
-        )}
-      >
-        {label}
-      </motion.div>
+        {/* Confirm state (red/destructive) - revealed as progress */}
+        <motion.div
+          className={cn(
+            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md border border-border',
+            'bg-destructive text-background',
+          )}
+        >
+          {label}
+        </motion.div>
 
-      {/* Idle state - clips away during hold */}
-      <motion.div
-        variants={progressVariants}
-        className={cn(
-          'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
-          'border border-input bg-background text-foreground',
-          'hover:bg-accent hover:text-accent-foreground',
-        )}
-      >
-        {label}
-      </motion.div>
-    </motion.button>
+        {/* Idle state - clips away during hold */}
+        <motion.div
+          variants={progressVariants}
+          className={cn(
+            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
+            'border border-input bg-background text-foreground',
+            'hover:bg-accent hover:text-accent-foreground',
+          )}
+        >
+          {label}
+        </motion.div>
+      </motion.button>
+    </Button>
   )
 }
