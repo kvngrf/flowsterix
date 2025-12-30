@@ -25,7 +25,7 @@ export interface TourOverlayProps {
   padding?: number
   /** Border radius of the highlight cutout (default: 12) */
   radius?: number
-  /** Edge buffer to prevent cutout from touching viewport edges (default: 8) */
+  /** Edge buffer to prevent cutout from touching viewport edges (default: 0) */
   edgeBuffer?: number
   /** Background color of the overlay */
   backdropColor?: string
@@ -57,7 +57,7 @@ export function TourOverlay({
   ringClassName,
   padding = 12,
   radius = 12,
-  edgeBuffer = 8,
+  edgeBuffer = 0,
   backdropColor,
   blurAmount = 6,
   opacity = 1,

@@ -32,7 +32,7 @@ export const TourOverlay = ({
   shadowToken,
   shadowClassName,
   zIndex = 1000,
-  edgeBuffer = 8,
+  edgeBuffer = 0,
   blurAmount,
   interactionMode = 'passthrough',
 }: TourOverlayProps) => {

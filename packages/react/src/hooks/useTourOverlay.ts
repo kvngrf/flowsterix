@@ -81,7 +81,7 @@ export interface UseTourOverlayResult {
 
 const DEFAULT_PADDING = 12
 const DEFAULT_RADIUS = 12
-const DEFAULT_EDGE_BUFFER = 8
+const DEFAULT_EDGE_BUFFER = 0
 
 export const useTourOverlay = (
   options: UseTourOverlayOptions,
