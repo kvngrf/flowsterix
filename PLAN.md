@@ -5,7 +5,7 @@
 - [x] Week 1: Monorepo scaffolding, core engine, validation
 - [x] Week 2: DOM targeting and React binding
 - [x] Week 3: Animations, positioning, router adapters
-- [ ] Week 4: Accessibility polish, examples, tests, release
+- [ ] Week 4: Examples, QA, docs, release
 
 ## 1. MVP Scope (solve 80% of use cases)
 
@@ -31,7 +31,7 @@
 - [x] Event bus with analytics hooks
 - [x] `@flowsterix/react` bindings (Provider, hooks, components)
 - [x] AnimationAdapter using Framer Motion
-- [x] Router adapters (`@flowsterix/react-router-adapter`, `@flowsterix/next-adapter`)
+- [x] Router adapters (React Router, Next App/Pages, TanStack) exported via `@flowsterix/react`
 - [x] Optional packages (`@flowsterix/themes`, example apps)
 
 ## 3. Core Types and DSL
@@ -96,20 +96,27 @@
 
 ## 11. Testing and Quality
 
-- [ ] Unit tests (Vitest + jsdom) for engine, adapters, persistence
+- [x] Vitest setup with initial core/react unit tests
+- [ ] Expand unit tests for engine, adapters, and persistence (beyond core events + React hooks/components)
 - [ ] Integration tests (Playwright) for DOM, routes, key flows
 - [ ] Visual snapshots per theme and placement
 - [ ] Type tests to lock public API surface
-- [ ] Example apps (Vite + React Router, Next.js) for real-world validation
+- [x] Example app: Vite + TanStack Router (`examples/react-vite`)
+- [ ] Example apps: React Router + Next.js for real-world validation
 
 ## 12. Packaging and Repo Layout
 
 - [x] Monorepo via pnpm + Turborepo with workspace packages
-- [x] `packages/core`, `packages/react` scaffolded (adapter/theme packages pending)
-- [ ] `examples/react-vite`, `examples/next`
-- [ ] Build tooling with tsup (ESM, CJS, d.ts) and `sideEffects:false` where safe
-- [ ] Peer dependency declarations (react >=18, framer-motion, @floating-ui/react in React pkg)
-- [ ] Linting/formatting (eslint, prettier), commitlint, changesets for semver management
+- [x] `packages/core`, `packages/react`, `packages/headless`, `packages/themes`, `packages/shadcn-registry` scaffolded
+- [x] `examples/react-vite`
+- [x] `examples/shadcn-demo`
+- [ ] `examples/next`
+- [x] Build tooling with tsup (ESM, CJS, d.ts) in core/react/headless
+- [ ] Add `sideEffects` flags where safe
+- [x] Peer dependency declarations for react/react-dom + router/next in `@flowsterix/react`
+- [ ] Decide peer/dependency policy for Motion and Floating UI
+- [x] Linting/formatting (eslint, prettier)
+- [ ] Commitlint + changesets for semver management
 
 ## 13. Developer Experience Niceties
 
@@ -138,7 +145,7 @@
 - [x] Week 1: Monorepo setup, core engine, Zod validation
 - [x] Week 2: DOM targeting/observers, React binding (Provider, hooks, Overlay, Popover, controls)
 - [x] Week 3: Framer Motion animations, Floating UI positioning, mask overlay, router adapters, waitFor support
-- [ ] Week 4: Accessibility/theming/debug mode/errors, examples, docs, tests, publish v0.1.0
+- [ ] Week 4: Examples, docs, tests, publish v0.1.0
 
 ## 17. Open Questions
 
