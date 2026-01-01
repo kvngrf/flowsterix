@@ -102,7 +102,7 @@
 - [ ] Visual snapshots per theme and placement
 - [ ] Type tests to lock public API surface
 - [x] Example app: Vite + TanStack Router (`examples/react-vite`)
-- [ ] Example apps: React Router + Next.js for real-world validation
+- [x] Example apps: React Router + Next.js for real-world validation
 
 ## 12. Packaging and Repo Layout
 
@@ -110,7 +110,7 @@
 - [x] `packages/core`, `packages/react`, `packages/headless`, `packages/themes`, `packages/shadcn-registry` scaffolded
 - [x] `examples/react-vite`
 - [x] `examples/shadcn-demo`
-- [ ] `examples/next`
+- [x] `examples/next`
 - [x] Build tooling with tsup (ESM, CJS, d.ts) in core/react/headless
 - [ ] Add `sideEffects` flags where safe
 - [x] Peer dependency declarations for react/react-dom + router/next in `@flowsterix/react`

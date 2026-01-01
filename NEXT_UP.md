@@ -23,3 +23,12 @@
 5. Optional/roadmap
    - Declarative `<Flow>/<Step>` API decision for v0.
    - Defer branching flows, i18n surface, plugin ecosystem, Shadow DOM/iframe.
+
+How to run examples
+- `pnpm --filter @flowsterix/example-react-vite dev`
+- `pnpm --filter @flowsterix/example-react-router-vite dev`
+- `pnpm --filter @flowsterix/example-next dev`
+- `pnpm --filter @flowsterix/shadcn-demo dev`
+
+TODO
+- Evaluate using shadcn demo tour components in the example apps once they stabilize (avoid duplicate updates across examples until API/UX is settled).

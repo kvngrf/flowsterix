@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@flowsterix/headless": ["../../packages/headless/src"],
+      "@flowsterix/react/headless": ["../../packages/react/src/headless.ts"]
+    }
+  },
+  "include": ["src"]
+}

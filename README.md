@@ -9,6 +9,26 @@ pnpm install
 pnpm start
 ```
 
+# Examples
+
+This repo ships with multiple demo apps showing different integrations:
+
+- `examples/react-vite` (TanStack Router + themes)
+- `examples/react-router-vite` (React Router + route adapter)
+- `examples/next` (Next.js App Router + route adapter)
+- `examples/shadcn-demo` (shadcn + headless HUD)
+
+Run any example with the root scripts:
+
+```bash
+pnpm dev:react-vite
+pnpm dev:react-router
+pnpm dev:next
+pnpm dev:shadcn
+```
+
+You can also use `pnpm dev` to start the TanStack Router example by default.
+
 # Building For Production
 
 To build this application for production:
@@ -129,6 +149,20 @@ function CustomHud() {
 Use the hook’s options to override padding, radius, shortcut handling, or scroll locking globally while keeping your HUD markup completely custom.
 
 Need just the highlight math? Pair the snippet above with `useTourOverlay` to reuse Flowsterix's overlay geometry (padding, viewport clamping, interaction blockers) inside your own backdrop component. See `docs/guides/headless.md#overlay-helper-hook` for a drop-in example.
+
+## Shadcn Registry Sync
+
+The shadcn registry is the source of truth for the tour UI components. To keep the example apps in sync with the latest registry output:
+
+```bash
+pnpm sync:shadcn-examples
+```
+
+By default this pulls from the local registry output at `packages/shadcn-registry/public/r`. You can override the path with:
+
+```bash
+FLOWSTERIX_REGISTRY_PATH=/absolute/path/to/public/r pnpm sync:shadcn-examples
+```
 
 ### Customizing Animations
 

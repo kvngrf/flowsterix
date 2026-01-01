@@ -5,8 +5,12 @@
   "packageManager": "pnpm@9.12.0",
   "scripts": {
     "dev": "pnpm --filter @flowsterix/example-react-vite dev",
+    "dev:react-vite": "pnpm --filter @flowsterix/example-react-vite dev",
+    "dev:react-router": "pnpm --filter @flowsterix/example-react-router-vite dev",
+    "dev:next": "pnpm --filter @flowsterix/example-next dev",
     "dev:shadcn": "pnpm --filter @flowsterix/shadcn-demo dev",
     "build:shadcn-registry": "pnpm --filter @flowsterix/shadcn-registry registry:build",
+    "sync:shadcn-examples": "node scripts/sync-shadcn-examples.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",

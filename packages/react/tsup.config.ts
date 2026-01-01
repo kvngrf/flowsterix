@@ -13,6 +13,8 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   clean: true,
   external: [
+    'react',
+    'react-dom',
     'react-router-dom',
     '@tanstack/react-router',
     'next',
