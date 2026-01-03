@@ -108,6 +108,19 @@
       "categories": ["tour", "tooltip"]
     },
     {
+      "name": "step-content",
+      "type": "registry:component",
+      "title": "Step Content",
+      "description": "Shared typography and layout primitives for tour step content.",
+      "files": [
+        {
+          "path": "registry/flowsterix/step-content.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "content"]
+    },
+    {
       "name": "use-tour",
       "type": "registry:hook",
       "title": "useTour Hook",
@@ -147,7 +160,7 @@
       "title": "Onboarding Flow Example",
       "description": "A complete onboarding tour example with welcome screen, feature highlights, and completion step.",
       "dependencies": ["@flowsterix/headless", "motion"],
-      "registryDependencies": ["tour-hud"],
+      "registryDependencies": ["tour-hud", "step-content"],
       "files": [
         {
           "path": "registry/flowsterix/blocks/onboarding-flow.tsx",

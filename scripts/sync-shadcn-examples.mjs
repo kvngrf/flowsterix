@@ -19,6 +19,7 @@ const components = [
   'tour-progress',
   'delay-progress-bar',
   'tour-tooltip',
+  'step-content',
   'tour-hud',
   'onboarding-flow',
   'use-tour',

@@ -3,6 +3,11 @@
 import { createFlow } from '@flowsterix/core'
 import { useTour } from '@flowsterix/headless'
 import * as React from 'react'
+import {
+  StepContent,
+  StepText,
+  StepTitle,
+} from '@/components/step-content'
 
 /**
  * Example onboarding flow demonstrating common patterns.
@@ -42,13 +47,13 @@ export const onboardingFlow = createFlow({
       target: 'screen',
       advance: [{ type: 'manual' }],
       content: (
-        <div className="space-y-3 text-center">
-          <h2 className="text-xl font-semibold">Welcome to Your App! 👋</h2>
-          <p className="text-muted-foreground">
+        <StepContent className="text-center">
+          <StepTitle size="lg">Welcome to Your App! 👋</StepTitle>
+          <StepText>
             Let&apos;s take a quick tour to help you get started. This will only
             take a minute.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
 
@@ -62,13 +67,13 @@ export const onboardingFlow = createFlow({
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Navigation</h3>
-          <p className="text-sm text-muted-foreground">
+        <StepContent>
+          <StepTitle>Navigation</StepTitle>
+          <StepText>
             Use the navigation menu to move between different sections of the
             app.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
 
@@ -85,13 +90,13 @@ export const onboardingFlow = createFlow({
         { type: 'event', event: 'click', on: 'target' },
       ],
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Main Feature</h3>
-          <p className="text-sm text-muted-foreground">
+        <StepContent>
+          <StepTitle>Main Feature</StepTitle>
+          <StepText>
             Click this button to access the main feature. You can click it now
             or press Next to continue.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
 
@@ -105,13 +110,13 @@ export const onboardingFlow = createFlow({
       placement: 'left',
       advance: [{ type: 'manual' }, { type: 'delay', ms: 5000 }],
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Settings</h3>
-          <p className="text-sm text-muted-foreground">
+        <StepContent>
+          <StepTitle>Settings</StepTitle>
+          <StepText>
             Customize your experience in the settings panel. This step will
             auto-advance in 5 seconds.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
 
@@ -121,13 +126,13 @@ export const onboardingFlow = createFlow({
       target: 'screen',
       advance: [{ type: 'manual' }],
       content: (
-        <div className="space-y-3 text-center">
+        <StepContent className="text-center">
           <div className="text-4xl">🎉</div>
-          <h2 className="text-xl font-semibold">You&apos;re All Set!</h2>
-          <p className="text-muted-foreground">
+          <StepTitle size="lg">You&apos;re All Set!</StepTitle>
+          <StepText>
             You&apos;ve completed the tour. Start exploring and have fun!
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
   ],

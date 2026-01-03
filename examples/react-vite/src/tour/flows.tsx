@@ -6,6 +6,12 @@ import {
   useDelayAdvance,
 } from '@flowsterix/react'
 import type { ReactNode } from 'react'
+import {
+  StepContent,
+  StepHint,
+  StepText,
+  StepTitle,
+} from '@/components/step-content'
 
 const STICKY_HEADER_OFFSET = 96
 
@@ -19,38 +25,34 @@ const DelayCountdownLabel = () => {
   const seconds = Math.max(0, Math.ceil(remainingMs / 1000))
 
   return (
-    <p
-      style={{
-        margin: 0,
-        lineHeight: 1.5,
-        fontVariantNumeric: 'tabular-nums',
-      }}
-    >
+    <StepText className="text-foreground tabular-nums">
       Advancing automatically in <strong>{seconds}s</strong>
-    </p>
+    </StepText>
   )
 }
 
 const DelayDemoContent = () => (
-  <div style={{ display: 'grid', gap: 12 }}>
-    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-      Automatic Advance
-    </h2>
-    <p style={{ margin: 0, lineHeight: 1.5 }}>
+  <StepContent>
+    <StepTitle>Automatic Advance</StepTitle>
+    <StepText>
       Delay rules move to the next step after a timer expires. Use the{' '}
-      <code style={{ paddingLeft: 4, paddingRight: 4 }}>useDelayAdvance</code>{' '}
+      <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+        useDelayAdvance
+      </code>{' '}
       hook to present your own countdown, or drop in the default progress bar
       below.
-    </p>
+    </StepText>
     <DelayProgressBar />
     <DelayCountdownLabel />
-    <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+    <StepHint>
       You can also use{' '}
-      <code style={{ paddingLeft: 4, paddingRight: 4 }}>useDelayAdvance</code>{' '}
+      <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+        useDelayAdvance
+      </code>{' '}
       inside custom UI to pause, react to, or format the remaining time however
       fits your product.
-    </p>
-  </div>
+    </StepHint>
+  </StepContent>
 )
 
 const ensureMenuOpen = () => {
@@ -89,15 +91,13 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-            Welcome to Flowsterix
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle size="lg">Welcome to Flowsterix</StepTitle>
+          <StepText>
             This short tour points out a few key areas of the demo application.
             Use Next to continue or press Skip to exit anytime.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
     {
@@ -109,17 +109,15 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Try a Different Look
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Try a Different Look</StepTitle>
+          <StepText>
             The controls here swap the token overrides (and corresponding CSS
             variables) that drive every part of the HUD. Flip to the Aurora or
             Nebula presets to see dramatically different popovers, buttons, and
             overlay treatments, then switch back whenever you like.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
     {
@@ -132,18 +130,14 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       advance: [{ type: 'event', event: 'click', on: 'target' }],
       onResume: () => ensureMenuOpen(),
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Navigation Drawer
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Navigation Drawer</StepTitle>
+          <StepText>
             Open the menu to explore example routes, SSR demos, and API samples.
             The drawer is a great place to plug in contextual tour steps.
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
-            Click the menu button to continue.
-          </p>
-        </div>
+          </StepText>
+          <StepHint>Click the menu button to continue.</StepHint>
+        </StepContent>
       ),
     },
     {
@@ -156,18 +150,14 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       advance: [{ type: 'event', event: 'click', on: 'target' }],
       onResume: () => ensureSsrGroupExpanded(),
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Route Groups
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Route Groups</StepTitle>
+          <StepText>
             Nested toggles are perfect for progressive disclosure. Here we tuck
             the SSR demos behind a secondary control.
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
-            Tap this toggle to expand the SSR demos.
-          </p>
-        </div>
+          </StepText>
+          <StepHint>Tap this toggle to expand the SSR demos.</StepHint>
+        </StepContent>
       ),
     },
     {
@@ -179,15 +169,13 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'right',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Nice Work!
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Nice Work!</StepTitle>
+          <StepText>
             Subentries are great for organizing related routes. Let&apos;s move
             on to the feature grid.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
     {
@@ -213,16 +201,14 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'top',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Feature Grid
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Feature Grid</StepTitle>
+          <StepText>
             These cards recap the major capabilities. Use tours to point
             visitors to detailed resources, documentation links, or funnel next
             steps.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
     },
     {
@@ -238,19 +224,18 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'top',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Sticky Header Safe Zone
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Sticky Header Safe Zone</StepTitle>
+          <StepText>
             Notice how the highlight stops just beneath the navigation bar even
-            though it is sticky. The new <code>scrollMargin</code> option keeps
-            targets from hiding behind persistent chrome.
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
-            Use Next when you&apos;re ready to continue.
-          </p>
-        </div>
+            though it is sticky. The new{' '}
+            <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+              scrollMargin
+            </code>{' '}
+            option keeps targets from hiding behind persistent chrome.
+          </StepText>
+          <StepHint>Use Next when you&apos;re ready to continue.</StepHint>
+        </StepContent>
       ),
     },
     {
@@ -262,18 +247,14 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'right',
       advance: [{ type: 'route', to: '/demo/start/api-request' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Deeper Dives
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Deeper Dives</StepTitle>
+          <StepText>
             Tours can guide users into feature-specific routes. Let&apos;s jump
             to the API Request demo next.
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
-            Click this link—the tour will follow the navigation.
-          </p>
-        </div>
+          </StepText>
+          <StepHint>Click this link—the tour will follow the navigation.</StepHint>
+        </StepContent>
       ),
     },
     {
@@ -313,20 +294,20 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            Async Target Ready
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle>Async Target Ready</StepTitle>
+          <StepText>
             We waited until the names API rendered a list item before showing
             this step. The{' '}
-            <code style={{ paddingLeft: 4, paddingRight: 4 }}>waitFor</code>{' '}
+            <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+              waitFor
+            </code>{' '}
             selector blocks the HUD until the element exists in the DOM.
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+          </StepText>
+          <StepHint>
             Once the data loads, review the highlighted name then continue.
-          </p>
-        </div>
+          </StepHint>
+        </StepContent>
       ),
     },
     {
@@ -336,18 +317,16 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (
-        <div style={{ display: 'grid', gap: 12 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-            That&apos;s the tour!
-          </h2>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
+        <StepContent>
+          <StepTitle size="lg">That&apos;s the tour!</StepTitle>
+          <StepText>
             You just saw manual, event, delay, predicate, and route triggers in
             action. Add or tweak rules per step to match your onboarding flow.
-          </p>
-          <p style={{ margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>
+          </StepText>
+          <StepHint>
             Choose Finish to close or back up to revisit any step.
-          </p>
-        </div>
+          </StepHint>
+        </StepContent>
       ),
     },
   ],
@@ -367,16 +346,14 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
         placement: 'bottom',
         advance: [{ type: 'manual' }],
         content: (
-          <div style={{ display: 'grid', gap: 12 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-              Headless Tour Demo
-            </h2>
-            <p style={{ margin: 0, lineHeight: 1.5 }}>
+          <StepContent>
+            <StepTitle size="lg">Headless Tour Demo</StepTitle>
+            <StepText>
               This flow uses the headless tour HUD package to render a
               completely custom overlay and controls. The tour logic, targeting,
               and routing all still come from Flowsterix.
-            </p>
-          </div>
+            </StepText>
+          </StepContent>
         ),
       },
       {
@@ -388,17 +365,17 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
         placement: 'right',
         advance: [{ type: 'manual' }],
         content: (
-          <div style={{ display: 'grid', gap: 12 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-              Totally custom HUD
-            </h2>
-            <p style={{ margin: 0, lineHeight: 1.5 }}>
-              This flow renders a bespoke overlay and controls powered by
-              <code style={{ paddingInline: 4 }}>@flowsterix/headless</code>.
-              All the targeting, routing, and analytics logic still comes from
-              Flowsterix.
-            </p>
-          </div>
+          <StepContent>
+            <StepTitle>Totally custom HUD</StepTitle>
+            <StepText>
+              This flow renders a bespoke overlay and controls powered by{' '}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                @flowsterix/headless
+              </code>
+              . All the targeting, routing, and analytics logic still comes
+              from Flowsterix.
+            </StepText>
+          </StepContent>
         ),
       },
       {
@@ -410,18 +387,16 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
         placement: 'top',
         advance: [{ type: 'manual' }],
         content: (
-          <div style={{ display: 'grid', gap: 12 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-              Add limitless UI
-            </h2>
-            <p style={{ margin: 0, lineHeight: 1.5 }}>
+          <StepContent>
+            <StepTitle>Add limitless UI</StepTitle>
+            <StepText>
               Because you render everything yourself, it&apos;s easy to drop in
               extra buttons, multi-column layouts, or integrate with your design
               system tokens. Everything is up to you. Just plug in the step
               content and control the flow with the headless hooks. Use Next to
               finish the demo.
-            </p>
-          </div>
+            </StepText>
+          </StepContent>
         ),
       },
     ],

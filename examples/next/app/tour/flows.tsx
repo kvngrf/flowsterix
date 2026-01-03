@@ -2,6 +2,11 @@
 
 import type { ReactNode } from 'react'
 import { createFlow } from '@flowsterix/core'
+import {
+  StepContent,
+  StepText,
+  StepTitle,
+} from '@/components/step-content'
 
 export const demoFlow = createFlow<ReactNode>({
   id: 'next-demo',
@@ -11,10 +16,10 @@ export const demoFlow = createFlow<ReactNode>({
       id: 'intro',
       target: 'screen',
       content: (
-        <div>
-          <h2>Next.js App Router tour</h2>
-          <p>Flowsterix can follow you across pages and layouts.</p>
-        </div>
+        <StepContent>
+          <StepTitle size="lg">Next.js App Router tour</StepTitle>
+          <StepText>Flowsterix can follow you across pages and layouts.</StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -26,10 +31,10 @@ export const demoFlow = createFlow<ReactNode>({
       },
       placement: 'bottom',
       content: (
-        <div>
-          <h3>Navigation stays in sync</h3>
-          <p>Click Settings to move to the next step.</p>
-        </div>
+        <StepContent>
+          <StepTitle>Navigation stays in sync</StepTitle>
+          <StepText>Click Settings to move to the next step.</StepText>
+        </StepContent>
       ),
       advance: [{ type: 'route', to: '/settings' }],
     },
@@ -46,10 +51,10 @@ export const demoFlow = createFlow<ReactNode>({
         timeout: 6000,
       },
       content: (
-        <div>
-          <h3>Settings ready</h3>
-          <p>The tour resumes when the routed content is available.</p>
-        </div>
+        <StepContent>
+          <StepTitle>Settings ready</StepTitle>
+          <StepText>The tour resumes when the routed content is available.</StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },

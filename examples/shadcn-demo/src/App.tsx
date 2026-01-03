@@ -27,6 +27,11 @@ import {
 import { Progress } from '@/components/ui/progress'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  StepContent,
+  StepText,
+  StepTitle,
+} from '@/components/step-content'
 
 import { DelayProgressBar } from './components/tour/delay-progress-bar'
 import { TourHUD } from './components/tour/tour-hud'
@@ -75,13 +80,13 @@ const demoFlow = createFlow<ReactNode>({
       id: 'welcome',
       target: 'screen',
       content: (
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Welcome to Flowsterix! 🎉</h3>
-          <p className="text-muted-foreground">
-            Let's take a quick tour of the features. This will only take a
+        <StepContent>
+          <StepTitle size="lg">Welcome to Flowsterix! 🎉</StepTitle>
+          <StepText>
+            Let&apos;s take a quick tour of the features. This will only take a
             minute.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -89,12 +94,12 @@ const demoFlow = createFlow<ReactNode>({
       id: 'header',
       target: { selector: '#demo-header' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Navigation Header</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Navigation Header</StepTitle>
+          <StepText>
             Your main navigation hub. Quick access to all features from here.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -102,13 +107,13 @@ const demoFlow = createFlow<ReactNode>({
       id: 'user-avatar',
       target: { selector: '#user-avatar' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Your Profile</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Your Profile</StepTitle>
+          <StepText>
             Click your avatar to access profile settings, preferences, and sign
             out.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -116,13 +121,13 @@ const demoFlow = createFlow<ReactNode>({
       id: 'notifications',
       target: { selector: '#notifications-btn' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Notifications</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Notifications</StepTitle>
+          <StepText>
             Stay updated with real-time notifications. The badge shows unread
             count.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -130,12 +135,12 @@ const demoFlow = createFlow<ReactNode>({
       id: 'stats-cards',
       target: { selector: '#stats-section' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Dashboard Stats</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Dashboard Stats</StepTitle>
+          <StepText>
             Monitor your key metrics at a glance. Cards update in real-time.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -143,12 +148,10 @@ const demoFlow = createFlow<ReactNode>({
       id: 'tabs-demo',
       target: { selector: '#content-tabs' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Content Tabs</h3>
-          <p className="text-muted-foreground text-sm">
-            Switch between different views. Try clicking the tabs!
-          </p>
-        </div>
+        <StepContent>
+          <StepTitle>Content Tabs</StepTitle>
+          <StepText>Switch between different views. Try clicking the tabs!</StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -156,13 +159,13 @@ const demoFlow = createFlow<ReactNode>({
       id: 'settings-dialog',
       target: { selector: '#settings-trigger' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Settings</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Settings</StepTitle>
+          <StepText>
             Click this button to open the settings dialog. Tours can guide users
             through modals too!
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'event', event: 'click', on: 'target' }],
     },
@@ -170,13 +173,13 @@ const demoFlow = createFlow<ReactNode>({
       id: 'inside-dialog',
       target: { selector: '#dialog-settings-content' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Inside the Modal</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Inside the Modal</StepTitle>
+          <StepText>
             Flowsterix can highlight elements inside dialogs and modals
             seamlessly. Click Next to continue.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
       onEnter: openDialog,
@@ -187,14 +190,14 @@ const demoFlow = createFlow<ReactNode>({
       id: 'auto-progress',
       target: 'screen',
       content: (
-        <div className="space-y-3">
-          <h3 className="font-semibold">Auto-Advance Demo ⏱️</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Auto-Advance Demo ⏱️</StepTitle>
+          <StepText>
             This step auto-advances after 3 seconds. Great for announcements or
             tips!
-          </p>
+          </StepText>
           <DelayProgressBar />
-        </div>
+        </StepContent>
       ),
       advance: [{ type: 'delay', ms: 3000 }],
       onResume: closeDialog,
@@ -203,12 +206,12 @@ const demoFlow = createFlow<ReactNode>({
       id: 'feature-card',
       target: { selector: '#feature-card' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Feature Highlights</h3>
-          <p className="text-muted-foreground text-sm">
+        <StepContent>
+          <StepTitle>Feature Highlights</StepTitle>
+          <StepText>
             Key features are showcased here. Hover for more details.
-          </p>
-        </div>
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },
@@ -216,13 +219,13 @@ const demoFlow = createFlow<ReactNode>({
       id: 'cta-button',
       target: { selector: '#cta-button' },
       content: (
-        <div className="space-y-2">
-          <h3 className="font-semibold">Ready to Go!</h3>
-          <p className="text-muted-foreground text-sm">
-            That's it! Click "Get Started" to begin using the app, or finish
-            this tour.
-          </p>
-        </div>
+        <StepContent>
+          <StepTitle>Ready to Go!</StepTitle>
+          <StepText>
+            That&apos;s it! Click &quot;Get Started&quot; to begin using the app,
+            or finish this tour.
+          </StepText>
+        </StepContent>
       ),
       advance: [{ type: 'manual' }],
     },

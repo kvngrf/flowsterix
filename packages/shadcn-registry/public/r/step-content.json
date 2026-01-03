@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "step-content",
+  "type": "registry:component",
+  "title": "Step Content",
+  "description": "Shared typography and layout primitives for tour step content.",
+  "files": [
+    {
+      "path": "registry/flowsterix/step-content.tsx",
+      "content": "'use client'\n\nimport * as React from 'react'\n\nimport { cn } from '@/lib/utils'\n\nexport interface StepContentProps extends React.HTMLAttributes<HTMLDivElement> {}\n\nexport function StepContent({ className, ...props }: StepContentProps) {\n  return <div className={cn('grid gap-3', className)} {...props} />\n}\n\nexport interface StepTitleProps\n  extends React.HTMLAttributes<HTMLHeadingElement> {\n  size?: 'md' | 'lg'\n}\n\nexport function StepTitle({\n  className,\n  size = 'md',\n  ...props\n}: StepTitleProps) {\n  return (\n    <h2\n      className={cn(\n        size === 'lg' ? 'text-xl' : 'text-lg',\n        'font-semibold leading-tight',\n        className,\n      )}\n      {...props}\n    />\n  )\n}\n\nexport interface StepTextProps\n  extends React.HTMLAttributes<HTMLParagraphElement> {}\n\nexport function StepText({ className, ...props }: StepTextProps) {\n  return (\n    <p\n      className={cn('text-sm text-muted-foreground leading-relaxed', className)}\n      {...props}\n    />\n  )\n}\n\nexport interface StepHintProps\n  extends React.HTMLAttributes<HTMLParagraphElement> {}\n\nexport function StepHint({ className, ...props }: StepHintProps) {\n  return (\n    <p\n      className={cn(\n        'text-sm text-muted-foreground leading-relaxed italic',\n        className,\n      )}\n      {...props}\n    />\n  )\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "categories": [
+    "tour",
+    "content"
+  ]
+}
