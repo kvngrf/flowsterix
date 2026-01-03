@@ -1,12 +1,12 @@
 'use client'
 
 import type { StepPlacement } from '@flowsterix/core'
+import type { UseHudShortcutsOptions } from '@flowsterix/headless'
 import {
   OverlayBackdrop,
   TourFocusManager,
   TourPopoverPortal,
   useHudMotion,
-  type UseHudShortcutsOptions,
   useTourHud,
   useTourOverlay,
 } from '@flowsterix/headless'
@@ -14,9 +14,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 
+import { cn } from '@/lib/utils'
 import { TourControls } from '@/components/tour-controls'
 import { TourProgress } from '@/components/tour-progress'
-import { cn } from '@/lib/utils'
 
 // =============================================================================
 // Types
@@ -118,8 +118,8 @@ export interface TourHUDProps {
  *
  * @example
  * ```tsx
- * import { TourProvider } from "@/components/tour-provider"
- * import { TourHUD } from "@/components/blocks/tour-hud"
+ * import { TourProvider } from "@/components/tour/tour-provider"
+ * import { TourHUD } from "@/components/tour/blocks/tour-hud"
  * import { myFlow } from "@/lib/tours/my-flow"
  *
  * export function App() {
@@ -308,22 +308,16 @@ export function TourHUD({
                         />
                       )}
 
-                      {/* Description text if provided */}
-                      {description.text && (
-                        <p
-                          id={description.descriptionId ?? undefined}
-                          className="text-sm text-muted-foreground"
-                        >
-                          {description.text}
-                        </p>
-                      )}
-
                       {/* Step content */}
                       <div>{children ?? stepContent}</div>
 
                       {/* Target issue warning */}
                       {targetIssue.issue && (
-                        <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700">
+                        <div
+                          className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
+                          role="status"
+                          aria-live="polite"
+                        >
                           <strong className="block mb-1">
                             {targetIssue.issue.title}
                           </strong>
@@ -345,8 +339,6 @@ export function TourHUD({
                           size={progress.size}
                         />
                       )}
-
-                      {/* Navigation controls */}
                     </Content>
                   </AnimatePresence>
                   <TourControls

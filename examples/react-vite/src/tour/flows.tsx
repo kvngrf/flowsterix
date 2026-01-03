@@ -1,17 +1,17 @@
 import type { FlowDefinition } from '@flowsterix/core'
 import { createFlow } from '@flowsterix/core'
-import {
-  DelayProgressBar,
-  getTourRouter,
-  useDelayAdvance,
-} from '@flowsterix/react'
 import type { ReactNode } from 'react'
+
+import { DelayProgressBar } from '@/components/delay-progress-bar'
 import {
   StepContent,
   StepHint,
   StepText,
   StepTitle,
 } from '@/components/step-content'
+import { useDelayAdvance } from '@/hooks/use-tour'
+
+import { getTourRouter } from './routerBridge'
 
 const STICKY_HEADER_OFFSET = 96
 

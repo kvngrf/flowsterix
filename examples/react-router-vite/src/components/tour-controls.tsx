@@ -1,19 +1,19 @@
 'use client'
 
 import { useHudMotion, useTour, useTourControls } from '@flowsterix/headless'
+import { AnimatePresence, motion } from 'motion/react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { AnimatePresence, motion } from 'motion/react'
-import { HoldToSkipButton } from './hold-to-skip-button'
+import { HoldToSkipButton } from '@/components/hold-to-skip-button'
 
 export interface TourControlsProps {
   /** Additional class names for the controls container */
   className?: string
   /** Whether to show the skip button (default: true) */
   showSkip?: boolean
-  /** Skip button mode: 'button' for instant skip, 'hold' for hold-to-confirm (default: 'button') */
+  /** Skip button mode: 'click' for instant skip, 'hold' for hold-to-confirm (default: 'click') */
   skipMode?: 'click' | 'hold'
   /** Duration in ms to hold skip button when skipMode is 'hold' (default: 1000) */
   skipHoldDurationMs?: number
@@ -64,7 +64,6 @@ export function TourControls({
       data-tour-controls=""
       transition={{ layout: { duration: 0.2, ease: 'easeOut', type: 'tween' } }}
     >
-      {/* Secondary actions: Back + Skip */}
       <motion.div
         className="flex items-center gap-2"
         layout="position"
@@ -148,7 +147,6 @@ export function TourControls({
         </AnimatePresence>
       </motion.div>
 
-      {/* Primary action: Next/Finish */}
       <AnimatePresence initial={false}>
         {showNextButton && (
           <motion.div
@@ -174,7 +172,9 @@ export function TourControls({
                   layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
                 }}
               >
-                {isLast ? (labels?.finish ?? 'Finish') : (labels?.next ?? 'Next')}
+                {isLast
+                  ? (labels?.finish ?? 'Finish')
+                  : (labels?.next ?? 'Next')}
               </motion.button>
             </Button>
           </motion.div>

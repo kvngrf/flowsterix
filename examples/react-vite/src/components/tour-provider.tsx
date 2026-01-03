@@ -1,20 +1,9 @@
 'use client'
 
-import type { FlowDefinition } from '@flowsterix/core'
+import type { TourProviderProps as HeadlessTourProviderProps } from '@flowsterix/headless'
 import { TourProvider as HeadlessTourProvider } from '@flowsterix/headless'
-import * as React from 'react'
 
-export interface TourProviderProps {
-  /** Array of flow definitions to register */
-  flows: FlowDefinition<React.ReactNode>[]
-  /** Storage namespace for persistence (default: "flowsterix") */
-  storageNamespace?: string
-  /** Whether to persist tour progress (default: true) */
-  persistOnChange?: boolean
-  /** Enable debug mode overlay (default: false in production) */
-  debug?: boolean
-  children: React.ReactNode
-}
+export type TourProviderProps = HeadlessTourProviderProps
 
 /**
  * Tour provider that wraps your application and manages tour state.
@@ -34,18 +23,16 @@ export interface TourProviderProps {
  * ```
  */
 export function TourProvider({
-  flows,
   storageNamespace = 'flowsterix',
   persistOnChange = true,
-  debug = false,
   children,
+  ...props
 }: TourProviderProps) {
   return (
     <HeadlessTourProvider
-      flows={flows}
+      {...props}
       storageNamespace={storageNamespace}
       persistOnChange={persistOnChange}
-      defaultDebug={debug}
     >
       {children}
     </HeadlessTourProvider>

@@ -1,14 +1,15 @@
-import { TanStackRouterSync, TourHUD, TourProvider } from '@flowsterix/react'
-import '@flowsterix/react/styles.css'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import type { ReactNode } from 'react'
 
 import Header from '../components/Header'
+import { TourHUD } from '../components/tour-hud'
+import { TourProvider } from '../components/tour-provider'
 import { demoAnalytics } from '../tour/analytics'
 import { demoFlows } from '../tour/flows'
-import { TourThemeProvider, useTourTheme } from '../tour/theme'
+import { TanStackRouterSync } from '../tour/routerBridge'
+import { TourThemeProvider } from '../tour/theme'
 
 import appCss from '../styles.css?url'
 
@@ -54,8 +55,6 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
-  const { tokensOverride } = useTourTheme()
-
   return (
     <TourProvider
       flows={demoFlows}
@@ -63,7 +62,6 @@ const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
       autoDetectReducedMotion
       defaultDebug={false}
       analytics={demoAnalytics}
-      tokens={tokensOverride}
       backdropInteraction="block"
       lockBodyScroll
     >
@@ -81,7 +79,7 @@ const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
           },
         ]}
       />
-      <TourHUD />
+      <TourHUD controls={{ skipMode: 'hold' }} />
       {/* <HeadlessHUD /> */}
     </TourProvider>
   )

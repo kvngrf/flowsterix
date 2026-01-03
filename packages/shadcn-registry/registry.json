@@ -52,11 +52,15 @@
       "type": "registry:component",
       "title": "Tour Controls",
       "description": "Navigation buttons (Back, Next, Skip) with proper state management via useTourControls hook.",
-      "dependencies": ["@flowsterix/headless"],
+      "dependencies": ["@flowsterix/headless", "motion"],
       "registryDependencies": ["tour-provider", "button"],
       "files": [
         {
           "path": "registry/flowsterix/tour-controls.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/flowsterix/hold-to-skip-button.tsx",
           "type": "registry:component"
         }
       ],

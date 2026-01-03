@@ -29,6 +29,7 @@ const examples = [
   'examples/react-vite',
   'examples/react-router-vite',
   'examples/next',
+  'examples/shadcn-demo',
 ]
 
 const run = (command, args, cwd, envOverrides = {}) => {
@@ -157,38 +158,6 @@ const ensureUICard = async (exampleRoot, aliases, srcPrefix) => {
   }
 }
 
-const ensureDemoTourOverrides = async (exampleRoot, aliases, srcPrefix) => {
-  const componentsDir = normalizeAliasPath(
-    aliases.components,
-    exampleRoot,
-    srcPrefix,
-  )
-  if (!componentsDir) return
-
-  const demoDir = path.resolve(
-    repoRoot,
-    'examples/shadcn-demo/src/components/tour',
-  )
-  const demoFiles = [
-    'tour-hud.tsx',
-    'tour-controls.tsx',
-    'hold-to-skip-button.tsx',
-  ]
-
-  for (const name of demoFiles) {
-    const sourcePath = path.join(demoDir, name)
-    let content = await fs.readFile(sourcePath, 'utf8')
-    if (name === 'tour-hud.tsx') {
-      content = content.replace(
-        /@\/components\/tour\//g,
-        `${aliases.components}/`,
-      )
-    }
-    const targetPath = path.join(componentsDir, name)
-    await ensureFile(targetPath, content)
-  }
-}
-
 const syncExamples = async () => {
   run(
     'pnpm',
@@ -234,7 +203,6 @@ const syncExamples = async () => {
       }
     }
 
-    await ensureDemoTourOverrides(exampleRoot, aliases, srcPrefix)
   }
 }
 

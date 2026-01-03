@@ -140,7 +140,6 @@ export function HoldToSkipButton({
         onBlur={resetHoldState}
       >
         <span aria-hidden="true">{label}</span>
-        {/* Tooltip */}
         <motion.div
           variants={tooltipVariants}
           className={cn(
@@ -153,7 +152,6 @@ export function HoldToSkipButton({
           <div className="absolute -bottom-1 left-1/2 -z-10 size-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-popover" />
         </motion.div>
 
-        {/* Confirm state (red/destructive) - revealed as progress */}
         <motion.div
           className={cn(
             'absolute inset-0 flex shrink-0 items-center justify-center rounded-md border border-border',
@@ -163,7 +161,6 @@ export function HoldToSkipButton({
           {label}
         </motion.div>
 
-        {/* Idle state - clips away during hold */}
         <motion.div
           variants={progressVariants}
           className={cn(

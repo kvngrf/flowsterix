@@ -1,7 +1,6 @@
 import type { PropsWithChildren } from 'react'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
-import type { TourTokensOverride } from '@flowsterix/react'
 import type { TourThemePreset, TourThemePresetId } from '@flowsterix/themes'
 import { listTourThemePresets } from '@flowsterix/themes'
 
@@ -17,7 +16,6 @@ interface TourThemeContextValue {
   theme: TourThemeId
   setTheme: (theme: TourThemeId) => void
   options: Array<TourThemeOption>
-  tokensOverride?: TourTokensOverride
 }
 
 const STORAGE_KEY = 'flowsterix-demo-tour-theme'
@@ -32,19 +30,6 @@ export const TOUR_THEME_OPTIONS: Array<TourThemeOption> = PRESET_METADATA.map(
     description,
   }),
 )
-
-const THEME_OVERRIDES: Record<TourThemeId, TourTokensOverride | undefined> =
-  PRESET_METADATA.reduce<Record<TourThemeId, TourTokensOverride | undefined>>(
-    (acc, preset) => {
-      acc[preset.id] = preset.tokens
-      return acc
-    },
-    {
-      classic: undefined,
-      aurora: undefined,
-      nebula: undefined,
-    },
-  )
 
 const TourThemeContext = createContext<TourThemeContextValue | undefined>(
   undefined,
@@ -95,7 +80,6 @@ export const TourThemeProvider = ({ children }: PropsWithChildren) => {
       theme,
       setTheme,
       options: TOUR_THEME_OPTIONS,
-      tokensOverride: THEME_OVERRIDES[theme],
     }),
     [theme],
   )

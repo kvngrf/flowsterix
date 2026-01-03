@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router'
 
-import { useTour } from '@flowsterix/react'
 import {
   ChevronDown,
   ChevronRight,
@@ -12,6 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTour } from '@/hooks/use-tour'
 import { TourThemeToggle } from './TourThemeToggle'
 
 export default function Header() {

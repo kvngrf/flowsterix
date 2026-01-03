@@ -10,7 +10,7 @@ import {
   useTourHud,
   useTourOverlay,
 } from '@flowsterix/headless'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 
@@ -65,6 +65,10 @@ export interface TourHUDProps {
   controls?: {
     /** Whether to show the skip button (default: true) */
     showSkip?: boolean
+    /** Skip button mode: 'click' for instant skip, 'hold' for hold-to-confirm (default: 'click') */
+    skipMode?: 'click' | 'hold'
+    /** Duration in ms to hold skip button when skipMode is 'hold' (default: 1000) */
+    skipHoldDurationMs?: number
     /** Custom labels for buttons */
     labels?: {
       back?: string
@@ -134,10 +138,10 @@ export interface TourHUDProps {
  */
 export function TourHUD({
   className,
-  overlay = {},
+  overlay = { showRing: true, blurAmount: 6, zIndex: 2000, opacity: 1 },
   popover = {},
   controls = {},
-  progress = { show: true, variant: 'dots', position: 'bottom', size: 'sm' },
+  progress = { show: false, variant: 'dots', position: 'bottom', size: 'sm' },
   shortcuts = { escape: false },
   children,
   renderContent,
@@ -176,11 +180,11 @@ export function TourHUD({
   // Overlay configuration with defaults
   const overlayPadding = overlay.padding ?? overlayConfig.padding ?? 12
   const overlayRadius = overlay.radius ?? overlayConfig.radius ?? 12
-  const overlayZIndex = overlay.zIndex ?? 2000
+  const overlayZIndex = overlay.zIndex
   const overlayColor = overlay.backdropColor ?? 'rgba(0, 0, 0, 0.5)'
-  const overlayBlur = overlay.blurAmount ?? 6
-  const overlayOpacity = overlay.opacity ?? 1
-  const showRing = overlay.showRing ?? true
+  const overlayBlur = overlay.blurAmount
+  const overlayOpacity = overlay.opacity
+  const showRing = overlay.showRing
   const ringShadow =
     overlay.ringShadow ??
     '0 0 0 2px hsl(var(--primary)), 0 0 20px hsl(var(--primary) / 0.5)'
@@ -194,7 +198,7 @@ export function TourHUD({
   })
 
   // Popover configuration with defaults
-  const popoverOffset = popover.offset ?? popoverConfig.offset
+  const popoverOffset = popover.offset ?? popoverConfig.offset ?? 16
   const popoverPlacement =
     runningStep?.placement ??
     popover.placement ??
@@ -283,12 +287,18 @@ export function TourHUD({
                   </span>
                 )}
 
-                <div className="relative" data-tour-popover-shell="">
-                  <AnimatePresence mode="popLayout">
+                <motion.div
+                  className="relative overflow-hidden"
+                  data-tour-popover-shell=""
+                >
+                  <AnimatePresence mode="wait">
                     <Content
                       key={contentKey}
                       {...restContentProps}
-                      className={cn('p-4 space-y-3', popover.contentClassName)}
+                      className={cn(
+                        'p-4 space-y-3 overflow-hidden',
+                        popover.contentClassName,
+                      )}
                     >
                       {/* Progress indicator (top position) */}
                       {progress.show && progress.position === 'top' && (
@@ -298,23 +308,13 @@ export function TourHUD({
                         />
                       )}
 
-                      {/* Description text if provided */}
-                      {description.text && (
-                        <p
-                          id={description.descriptionId ?? undefined}
-                          className="text-sm text-muted-foreground"
-                        >
-                          {description.text}
-                        </p>
-                      )}
-
                       {/* Step content */}
                       <div>{children ?? stepContent}</div>
 
                       {/* Target issue warning */}
                       {targetIssue.issue && (
                         <div
-                          className="mt-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-800"
+                          className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
                           role="status"
                           aria-live="polite"
                         >
@@ -339,17 +339,17 @@ export function TourHUD({
                           size={progress.size}
                         />
                       )}
-
-                      {/* Navigation controls */}
-                      <TourControls
-                        showSkip={controls.showSkip}
-                        labels={controls.labels}
-                        primaryVariant={controls.primaryVariant}
-                        secondaryVariant={controls.secondaryVariant}
-                      />
                     </Content>
                   </AnimatePresence>
-                </div>
+                  <TourControls
+                    showSkip={controls.showSkip}
+                    skipMode={controls.skipMode}
+                    skipHoldDurationMs={controls.skipHoldDurationMs}
+                    labels={controls.labels}
+                    primaryVariant={controls.primaryVariant}
+                    secondaryVariant={controls.secondaryVariant}
+                  />
+                </motion.div>
               </Container>
             )
           }}
