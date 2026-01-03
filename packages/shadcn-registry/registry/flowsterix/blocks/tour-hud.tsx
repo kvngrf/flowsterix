@@ -1,13 +1,12 @@
 'use client'
 
 import type { StepPlacement } from '@flowsterix/core'
+import type { UseHudShortcutsOptions } from '@flowsterix/headless'
 import {
   OverlayBackdrop,
   TourFocusManager,
   TourPopoverPortal,
   useHudMotion,
-  useTourControls,
-  type UseHudShortcutsOptions,
   useTourHud,
   useTourOverlay,
 } from '@flowsterix/headless'
@@ -164,7 +163,6 @@ export function TourHUD({
   const isDefaultFlow = hudRenderMode !== 'none' && shouldRender
   const hudEnabled = (isHeadlessFlow || isDefaultFlow) && shouldRender
 
-  const tourControls = useTourControls()
   const { components, transitions } = useHudMotion()
   const { MotionDiv, MotionSection } = components
   const {
@@ -196,7 +194,7 @@ export function TourHUD({
   })
 
   // Popover configuration with defaults
-  const popoverOffset = popover.offset ?? popoverConfig.offset ?? 16
+  const popoverOffset = popover.offset ?? popoverConfig.offset
   const popoverPlacement =
     runningStep?.placement ??
     popover.placement ??
@@ -315,7 +313,11 @@ export function TourHUD({
 
                       {/* Target issue warning */}
                       {targetIssue.issue && (
-                        <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200">
+                        <div
+                          className="mt-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-800"
+                          role="status"
+                          aria-live="polite"
+                        >
                           <strong className="block mb-1">
                             {targetIssue.issue.title}
                           </strong>

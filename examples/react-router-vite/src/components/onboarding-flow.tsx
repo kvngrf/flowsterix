@@ -1,7 +1,7 @@
 'use client'
 
-import type { FlowDefinition } from '@flowsterix/core'
 import { createFlow } from '@flowsterix/core'
+import { useTour } from '@flowsterix/headless'
 import * as React from 'react'
 
 /**
@@ -32,7 +32,7 @@ import * as React from 'react'
  * startFlow("onboarding")
  * ```
  */
-export const onboardingFlow: FlowDefinition<React.ReactNode> = createFlow({
+export const onboardingFlow = createFlow({
   id: 'onboarding',
   version: 1,
   steps: [
@@ -137,17 +137,9 @@ export const onboardingFlow: FlowDefinition<React.ReactNode> = createFlow({
  * Hook to easily start the onboarding flow
  */
 export function useStartOnboarding() {
-  const { startFlow } = React.useMemo(
-    () => ({
-      startFlow: (flowId: string) => {
-        // This will be provided by the actual useTour hook
-        console.log(`Starting flow: ${flowId}`)
-      },
-    }),
-    [],
-  )
+  const { startFlow } = useTour()
 
-  return () => startFlow('onboarding')
+  return React.useCallback(() => startFlow('onboarding'), [startFlow])
 }
 
 // Re-export for convenience
