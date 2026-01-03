@@ -16,6 +16,7 @@ import { createPortal } from 'react-dom'
 
 import { cn } from '@/lib/utils'
 import { TourControls } from '@/registry/flowsterix/tour-controls'
+import { TourPopoverHandle } from '@/registry/flowsterix/tour-popover-handle'
 import { TourProgress } from '@/registry/flowsterix/tour-progress'
 
 // =============================================================================
@@ -60,6 +61,8 @@ export interface TourHUDProps {
     className?: string
     /** Additional class names for the content wrapper */
     contentClassName?: string
+    /** Whether to show the drag handle (default: true) */
+    showDragHandle?: boolean
   }
   /** Controls configuration */
   controls?: {
@@ -269,8 +272,14 @@ export function TourHUD({
             containerProps,
             contentProps,
             descriptionProps,
+            layoutMode,
+            dragHandleProps,
+            isDragging,
           }) => {
             const { key: contentKey, ...restContentProps } = contentProps
+            const shouldShowHandle = popover.showDragHandle ?? true
+            const showHandleInLayout =
+              layoutMode === 'docked' || layoutMode === 'manual'
             return (
               <Container
                 {...containerProps}
@@ -291,6 +300,12 @@ export function TourHUD({
                   className="relative overflow-hidden"
                   data-tour-popover-shell=""
                 >
+                  {shouldShowHandle && showHandleInLayout ? (
+                    <TourPopoverHandle
+                      dragHandleProps={dragHandleProps}
+                      isDragging={isDragging}
+                    />
+                  ) : null}
                   <AnimatePresence mode="wait">
                     <Content
                       key={contentKey}

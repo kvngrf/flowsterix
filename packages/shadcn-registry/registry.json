@@ -33,15 +33,15 @@
       "categories": ["tour", "overlay"]
     },
     {
-      "name": "tour-popover",
+      "name": "tour-popover-handle",
       "type": "registry:component",
-      "title": "Tour Popover",
-      "description": "Smart popover with floating/docked/mobile layouts, drag support, and smooth animations via Floating UI.",
-      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/dom"],
+      "title": "Tour Popover Handle",
+      "description": "Drag handle for moving the tour popover.",
+      "dependencies": ["@flowsterix/headless"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
-          "path": "registry/flowsterix/tour-popover.tsx",
+          "path": "registry/flowsterix/tour-popover-handle.tsx",
           "type": "registry:component"
         }
       ],
@@ -147,6 +147,7 @@
       "registryDependencies": [
         "tour-provider",
         "tour-controls",
+        "tour-popover-handle",
         "tour-progress",
         "button"
       ],

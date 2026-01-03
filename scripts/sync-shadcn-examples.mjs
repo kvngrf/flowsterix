@@ -14,8 +14,8 @@ const registryDir =
 const components = [
   'tour-provider',
   'tour-overlay',
-  'tour-popover',
   'tour-controls',
+  'tour-popover-handle',
   'tour-progress',
   'delay-progress-bar',
   'tour-tooltip',
