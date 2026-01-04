@@ -8,8 +8,6 @@ import { AnimatePresence } from 'motion/react'
 import type { UseTourOverlayResult } from '../hooks/useTourOverlay'
 import type { AnimationAdapterTransitions } from '../motion/animationAdapter'
 import { useAnimationAdapter } from '../motion/animationAdapter'
-import type { TourTokenPath } from '../theme/tokens'
-import { cssVar } from '../theme/tokens'
 import { isBrowser, portalHost } from '../utils/dom'
 
 // =============================================================================
@@ -91,12 +89,6 @@ export interface OverlayBackdropProps {
   opacity?: number
   /** Box shadow for the highlight ring */
   shadow?: string
-  /** CSS variable token path for the shadow */
-  shadowToken?: TourTokenPath
-  /**
-   * @deprecated Use `shadow` or `shadowToken` props instead. This is kept for backwards compatibility but has no effect.
-   */
-  shadowClassName?: string
   blurAmount?: number
   ariaHidden?: boolean
   /** Additional class name for the root element */
@@ -119,8 +111,6 @@ export const OverlayBackdrop = ({
   colorClassName: _colorClassName,
   opacity = 1,
   shadow,
-  shadowToken,
-  shadowClassName: _shadowClassName,
   blurAmount,
   ariaHidden,
   rootClassName,
@@ -161,19 +151,14 @@ export const OverlayBackdrop = ({
 
   // Compute blur value: use prop if provided, otherwise fall back to CSS var
   const resolvedBlur =
-    typeof blurAmount === 'number'
-      ? `${blurAmount}px`
-      : cssVar('overlay.blur', '0px')
+    typeof blurAmount === 'number' ? `${blurAmount}px` : '0px'
 
   const defaultInsetShadow =
     'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
 
-  const defaultRingVar = cssVar('overlay.ringShadow', defaultInsetShadow)
   const highlightAppearance = shadow
     ? { boxShadow: shadow }
-    : shadowToken
-      ? { boxShadow: cssVar(shadowToken) }
-      : { boxShadow: defaultRingVar }
+    : { boxShadow: defaultInsetShadow }
 
   const { MotionDiv, MotionSvg, MotionDefs, MotionMask, MotionRect } =
     adapter.components

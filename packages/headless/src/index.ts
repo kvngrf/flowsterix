@@ -34,13 +34,6 @@ export type {
   UseHudTargetIssueResult,
 } from '@flowsterix/react/headless'
 
-export { useHudAppearance } from '@flowsterix/react/headless'
-export type {
-  HudPopoverProps,
-  UseHudAppearanceOptions,
-  UseHudAppearanceResult,
-} from '@flowsterix/react/headless'
-
 export { useHudDescription } from '@flowsterix/react/headless'
 export type {
   UseHudDescriptionOptions,

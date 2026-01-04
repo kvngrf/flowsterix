@@ -22,7 +22,5 @@
     "lint": "eslint src --ext .ts",
     "test": "vitest run"
   },
-  "dependencies": {
-    "@flowsterix/react": "workspace:*"
-  }
+  "dependencies": {}
 }

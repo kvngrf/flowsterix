@@ -4,11 +4,6 @@ import { useMemo, useState } from 'react'
 
 import { useTour } from '../context'
 import { useBodyScrollLock } from './useBodyScrollLock'
-import type {
-  HudPopoverProps,
-  UseHudAppearanceResult,
-} from './useHudAppearance'
-import { useHudAppearance } from './useHudAppearance'
 import type { UseHudDescriptionResult } from './useHudDescription'
 import { useHudDescription } from './useHudDescription'
 import type { UseHudShortcutsOptions } from './useHudShortcuts'
@@ -40,7 +35,14 @@ export interface TourHudOverlayConfig {
   interactionMode: BackdropInteractionMode
 }
 
-export interface TourHudPopoverConfig extends HudPopoverProps {
+export interface TourHudPopoverConfig {
+  offset: number
+  role: string
+  ariaLabel?: string
+  ariaDescribedBy?: string
+  ariaModal: boolean
+  width?: number | string
+  maxWidth?: number | string
   placement?: Step<ReactNode>['placement']
 }
 
@@ -68,7 +70,6 @@ export interface UseTourHudResult {
   targetIssue: UseHudTargetIssueResult
   shouldLockBodyScroll: boolean
   shortcutsEnabled: boolean
-  tokens: UseHudAppearanceResult['tokens']
 }
 
 const DEFAULT_SHORTCUTS = true
@@ -86,28 +87,22 @@ export const useTourHud = (
 
   const { backdropInteraction, lockBodyScroll } = useTour()
   const hudState = useHudState()
-  const isRunning = Boolean(hudState.runningState)
   const disableDefaultHud = hudState.hudRenderMode === 'none'
   const [popoverNode, setPopoverNode] = useState<HTMLElement | null>(null)
 
-  const appearance = useHudAppearance({
-    overlayPadding,
-    overlayRadius,
-    flowHudOptions: hudState.flowHudOptions,
-    defaultBackdropInteraction: backdropInteraction,
-    defaultLockBodyScroll: lockBodyScroll,
-    isActive: isRunning,
-  })
+  const popoverOptions = hudState.flowHudOptions?.popover
 
   const description = useHudDescription({
     step: hudState.runningStep,
-    fallbackAriaDescribedBy: appearance.popover.ariaDescribedBy,
+    fallbackAriaDescribedBy: popoverOptions?.ariaDescribedBy,
   })
 
   const targetIssue = useHudTargetIssue(hudState.hudTarget)
 
   const shouldLockBodyScroll = Boolean(
-    bodyScrollLock && appearance.lockBodyScroll && hudState.focusTrapActive,
+    bodyScrollLock &&
+      (hudState.flowHudOptions?.behavior?.lockBodyScroll ?? lockBodyScroll) &&
+      hudState.focusTrapActive,
   )
   useBodyScrollLock(shouldLockBodyScroll)
 
@@ -123,17 +118,24 @@ export const useTourHud = (
   } satisfies UseHudShortcutsOptions)
 
   const overlay: TourHudOverlayConfig = {
-    padding: appearance.overlayPadding,
-    radius: appearance.overlayRadius,
-    interactionMode: appearance.backdropInteraction,
+    padding: overlayPadding,
+    radius: overlayRadius,
+    interactionMode:
+      hudState.flowHudOptions?.backdrop?.interaction ?? backdropInteraction,
   }
 
   const popover: TourHudPopoverConfig = useMemo(() => {
     return {
-      ...appearance.popover,
+      offset: popoverOptions?.offset ?? 16,
+      role: popoverOptions?.role ?? 'dialog',
+      ariaLabel: popoverOptions?.ariaLabel,
+      ariaDescribedBy: popoverOptions?.ariaDescribedBy,
+      ariaModal: popoverOptions?.ariaModal ?? false,
+      width: popoverOptions?.width,
+      maxWidth: popoverOptions?.maxWidth,
       placement: hudState.runningStep?.placement,
     }
-  }, [appearance.popover, hudState.runningStep?.placement])
+  }, [hudState.runningStep?.placement, popoverOptions])
 
   const descriptionResult: TourHudDescription = useMemo(() => {
     return {
@@ -162,6 +164,5 @@ export const useTourHud = (
     targetIssue,
     shouldLockBodyScroll,
     shortcutsEnabled,
-    tokens: appearance.tokens,
   }
 }

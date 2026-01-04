@@ -19,8 +19,6 @@ export interface TourOverlayProps {
   className?: string
   /** Additional class names for the backdrop layer */
   backdropClassName?: string
-  /** Additional class names for the highlight ring */
-  ringClassName?: string
   /** Padding around the highlighted target (default: 12) */
   padding?: number
   /** Border radius of the highlight cutout (default: 12) */
@@ -54,7 +52,6 @@ export interface TourOverlayProps {
 export function TourOverlay({
   className,
   backdropClassName,
-  ringClassName,
   padding = 12,
   radius = 12,
   edgeBuffer = 0,
@@ -97,7 +94,6 @@ export function TourOverlay({
       blurAmount={blurAmount}
       opacity={opacity}
       shadow={ringShadow}
-      shadowClassName={ringClassName}
       showHighlightRing={showRing}
       showInteractionBlocker={showInteractionBlocker}
       ariaHidden={ariaHidden}

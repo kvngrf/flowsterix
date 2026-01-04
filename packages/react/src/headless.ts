@@ -11,13 +11,6 @@ export type { TourTargetInfo } from './hooks/useTourTarget'
 export { useHudState } from './hooks/useHudState'
 export type { UseHudStateOptions, UseHudStateResult } from './hooks/useHudState'
 
-export { useHudAppearance } from './hooks/useHudAppearance'
-export type {
-  HudPopoverProps,
-  UseHudAppearanceOptions,
-  UseHudAppearanceResult,
-} from './hooks/useHudAppearance'
-
 export { useHudDescription } from './hooks/useHudDescription'
 export type {
   UseHudDescriptionOptions,
@@ -118,20 +111,6 @@ export type {
 
 export { useHudMotion } from './motion/useHudMotion'
 export type { UseHudMotionResult } from './motion/useHudMotion'
-
-export {
-  cssVar,
-  defaultTokens,
-  isTourTokenPath,
-  mergeTokens,
-  tokenPathToCssVar,
-} from './theme/tokens'
-export type {
-  TourTokenPath,
-  TourTokens,
-  TourTokensOverride,
-} from './theme/tokens'
-export { TokensProvider, useTourTokens } from './theme/TokensProvider'
 
 export {
   createPathString,

@@ -33,9 +33,6 @@ import {
   defaultAnimationAdapter,
   usePreferredAnimationAdapter,
 } from './motion/animationAdapter'
-import { TokensProvider } from './theme/TokensProvider'
-import type { TourTokensOverride } from './theme/tokens'
-import { defaultTokens, mergeTokens } from './theme/tokens'
 import { isBrowser } from './utils/dom'
 
 export interface DelayAdvanceInfo {
@@ -56,7 +53,6 @@ export interface TourProviderProps {
   animationAdapter?: AnimationAdapter
   reducedMotionAdapter?: AnimationAdapter
   autoDetectReducedMotion?: boolean
-  tokens?: TourTokensOverride
   analytics?: FlowAnalyticsHandlers<ReactNode>
   backdropInteraction?: BackdropInteractionMode
   lockBodyScroll?: boolean
@@ -108,7 +104,6 @@ export const TourProvider = ({
   animationAdapter: animationAdapterProp = defaultAnimationAdapter,
   reducedMotionAdapter,
   autoDetectReducedMotion = true,
-  tokens: tokenOverrides,
   analytics,
   backdropInteraction: backdropInteractionProp = 'passthrough',
   lockBodyScroll: lockBodyScrollProp = false,
@@ -523,18 +518,12 @@ export const TourProvider = ({
     enabled: autoDetectReducedMotion,
   })
 
-  const resolvedTokens = useMemo(() => {
-    return mergeTokens(defaultTokens, tokenOverrides)
-  }, [tokenOverrides])
-
   return (
-    <TokensProvider tokens={resolvedTokens}>
-      <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
-        <TourContext.Provider value={contextValue}>
-          {children}
-        </TourContext.Provider>
-      </AnimationAdapterProvider>
-    </TokensProvider>
+    <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
+      <TourContext.Provider value={contextValue}>
+        {children}
+      </TourContext.Provider>
+    </AnimationAdapterProvider>
   )
 }
 

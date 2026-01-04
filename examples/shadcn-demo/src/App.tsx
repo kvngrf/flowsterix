@@ -7,6 +7,7 @@ import { createFlow } from '@flowsterix/core'
 import { useRadixDialogAdapter, useTour } from '@flowsterix/headless'
 import { Bell, Settings, User, Zap } from 'lucide-react'
 
+import { StepContent, StepText, StepTitle } from '@/components/step-content'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -27,15 +28,10 @@ import {
 import { Progress } from '@/components/ui/progress'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  StepContent,
-  StepText,
-  StepTitle,
-} from '@/components/step-content'
 
-import { DelayProgressBar } from './components/tour/delay-progress-bar'
-import { TourHUD } from './components/tour/tour-hud'
-import { TourProvider } from './components/tour/tour-provider'
+import { DelayProgressBar } from './components/delay-progress-bar'
+import { TourHUD } from './components/tour-hud'
+import { TourProvider } from './components/tour-provider'
 import { Button } from './components/ui/button'
 
 // Helper to wait for next animation frame + microtask flush
@@ -150,7 +146,9 @@ const demoFlow = createFlow<ReactNode>({
       content: (
         <StepContent>
           <StepTitle>Content Tabs</StepTitle>
-          <StepText>Switch between different views. Try clicking the tabs!</StepText>
+          <StepText>
+            Switch between different views. Try clicking the tabs!
+          </StepText>
         </StepContent>
       ),
       advance: [{ type: 'manual' }],
@@ -222,8 +220,8 @@ const demoFlow = createFlow<ReactNode>({
         <StepContent>
           <StepTitle>Ready to Go!</StepTitle>
           <StepText>
-            That&apos;s it! Click &quot;Get Started&quot; to begin using the app,
-            or finish this tour.
+            That&apos;s it! Click &quot;Get Started&quot; to begin using the
+            app, or finish this tour.
           </StepText>
         </StepContent>
       ),

@@ -48,30 +48,20 @@
       "import": "./dist/router/nextPagesRouterAdapter.mjs",
       "require": "./dist/router/nextPagesRouterAdapter.cjs",
       "default": "./dist/router/nextPagesRouterAdapter.mjs"
-    },
-    "./styles.css": {
-      "default": "./dist/styles.css"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup --config tsup.config.ts --format esm,cjs --clean && tsc --build tsconfig.json --force && pnpm run build:css",
-    "build:css": "node_modules/.bin/tailwindcss -c tailwind.config.ts -i ./src/styles.css -o ./dist/styles.css --minify",
+    "build": "tsup --config tsup.config.ts --format esm,cjs --clean && tsc --build tsconfig.json --force",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
     "@flowsterix/core": "workspace:*",
-    "clsx": "^2.1.1",
-    "motion": "^12.23.24",
-    "tailwind-merge": "^2.5.3"
-  },
-  "devDependencies": {
-    "@tailwindcss/cli": "^4.1.16",
-    "tailwindcss": "^4.1.16"
+    "motion": "^12.23.24"
   },
   "peerDependencies": {
     "react": ">=18",

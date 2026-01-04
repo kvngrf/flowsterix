@@ -1,4 +1,4 @@
-import type { TourTokensOverride } from '@flowsterix/react'
+export type TourTokensOverride = Record<string, unknown>
 
 export const auroraTokens: TourTokensOverride = {
   font: {

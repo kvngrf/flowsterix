@@ -8,7 +8,6 @@ Install components directly from the registry:
 
 ```bash
 # Install individual components
-npx shadcn@latest add https://flowsterix.vercel.app/r/tour-popover.json
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-controls.json
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-overlay.json
 npx shadcn@latest add https://flowsterix.vercel.app/r/tour-progress.json
@@ -39,8 +38,8 @@ The build output will be in `public/r/` and can be served by any static file ser
 | --------------- | --------------------------------------------- |
 | `tour-provider` | Root provider for tour state management       |
 | `tour-overlay`  | Spotlight overlay with target highlighting    |
-| `tour-popover`  | Floating popover for step content             |
 | `tour-controls` | Navigation buttons (Back, Next, Skip)         |
+| `tour-popover-handle` | Drag handle for docked/manual popovers   |
 | `tour-progress` | Step progress indicator (dots, bar, fraction) |
 | `delay-progress-bar` | Countdown bar for auto-advance steps |
 | `tour-tooltip`  | Lightweight tooltip variant                   |
@@ -95,4 +94,4 @@ Components require these peer dependencies:
 
 - `@flowsterix/headless` - Flowsterix headless hooks and utilities
 - `motion` - Animation library (for animated components)
-- `@floating-ui/react` - Positioning (for popover/tooltip)
+- `@floating-ui/dom` - Positioning (for popover/tooltip)

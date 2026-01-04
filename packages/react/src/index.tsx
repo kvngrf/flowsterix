@@ -11,13 +11,6 @@ export type { TourTargetInfo } from './hooks/useTourTarget'
 export { useHudState } from './hooks/useHudState'
 export type { UseHudStateOptions, UseHudStateResult } from './hooks/useHudState'
 
-export { useHudAppearance } from './hooks/useHudAppearance'
-export type {
-  HudPopoverProps,
-  UseHudAppearanceOptions,
-  UseHudAppearanceResult,
-} from './hooks/useHudAppearance'
-
 export { useHudDescription } from './hooks/useHudDescription'
 export type {
   UseHudDescriptionOptions,
@@ -67,34 +60,18 @@ export type {
 export { useDelayAdvance } from './hooks/useDelayAdvance'
 export type { DelayAdvanceProgress } from './hooks/useDelayAdvance'
 
-export { TourOverlay } from './components/TourOverlay'
-export type { TourOverlayProps } from './components/TourOverlay'
-
 export { OverlayBackdrop } from './components/OverlayBackdrop'
 export type {
   OverlayBackdropProps,
   OverlayBackdropTransitionsOverride,
 } from './components/OverlayBackdrop'
 
-export { TourPopover, TourPopoverPortal } from './components/TourPopover'
+export { TourPopoverPortal } from './components/TourPopoverPortal'
 export type {
   TourPopoverLayoutMode,
   TourPopoverPortalProps,
   TourPopoverPortalRenderProps,
-  TourPopoverProps,
-} from './components/TourPopover'
-
-export { DelayProgressBar } from './components/DelayProgressBar'
-export type { DelayProgressBarProps } from './components/DelayProgressBar'
-
-export { TourControls } from './components/TourControls'
-export type { TourControlsProps } from './components/TourControls'
-
-export { TourHUD } from './components/TourHUD'
-export type { TourHUDProps, TourHUDRenderContext } from './components/TourHUD'
-
-export { TourRenderer } from './components/TourRenderer'
-export type { TourRendererProps } from './components/TourRenderer'
+} from './components/TourPopoverPortal'
 
 export { TourFocusManager } from './components/TourFocusManager'
 export type { TourFocusManagerProps } from './components/TourFocusManager'
@@ -116,20 +93,6 @@ export type {
 
 export { useHudMotion } from './motion/useHudMotion'
 export type { UseHudMotionResult } from './motion/useHudMotion'
-
-export {
-  cssVar,
-  defaultTokens,
-  isTourTokenPath,
-  mergeTokens,
-  tokenPathToCssVar,
-} from './theme/tokens'
-export type {
-  TourTokenPath,
-  TourTokens,
-  TourTokensOverride,
-} from './theme/tokens'
-export { TokensProvider, useTourTokens } from './theme/TokensProvider'
 
 export {
   createPathString,
