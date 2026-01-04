@@ -1,16 +1,13 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { StepContent, StepText, StepTitle } from '@/components/step-content'
 import { createFlow } from '@flowsterix/core'
-import {
-  StepContent,
-  StepText,
-  StepTitle,
-} from '@/components/step-content'
+import type { ReactNode } from 'react'
 
 export const demoFlow = createFlow<ReactNode>({
   id: 'next-demo',
   version: 1,
+  autoStart: true,
   steps: [
     {
       id: 'intro',
@@ -18,7 +15,9 @@ export const demoFlow = createFlow<ReactNode>({
       content: (
         <StepContent>
           <StepTitle size="lg">Next.js App Router tour</StepTitle>
-          <StepText>Flowsterix can follow you across pages and layouts.</StepText>
+          <StepText>
+            Flowsterix can follow you across pages and layouts.
+          </StepText>
         </StepContent>
       ),
       advance: [{ type: 'manual' }],
@@ -53,7 +52,9 @@ export const demoFlow = createFlow<ReactNode>({
       content: (
         <StepContent>
           <StepTitle>Settings ready</StepTitle>
-          <StepText>The tour resumes when the routed content is available.</StepText>
+          <StepText>
+            The tour resumes when the routed content is available.
+          </StepText>
         </StepContent>
       ),
       advance: [{ type: 'manual' }],

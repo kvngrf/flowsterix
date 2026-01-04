@@ -70,6 +70,7 @@ const demoFlow = createFlow<ReactNode>({
     backdrop: { interaction: 'block' },
   },
   resumeStrategy: 'current',
+  autoStart: true,
   version: 1,
   steps: [
     {

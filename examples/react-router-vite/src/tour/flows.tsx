@@ -1,14 +1,15 @@
-import type { ReactNode } from 'react'
-import { createFlow } from '@flowsterix/core'
 import {
   StepContent,
   StepHint,
   StepText,
   StepTitle,
 } from '@/components/step-content'
+import { createFlow } from '@flowsterix/core'
+import type { ReactNode } from 'react'
 
 export const demoFlow = createFlow<ReactNode>({
   id: 'react-router-demo',
+  autoStart: true,
   version: 1,
   steps: [
     {

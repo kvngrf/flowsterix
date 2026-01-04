@@ -1,13 +1,9 @@
 'use client'
 
+import { StepContent, StepText, StepTitle } from '@/components/step-content'
 import { createFlow } from '@flowsterix/core'
 import { useTour } from '@flowsterix/react'
 import * as React from 'react'
-import {
-  StepContent,
-  StepText,
-  StepTitle,
-} from '@/components/step-content'
 
 /**
  * Example onboarding flow demonstrating common patterns.
@@ -40,6 +36,7 @@ import {
 export const onboardingFlow = createFlow({
   id: 'onboarding',
   version: 1,
+  autoStart: true,
   steps: [
     // Step 1: Welcome screen (no target, centered modal)
     {
