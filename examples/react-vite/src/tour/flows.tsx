@@ -83,6 +83,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   // hud: {
   //   render: 'none',
   // },
+  autoStart: true,
   version: 1,
   steps: [
     {
@@ -253,7 +254,9 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
             Tours can guide users into feature-specific routes. Let&apos;s jump
             to the API Request demo next.
           </StepText>
-          <StepHint>Click this link—the tour will follow the navigation.</StepHint>
+          <StepHint>
+            Click this link—the tour will follow the navigation.
+          </StepHint>
         </StepContent>
       ),
     },
@@ -372,8 +375,8 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
               <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
                 @flowsterix/react
               </code>
-              . All the targeting, routing, and analytics logic still comes
-              from Flowsterix.
+              . All the targeting, routing, and analytics logic still comes from
+              Flowsterix.
             </StepText>
           </StepContent>
         ),

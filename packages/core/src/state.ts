@@ -4,6 +4,7 @@ import type { StorageAdapter, StorageSnapshot } from './storage'
 import { resolveMaybePromise } from './storage'
 import type {
   FlowAnalyticsHandlers,
+  FlowCancelReason,
   FlowDefinition,
   FlowErrorCode,
   FlowEvents,
@@ -30,7 +31,7 @@ interface CommitOptions {
   persist?: boolean
   emitLifecycle?: boolean
   preserveTimestamp?: boolean
-  cancelReason?: string
+  cancelReason?: FlowCancelReason
 }
 
 const DEFAULT_STORAGE_PREFIX = 'tour'
@@ -234,7 +235,7 @@ export const createFlowStore = <TContent>(
   const emitLifecycleEvents = (
     previousState: FlowState,
     currentState: FlowState,
-    lifecycleOptions?: { cancelReason?: string },
+    lifecycleOptions?: { cancelReason?: FlowCancelReason },
   ) => {
     if (previousState.status !== currentState.status) {
       if (currentState.status === 'running') {
@@ -459,7 +460,14 @@ export const createFlowStore = <TContent>(
       }
       targetIndex = index
     } else if (state.stepIndex >= 0) {
-      targetIndex = clampIndex(state.stepIndex, definition.steps.length - 1)
+      const canResumeFromStoredStep =
+        state.status === 'running' ||
+        state.status === 'paused' ||
+        (state.status === 'cancelled' && state.cancelReason === 'keyboard')
+
+      if (canResumeFromStoredStep) {
+        targetIndex = clampIndex(state.stepIndex, definition.steps.length - 1)
+      }
     }
 
     return commit({
@@ -557,7 +565,7 @@ export const createFlowStore = <TContent>(
     })
   }
 
-  const cancel = (reason?: string) => {
+  const cancel = (reason?: FlowCancelReason) => {
     if (state.status === 'cancelled') {
       return state
     }
@@ -567,6 +575,7 @@ export const createFlowStore = <TContent>(
         stepIndex: state.stepIndex,
         version: definition.version,
         updatedAt: state.updatedAt,
+        cancelReason: reason,
       },
       { cancelReason: reason },
     )

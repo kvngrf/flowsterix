@@ -27,7 +27,7 @@ export default function Header() {
   }
 
   const handleStopTour = () => {
-    cancel('user')
+    cancel('skipped')
   }
 
   return (

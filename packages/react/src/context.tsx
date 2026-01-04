@@ -2,6 +2,7 @@ import type {
   BackdropInteractionMode,
   EventBus,
   FlowAnalyticsHandlers,
+  FlowCancelReason,
   FlowDefinition,
   FlowEvents,
   FlowState,
@@ -11,7 +12,11 @@ import type {
   Step,
   StorageAdapter,
 } from '@flowsterix/core'
-import { createFlowStore, createLocalStorageAdapter } from '@flowsterix/core'
+import {
+  createFlowStore,
+  createLocalStorageAdapter,
+  resolveMaybePromise,
+} from '@flowsterix/core'
 import type {
   Dispatch,
   PropsWithChildren,
@@ -69,7 +74,7 @@ export interface TourContextValue {
   goToStep: (step: number | string) => FlowState
   pause: () => FlowState
   resume: () => FlowState
-  cancel: (reason?: string) => FlowState
+  cancel: (reason?: FlowCancelReason) => FlowState
   complete: () => FlowState
   events: EventBus<FlowEvents<ReactNode>> | null
   debugEnabled: boolean
@@ -83,6 +88,7 @@ export interface TourContextValue {
 }
 
 const TourContext = createContext<TourContextValue | undefined>(undefined)
+const DEFAULT_STORAGE_PREFIX = 'tour'
 
 const useFlowMap = (flows: Array<FlowDefinition<ReactNode>>) => {
   return useMemo(() => {
@@ -114,6 +120,7 @@ export const TourProvider = ({
   const stepHooksUnsubscribeRef = useRef<(() => void) | null>(null)
   const fallbackStorageRef = useRef<StorageAdapter | undefined>(undefined)
   const pendingResumeRef = useRef<Set<string>>(new Set())
+  const autoStartRequestedRef = useRef<string | null>(null)
 
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null)
   const [state, setState] = useState<FlowState | null>(null)
@@ -122,6 +129,10 @@ export const TourProvider = ({
   )
   const [debugEnabled, setDebugEnabled] = useState(defaultDebug)
   const [delayInfo, setDelayInfo] = useState<DelayAdvanceInfo | null>(null)
+
+  const autoStartFlow = useMemo(() => {
+    return flows.find((flow) => flow.autoStart)
+  }, [flows])
 
   const teardownStore = useCallback(() => {
     unsubscribeRef.current?.()
@@ -394,6 +405,63 @@ export const TourProvider = ({
     [ensureStore, resolveResumeStrategy, runResumeHooks],
   )
 
+  useEffect(() => {
+    if (!autoStartFlow) {
+      autoStartRequestedRef.current = null
+      return
+    }
+    if (activeFlowId) return
+    if (autoStartRequestedRef.current === autoStartFlow.id) return
+
+    autoStartRequestedRef.current = autoStartFlow.id
+    let cancelled = false
+
+    const maybeAutoStart = async () => {
+      if (!storageAdapter && !fallbackStorageRef.current && isBrowser) {
+        fallbackStorageRef.current = createLocalStorageAdapter()
+      }
+
+      const resolvedStorageAdapter = storageAdapter
+        ? storageAdapter
+        : fallbackStorageRef.current
+
+      if (!resolvedStorageAdapter) {
+        startFlow(autoStartFlow.id, { resume: true })
+        return
+      }
+
+      const storageKey = storageNamespace
+        ? `${storageNamespace}:${autoStartFlow.id}`
+        : `${DEFAULT_STORAGE_PREFIX}:${autoStartFlow.id}`
+
+      const snapshot = await resolveMaybePromise(
+        resolvedStorageAdapter.get(storageKey),
+      )
+
+      if (cancelled) return
+
+      if (snapshot && snapshot.version === autoStartFlow.version) {
+        const storedState = snapshot.value as FlowState
+        const isFinished = storedState.status === 'completed'
+        const isSkipped =
+          storedState.status === 'cancelled' &&
+          storedState.cancelReason === 'skipped'
+
+        if (isFinished || isSkipped) {
+          return
+        }
+      }
+
+      startFlow(autoStartFlow.id, { resume: true })
+    }
+
+    void maybeAutoStart()
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeFlowId, autoStartFlow, startFlow, storageAdapter, storageNamespace])
+
   const next = useCallback(() => getActiveStore().next(), [getActiveStore])
   const back = useCallback(() => getActiveStore().back(), [getActiveStore])
   const goToStep = useCallback(
@@ -428,7 +496,7 @@ export const TourProvider = ({
     return nextState
   }, [getActiveStore, resolveResumeStrategy, runResumeHooks])
   const cancel = useCallback(
-    (reason?: string) => getActiveStore().cancel(reason),
+    (reason?: FlowCancelReason) => getActiveStore().cancel(reason),
     [getActiveStore],
   )
   const complete = useCallback(

@@ -196,6 +196,7 @@ export const flowDefinitionSchema = z.object({
   steps: z.array(stepSchema).min(1),
   hud: hudSchema.optional(),
   resumeStrategy: resumeStrategySchema.optional(),
+  autoStart: z.boolean().optional(),
   metadata: z.record(z.string(), z.any()).optional(),
 })
 

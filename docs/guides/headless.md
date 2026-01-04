@@ -97,7 +97,7 @@ function HeadlessHud() {
           <button onClick={controls.goNext} disabled={!controls.canGoNext}>
             Next
           </button>
-          <button onClick={() => controls.cancel('headless-demo')}>Skip</button>
+          <button onClick={() => controls.cancel('skipped')}>Skip</button>
         </div>
       </div>
     </div>,

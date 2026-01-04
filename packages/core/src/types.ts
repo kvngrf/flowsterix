@@ -7,11 +7,14 @@ export type FlowStatus =
   | 'completed'
   | 'cancelled'
 
+export type FlowCancelReason = 'skipped' | 'keyboard'
+
 export interface FlowState {
   status: FlowStatus
   stepIndex: number
   version: number
   updatedAt: number
+  cancelReason?: FlowCancelReason
 }
 
 export type StepDirection = 'forward' | 'backward' | 'none'
@@ -221,6 +224,7 @@ export interface FlowDefinition<TContent = unknown> {
   steps: Array<Step<TContent>>
   hud?: FlowHudOptions
   resumeStrategy?: ResumeStrategy
+  autoStart?: boolean
   metadata?: Record<string, unknown>
 }
 
@@ -248,7 +252,7 @@ export interface FlowEvents<TContent = unknown>
   flowCancel: {
     flow: FlowDefinition<TContent>
     state: FlowState
-    reason?: string
+    reason?: FlowCancelReason
   }
   flowComplete: { flow: FlowDefinition<TContent>; state: FlowState }
   stepChange: {
@@ -292,7 +296,7 @@ export interface FlowStore<TContent = unknown> {
   goToStep: (step: number | string) => FlowState
   pause: () => FlowState
   resume: () => FlowState
-  cancel: (reason?: string) => FlowState
+  cancel: (reason?: FlowCancelReason) => FlowState
   complete: () => FlowState
   subscribe: (listener: (state: FlowState) => void) => () => void
   destroy: () => void
