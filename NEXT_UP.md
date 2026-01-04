@@ -30,7 +30,3 @@ How to run examples
 - `pnpm --filter @flowsterix/example-react-router-vite dev`
 - `pnpm --filter @flowsterix/example-next dev`
 - `pnpm --filter @flowsterix/shadcn-demo dev`
-
-TODO
-
-- Clean up `@flowsterix/react` exports now that shadcn components are the primary UI.

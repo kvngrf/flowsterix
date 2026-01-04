@@ -2,8 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@flowsterix/headless": ["packages/headless/src"],
-      "@flowsterix/react/headless": ["packages/react/src/headless.ts"]
+      "@flowsterix/react": ["packages/react/src/index.tsx"]
     },
     "target": "ES2022",
     "module": "ESNext",

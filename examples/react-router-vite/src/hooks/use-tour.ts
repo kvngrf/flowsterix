@@ -26,7 +26,7 @@ export {
   useTourHud,
   useTourOverlay,
   useTourTarget,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'
 
 export type {
   DelayAdvanceProgress,
@@ -35,4 +35,4 @@ export type {
   TourTargetInfo,
   UseTourHudResult,
   UseTourOverlayResult,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'

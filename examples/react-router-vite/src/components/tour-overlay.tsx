@@ -6,7 +6,7 @@ import {
   useTour,
   useTourOverlay,
   useTourTarget,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'
 
 import { cn } from '@/lib/utils'
 

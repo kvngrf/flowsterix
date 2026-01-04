@@ -5,12 +5,12 @@
   "title": "useTour Hook",
   "description": "Core hook for accessing tour state, controls, and active step information.",
   "dependencies": [
-    "@flowsterix/headless"
+    "@flowsterix/react"
   ],
   "files": [
     {
       "path": "registry/flowsterix/hooks/use-tour.ts",
-      "content": "'use client'\n\n/**\n * useTour hook - Access tour state and controls\n *\n * @example\n * ```tsx\n * import { useTour } from \"@/components/tour/hooks/use-tour\"\n *\n * function MyComponent() {\n *   const { state, activeStep, startFlow, next, back, cancel } = useTour()\n *\n *   return (\n *     <button onClick={() => startFlow(\"onboarding\")}>\n *       Start Tour\n *     </button>\n *   )\n * }\n * ```\n */\nexport {\n  useDelayAdvance,\n  useTour,\n  useTourControls,\n  useTourEvents,\n  useTourHud,\n  useTourOverlay,\n  useTourTarget,\n} from '@flowsterix/headless'\n\nexport type {\n  DelayAdvanceProgress,\n  TourContextValue,\n  TourControlsState,\n  TourTargetInfo,\n  UseTourHudResult,\n  UseTourOverlayResult,\n} from '@flowsterix/headless'\n",
+      "content": "'use client'\n\n/**\n * useTour hook - Access tour state and controls\n *\n * @example\n * ```tsx\n * import { useTour } from \"@/components/tour/hooks/use-tour\"\n *\n * function MyComponent() {\n *   const { state, activeStep, startFlow, next, back, cancel } = useTour()\n *\n *   return (\n *     <button onClick={() => startFlow(\"onboarding\")}>\n *       Start Tour\n *     </button>\n *   )\n * }\n * ```\n */\nexport {\n  useDelayAdvance,\n  useTour,\n  useTourControls,\n  useTourEvents,\n  useTourHud,\n  useTourOverlay,\n  useTourTarget,\n} from '@flowsterix/react'\n\nexport type {\n  DelayAdvanceProgress,\n  TourContextValue,\n  TourControlsState,\n  TourTargetInfo,\n  UseTourHudResult,\n  UseTourOverlayResult,\n} from '@flowsterix/react'\n",
       "type": "registry:hook"
     }
   ],

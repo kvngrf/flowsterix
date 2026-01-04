@@ -62,9 +62,6 @@ importers:
       '@flowsterix/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@flowsterix/headless':
-        specifier: workspace:*
-        version: link:../../packages/headless
       '@flowsterix/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -126,9 +123,6 @@ importers:
       '@flowsterix/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@flowsterix/headless':
-        specifier: workspace:*
-        version: link:../../packages/headless
       '@flowsterix/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -193,9 +187,9 @@ importers:
       '@flowsterix/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@flowsterix/headless':
+      '@flowsterix/react':
         specifier: workspace:*
-        version: link:../../packages/headless
+        version: link:../../packages/react
       '@flowsterix/themes':
         specifier: workspace:*
         version: link:../../packages/themes
@@ -311,9 +305,9 @@ importers:
       '@flowsterix/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@flowsterix/headless':
+      '@flowsterix/react':
         specifier: workspace:*
-        version: link:../../packages/headless
+        version: link:../../packages/react
       '@radix-ui/react-avatar':
         specifier: ^1.1.11
         version: 1.1.11(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -409,18 +403,6 @@ importers:
         specifier: ^4.1.11
         version: 4.1.12
 
-  packages/headless:
-    dependencies:
-      '@flowsterix/react':
-        specifier: workspace:*
-        version: link:../react
-      react:
-        specifier: '>=18'
-        version: 19.2.0
-      react-dom:
-        specifier: '>=18'
-        version: 19.2.0(react@19.2.0)
-
   packages/react:
     dependencies:
       '@floating-ui/dom':
@@ -456,9 +438,9 @@ importers:
       '@flowsterix/core':
         specifier: workspace:*
         version: link:../core
-      '@flowsterix/headless':
+      '@flowsterix/react':
         specifier: workspace:*
-        version: link:../headless
+        version: link:../react
       motion:
         specifier: '>=11'
         version: 12.23.24(react-dom@19.2.1(react@19.2.1))(react@19.2.1)

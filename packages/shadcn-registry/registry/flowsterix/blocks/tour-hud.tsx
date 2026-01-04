@@ -1,7 +1,7 @@
 'use client'
 
 import type { StepPlacement } from '@flowsterix/core'
-import type { UseHudShortcutsOptions } from '@flowsterix/headless'
+import type { UseHudShortcutsOptions } from '@flowsterix/react'
 import {
   OverlayBackdrop,
   TourFocusManager,
@@ -9,7 +9,7 @@ import {
   useHudMotion,
   useTourHud,
   useTourOverlay,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'
 import { AnimatePresence, motion } from 'motion/react'
 import * as React from 'react'
 import { createPortal } from 'react-dom'

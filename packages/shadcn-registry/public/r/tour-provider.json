@@ -5,13 +5,13 @@
   "title": "Tour Provider",
   "description": "The root provider component that manages tour state and flow definitions.",
   "dependencies": [
-    "@flowsterix/headless",
+    "@flowsterix/react",
     "motion"
   ],
   "files": [
     {
       "path": "registry/flowsterix/tour-provider.tsx",
-      "content": "'use client'\n\nimport type { TourProviderProps as HeadlessTourProviderProps } from '@flowsterix/headless'\nimport { TourProvider as HeadlessTourProvider } from '@flowsterix/headless'\n\nexport type TourProviderProps = HeadlessTourProviderProps\n\n/**\n * Tour provider that wraps your application and manages tour state.\n *\n * @example\n * ```tsx\n * import { TourProvider } from \"@/components/tour/tour-provider\"\n * import { onboardingFlow } from \"@/lib/tours/onboarding\"\n *\n * export function App() {\n *   return (\n *     <TourProvider flows={[onboardingFlow]}>\n *       <YourApp />\n *     </TourProvider>\n *   )\n * }\n * ```\n */\nexport function TourProvider({\n  storageNamespace = 'flowsterix',\n  persistOnChange = true,\n  children,\n  ...props\n}: TourProviderProps) {\n  return (\n    <HeadlessTourProvider\n      {...props}\n      storageNamespace={storageNamespace}\n      persistOnChange={persistOnChange}\n    >\n      {children}\n    </HeadlessTourProvider>\n  )\n}\n\n// Re-export useful types and utilities\nexport { createFlow } from '@flowsterix/core'\nexport type {\n  AdvanceRule,\n  FlowDefinition,\n  FlowState,\n  Step,\n} from '@flowsterix/core'\nexport { useTour, useTourEvents } from '@flowsterix/headless'\n",
+      "content": "'use client'\n\nimport type { TourProviderProps as HeadlessTourProviderProps } from '@flowsterix/react'\nimport { TourProvider as HeadlessTourProvider } from '@flowsterix/react'\n\nexport type TourProviderProps = HeadlessTourProviderProps\n\n/**\n * Tour provider that wraps your application and manages tour state.\n *\n * @example\n * ```tsx\n * import { TourProvider } from \"@/components/tour/tour-provider\"\n * import { onboardingFlow } from \"@/lib/tours/onboarding\"\n *\n * export function App() {\n *   return (\n *     <TourProvider flows={[onboardingFlow]}>\n *       <YourApp />\n *     </TourProvider>\n *   )\n * }\n * ```\n */\nexport function TourProvider({\n  storageNamespace = 'flowsterix',\n  persistOnChange = true,\n  children,\n  ...props\n}: TourProviderProps) {\n  return (\n    <HeadlessTourProvider\n      {...props}\n      storageNamespace={storageNamespace}\n      persistOnChange={persistOnChange}\n    >\n      {children}\n    </HeadlessTourProvider>\n  )\n}\n\n// Re-export useful types and utilities\nexport { createFlow } from '@flowsterix/core'\nexport type {\n  AdvanceRule,\n  FlowDefinition,\n  FlowState,\n  Step,\n} from '@flowsterix/core'\nexport { useTour, useTourEvents } from '@flowsterix/react'\n",
       "type": "registry:component"
     }
   ],

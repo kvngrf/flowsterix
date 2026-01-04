@@ -1,6 +1,6 @@
 'use client'
 
-import type { TourPopoverPortalRenderProps } from '@flowsterix/headless'
+import type { TourPopoverPortalRenderProps } from '@flowsterix/react'
 
 import { cn } from '@/lib/utils'
 

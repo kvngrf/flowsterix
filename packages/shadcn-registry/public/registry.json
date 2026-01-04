@@ -8,7 +8,7 @@
       "type": "registry:component",
       "title": "Tour Provider",
       "description": "The root provider component that manages tour state and flow definitions.",
-      "dependencies": ["@flowsterix/headless", "motion"],
+      "dependencies": ["@flowsterix/react", "motion"],
       "files": [
         {
           "path": "registry/flowsterix/tour-provider.tsx",
@@ -22,7 +22,7 @@
       "type": "registry:component",
       "title": "Tour Overlay",
       "description": "Production-quality spotlight overlay with SVG masking, backdrop blur, spring animations, and highlight ring effects.",
-      "dependencies": ["@flowsterix/headless", "motion"],
+      "dependencies": ["@flowsterix/react", "motion"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -37,7 +37,7 @@
       "type": "registry:component",
       "title": "Tour Popover Handle",
       "description": "Drag handle for moving the tour popover.",
-      "dependencies": ["@flowsterix/headless"],
+      "dependencies": ["@flowsterix/react"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -52,7 +52,7 @@
       "type": "registry:component",
       "title": "Tour Controls",
       "description": "Navigation buttons (Back, Next, Skip) with proper state management via useTourControls hook.",
-      "dependencies": ["@flowsterix/headless", "motion"],
+      "dependencies": ["@flowsterix/react", "motion"],
       "registryDependencies": ["tour-provider", "button"],
       "files": [
         {
@@ -71,7 +71,7 @@
       "type": "registry:component",
       "title": "Tour Progress",
       "description": "A step progress indicator showing current position in the tour.",
-      "dependencies": ["@flowsterix/headless"],
+      "dependencies": ["@flowsterix/react"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -86,7 +86,7 @@
       "type": "registry:component",
       "title": "Delay Progress Bar",
       "description": "Countdown progress bar for auto-advance delay steps.",
-      "dependencies": ["@flowsterix/headless"],
+      "dependencies": ["@flowsterix/react"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -101,7 +101,7 @@
       "type": "registry:component",
       "title": "Tour Tooltip",
       "description": "A lightweight tooltip variant for simpler tour implementations.",
-      "dependencies": ["@flowsterix/headless"],
+      "dependencies": ["@flowsterix/react"],
       "registryDependencies": ["tour-provider"],
       "files": [
         {
@@ -129,7 +129,7 @@
       "type": "registry:hook",
       "title": "useTour Hook",
       "description": "Core hook for accessing tour state, controls, and active step information.",
-      "dependencies": ["@flowsterix/headless"],
+      "dependencies": ["@flowsterix/react"],
       "files": [
         {
           "path": "registry/flowsterix/hooks/use-tour.ts",
@@ -143,7 +143,7 @@
       "type": "registry:block",
       "title": "Tour HUD",
       "description": "Complete heads-up display with SVG spotlight overlay, smart popover positioning, blur effects, and navigation controls.",
-      "dependencies": ["@flowsterix/headless", "motion", "@floating-ui/dom"],
+      "dependencies": ["@flowsterix/react", "motion", "@floating-ui/dom"],
       "registryDependencies": [
         "tour-provider",
         "tour-controls",
@@ -164,7 +164,7 @@
       "type": "registry:block",
       "title": "Onboarding Flow Example",
       "description": "A complete onboarding tour example with welcome screen, feature highlights, and completion step.",
-      "dependencies": ["@flowsterix/headless", "motion"],
+      "dependencies": ["@flowsterix/react", "motion"],
       "registryDependencies": ["tour-hud", "step-content"],
       "files": [
         {

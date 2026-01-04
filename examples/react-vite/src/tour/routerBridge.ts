@@ -4,4 +4,4 @@ export {
   getTourRouter,
   setTanStackRouter,
   setTourRouter,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'

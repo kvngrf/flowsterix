@@ -1,6 +1,6 @@
 'use client'
 
-import { useHudMotion, useTour, useTourControls } from '@flowsterix/headless'
+import { useHudMotion, useTour, useTourControls } from '@flowsterix/react'
 import { AnimatePresence, motion } from 'motion/react'
 
 import { Button } from '@/components/ui/button'

@@ -370,7 +370,7 @@ export const headlessDemoFlow: FlowDefinition<ReactNode> =
             <StepText>
               This flow renders a bespoke overlay and controls powered by{' '}
               <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                @flowsterix/headless
+                @flowsterix/react
               </code>
               . All the targeting, routing, and analytics logic still comes
               from Flowsterix.

@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Play, Sparkles, Wand2 } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { useTour } from '@flowsterix/headless'
+import { useTour } from '@flowsterix/react'
 
 import { HeadlessHUD } from '../../tour/HeadlessHUD'
 
@@ -46,7 +46,7 @@ function HeadlessDemoPage() {
             Compose your own tour HUD
           </h1>
           <p className="text-lg text-slate-300 max-w-3xl mx-auto">
-            The `@flowsterix/headless` package exposes the provider, hooks, and
+            The `@flowsterix/react` package exposes the provider, hooks, and
             router helpers without shipping styles. Use it to draw highlights,
             popovers, and controls that perfectly match your brand.
           </p>

@@ -1,7 +1,7 @@
 'use client'
 
 import { createFlow } from '@flowsterix/core'
-import { useTour } from '@flowsterix/headless'
+import { useTour } from '@flowsterix/react'
 import * as React from 'react'
 import {
   StepContent,

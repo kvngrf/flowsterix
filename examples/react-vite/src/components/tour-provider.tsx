@@ -1,7 +1,7 @@
 'use client'
 
-import type { TourProviderProps as HeadlessTourProviderProps } from '@flowsterix/headless'
-import { TourProvider as HeadlessTourProvider } from '@flowsterix/headless'
+import type { TourProviderProps as HeadlessTourProviderProps } from '@flowsterix/react'
+import { TourProvider as HeadlessTourProvider } from '@flowsterix/react'
 
 export type TourProviderProps = HeadlessTourProviderProps
 
@@ -47,4 +47,4 @@ export type {
   FlowState,
   Step,
 } from '@flowsterix/core'
-export { useTour, useTourEvents } from '@flowsterix/headless'
+export { useTour, useTourEvents } from '@flowsterix/react'

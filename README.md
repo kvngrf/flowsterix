@@ -16,7 +16,7 @@ This repo ships with multiple demo apps showing different integrations:
 - `examples/react-vite` (TanStack Router + themes)
 - `examples/react-router-vite` (React Router + route adapter)
 - `examples/next` (Next.js App Router + route adapter)
-- `examples/shadcn-demo` (shadcn + headless HUD)
+- `examples/shadcn-demo` (shadcn HUD)
 
 Run any example with the root scripts:
 
@@ -49,38 +49,15 @@ pnpm test
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
-### Tour HUD Styles
+### Tour HUD UI
 
-When using the `@flowsterix/react` package, import its bundled CSS once in your application entry point so the overlay and popover render with the correct styles:
+Flowsterix no longer ships a default HUD stylesheet. The UI lives in the shadcn registry components, which you sync into each app and customize with Tailwind or your own CSS variables.
 
-```ts
-import '@flowsterix/react/styles.css'
-```
-
-See `docs/guides/theming.md` for the full list of CSS variables and `data-tour-*` hooks you can override to match your design system.
-
-#### Theme presets
-
-Prefer to start from an opinionated palette? Install `@flowsterix/themes` from this workspace to grab drop-in token overrides:
-
-```tsx
-import { auroraTokens } from '@flowsterix/themes'
-import { TourProvider } from '@flowsterix/react'
-
-export function App() {
-  return (
-    <TourProvider flows={flows} tokens={auroraTokens}>
-      {/* ... */}
-    </TourProvider>
-  )
-}
-```
-
-The package also exposes `listTourThemePresets()` so you can build a selector UI with matching metadata (id, label, description) for each preset before applying the token overrides.
+See `docs/guides/theming.md` for the current theming approach and `packages/shadcn-registry/README.md` for the registry workflow.
 
 ### Headless React bindings
 
-Need total control over the markup, styling, and controls? Install the new `@flowsterix/headless` package. It re-exports the Flowsterix provider, hooks, router adapters, and animation utilities without bundling any HUD components or CSS, so you can render your own overlay/popover/buttons from scratch:
+Need total control over the markup, styling, and controls? Use `@flowsterix/react` directly. It ships the Flowsterix provider, hooks, router adapters, and animation utilities without bundling any HUD components or CSS, so you can render your own overlay/popover/buttons from scratch:
 
 ```tsx
 import {
@@ -88,7 +65,7 @@ import {
   useTour,
   useTourTarget,
   useTourControls,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'
 
 export function App() {
   return (
@@ -99,20 +76,20 @@ export function App() {
 }
 ```
 
-Set `hud: { render: 'none' }` on any flow you plan to render yourself so the built-in `TourHUD` stays hidden while your custom overlay runs.
+Set `hud: { render: 'none' }` on any flow you plan to render yourself so any HUD you mount can opt out cleanly.
 
 See `docs/guides/headless.md` for a complete walkthrough, including a minimal highlight and popover implementation you can paste into your project.
 
 #### Fast-tracking custom HUDs
 
-Skip the wiring by importing `useTourHud` from `@flowsterix/headless`. It bundles the same behavior as the default HUD—body scroll locking, keyboard shortcuts, focus management, ARIA wiring, and target diagnostics—so you only provide markup:
+Skip the wiring by importing `useTourHud` from `@flowsterix/react`. It bundles the same behavior as the default HUD—body scroll locking, keyboard shortcuts, focus management, ARIA wiring, and target diagnostics—so you only provide markup:
 
 ```tsx
 import {
   TourFocusManager,
   TourPopoverPortal,
   useTourHud,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'
 
 function CustomHud() {
   const hud = useTourHud()

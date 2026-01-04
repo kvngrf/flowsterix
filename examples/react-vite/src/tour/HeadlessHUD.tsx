@@ -9,7 +9,7 @@ import {
   useTourControls,
   useTourHud,
   useTourOverlay,
-} from '@flowsterix/headless'
+} from '@flowsterix/react'
 
 import { HoldToSkipButton } from './HoldToSkipButton'
 

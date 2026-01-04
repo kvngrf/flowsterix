@@ -57,6 +57,9 @@ export type {
   UseTourFocusDominanceResult,
 } from './hooks/useTourFocusDominance'
 
+export { useTourControls } from './hooks/useTourControls'
+export type { TourControlsState } from './hooks/useTourControls'
+
 export { useDelayAdvance } from './hooks/useDelayAdvance'
 export type { DelayAdvanceProgress } from './hooks/useDelayAdvance'
 
@@ -93,6 +96,21 @@ export type {
 
 export { useHudMotion } from './motion/useHudMotion'
 export type { UseHudMotionResult } from './motion/useHudMotion'
+
+export { useAdvanceRules } from './hooks/useAdvanceRules'
+export { useBodyScrollLock } from './hooks/useBodyScrollLock'
+export { useHiddenTargetFallback } from './hooks/useHiddenTargetFallback'
+export type {
+  UseHiddenTargetFallbackConfig,
+  UseHiddenTargetFallbackResult,
+} from './hooks/useHiddenTargetFallback'
+export { useViewportRect } from './hooks/useViewportRect'
+
+export { createWaitForPredicateController } from './hooks/waitForPredicate'
+export type {
+  WaitForPredicateController,
+  WaitForPredicateControllerOptions,
+} from './hooks/waitForPredicate'
 
 export {
   createPathString,

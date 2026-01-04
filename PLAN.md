@@ -29,7 +29,7 @@
 - [x] StorageAdapter interface with LocalStorage implementation
 - [x] RouterAdapter interface without runtime dependency
 - [x] Event bus with analytics hooks
-- [x] `@flowsterix/react` bindings (Provider, hooks, components)
+- [x] `@flowsterix/react` bindings (Provider, hooks, headless utilities)
 - [x] AnimationAdapter using Framer Motion
 - [x] Router adapters (React Router, Next App/Pages, TanStack) exported via `@flowsterix/react`
 - [x] Optional packages (`@flowsterix/themes`, example apps)
@@ -44,7 +44,7 @@
 ## 4. React Binding API (DX-focused)
 
 - [x] `createFlow` helper with strong typing
-- [x] `<TourProvider>`, `useTour`, and `TourRenderer`
+- [x] `<TourProvider>`, `useTour`, and headless hooks (UI lives in shadcn registry)
 - [x] Sample flow definition mirroring onboarding use case
 - [ ] Optional declarative `<Flow>` / `<Step>` API behind feature flag or later roadmap
 
@@ -107,11 +107,11 @@
 ## 12. Packaging and Repo Layout
 
 - [x] Monorepo via pnpm + Turborepo with workspace packages
-- [x] `packages/core`, `packages/react`, `packages/headless`, `packages/themes`, `packages/shadcn-registry` scaffolded
+- [x] `packages/core`, `packages/react`, `packages/themes`, `packages/shadcn-registry` scaffolded
 - [x] `examples/react-vite`
 - [x] `examples/shadcn-demo`
 - [x] `examples/next`
-- [x] Build tooling with tsup (ESM, CJS, d.ts) in core/react/headless
+- [x] Build tooling with tsup (ESM, CJS, d.ts) in core/react
 - [ ] Add `sideEffects` flags where safe
 - [x] Peer dependency declarations for react/react-dom + router/next in `@flowsterix/react`
 - [ ] Decide peer/dependency policy for Motion and Floating UI
@@ -122,7 +122,7 @@
 
 - [x] Zod schemas plus invariant error codes with actionable tips
 - [x] Debug mode overlay for step diagnostics
-- [x] Theming tokens via CSS variables (spacing, radii, shadows)
+- [x] UI theming handled in shadcn components (no react package tokens)
 - [x] Analytics hooks (`onFlowStart`, `onStepEnter`, `onStepComplete`, `onFlowComplete`)
 
 ## 14. Roadmap After MVP

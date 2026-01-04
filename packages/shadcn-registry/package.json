@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@flowsterix/core": "workspace:*",
-    "@flowsterix/headless": "workspace:*"
+    "@flowsterix/react": "workspace:*"
   },
   "devDependencies": {
     "shadcn": "^2.5.0"

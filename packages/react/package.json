@@ -13,12 +13,6 @@
       "require": "./dist/index.cjs",
       "default": "./dist/index.mjs"
     },
-    "./headless": {
-      "types": "./dist/headless.d.ts",
-      "import": "./dist/headless.mjs",
-      "require": "./dist/headless.cjs",
-      "default": "./dist/headless.mjs"
-    },
     "./router": {
       "types": "./dist/router/index.d.ts",
       "import": "./dist/router/index.mjs",

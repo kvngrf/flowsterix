@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 
 import { createFlow } from '@flowsterix/core'
-import { useRadixDialogAdapter, useTour } from '@flowsterix/headless'
+import { useRadixDialogAdapter, useTour } from '@flowsterix/react'
 import { Bell, Settings, User, Zap } from 'lucide-react'
 
 import { StepContent, StepText, StepTitle } from '@/components/step-content'

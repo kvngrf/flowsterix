@@ -1,6 +1,6 @@
 'use client'
 
-import { useDelayAdvance } from '@flowsterix/headless'
+import { useDelayAdvance } from '@flowsterix/react'
 
 import { cn } from '@/lib/utils'
 

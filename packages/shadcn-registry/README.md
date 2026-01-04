@@ -92,6 +92,6 @@ Customize them by:
 
 Components require these peer dependencies:
 
-- `@flowsterix/headless` - Flowsterix headless hooks and utilities
+- `@flowsterix/react` - Flowsterix headless hooks and utilities
 - `motion` - Animation library (for animated components)
 - `@floating-ui/dom` - Positioning (for popover/tooltip)
