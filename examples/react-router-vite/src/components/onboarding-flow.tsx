@@ -1,6 +1,10 @@
 'use client'
 
-import { StepContent, StepText, StepTitle } from '@/components/step-content'
+import {
+  StepContent,
+  StepText,
+  StepTitle,
+} from '@/components/step-content'
 import { createFlow } from '@flowsterix/core'
 import { useTour } from '@flowsterix/react'
 import * as React from 'react'

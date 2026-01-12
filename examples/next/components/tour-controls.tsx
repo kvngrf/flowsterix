@@ -71,7 +71,7 @@ export function TourControls({
           layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
         }}
       >
-        <AnimatePresence initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           {showBackButton && (
             <motion.div
               key="tour-control-back"
