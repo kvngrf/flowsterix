@@ -287,16 +287,21 @@ export const TourFocusManager = ({
           const targetEnd = guardNodesRef.current['target-end']
           const popoverStart = guardNodesRef.current['popover-start']
           const popoverEnd = guardNodesRef.current['popover-end']
+          const hasTargetGuards = Boolean(targetStart && targetEnd)
 
           const nextGuard =
             direction === 'forward'
               ? key === 'target-end'
                 ? popoverStart
                 : key === 'popover-end'
-                  ? targetStart
+                  ? hasTargetGuards
+                    ? targetStart
+                    : popoverStart
                   : null
               : key === 'popover-start'
-                ? targetEnd
+                ? hasTargetGuards
+                  ? targetEnd
+                  : popoverEnd
                 : key === 'target-start'
                   ? popoverEnd
                   : null
