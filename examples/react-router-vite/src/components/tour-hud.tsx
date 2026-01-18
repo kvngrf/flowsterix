@@ -97,6 +97,8 @@ export interface TourHUDProps {
   }
   /** Keyboard shortcut configuration */
   shortcuts?: boolean | UseHudShortcutsOptions
+  /** Focus ring offset in pixels for the highlight guard ring (default: 2) */
+  focusRingOffset?: number
   /** Custom content to render inside the popover (overrides step content) */
   children?: React.ReactNode
   /** Custom step content renderer */
@@ -146,6 +148,7 @@ export function TourHUD({
   controls = {},
   progress = { show: false, variant: 'dots', position: 'bottom', size: 'sm' },
   shortcuts = { escape: false },
+  focusRingOffset,
   children,
   renderContent,
 }: TourHUDProps) {
@@ -225,6 +228,8 @@ export function TourHUD({
         active={focusManager.active}
         target={focusManager.target}
         popoverNode={focusManager.popoverNode}
+        highlightRect={overlayGeometry.highlight.rect}
+        targetRingOffset={focusRingOffset}
       />
 
       {/* Spotlight overlay with SVG masking and animations */}
@@ -306,7 +311,7 @@ export function TourHUD({
                       isDragging={isDragging}
                     />
                   ) : null}
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence mode="popLayout">
                     <Content
                       key={contentKey}
                       {...restContentProps}
@@ -324,7 +329,9 @@ export function TourHUD({
                       )}
 
                       {/* Step content */}
-                      <div>{children ?? stepContent}</div>
+                      <motion.div layout="position">
+                        {children ?? stepContent}
+                      </motion.div>
 
                       {/* Target issue warning */}
                       {targetIssue.issue && (

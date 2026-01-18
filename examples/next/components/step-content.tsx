@@ -10,7 +10,11 @@ export interface StepContentProps
 
 export function StepContent({ className, ...props }: StepContentProps) {
   return (
-    <motion.div layout className={cn('grid gap-3', className)} {...props} />
+    <motion.div
+      layout="position"
+      className={cn('grid gap-3', className)}
+      {...props}
+    />
   )
 }
 
@@ -26,6 +30,7 @@ export function StepTitle({
 }: StepTitleProps) {
   return (
     <motion.h2
+      layout="position"
       className={cn(
         size === 'lg' ? 'text-xl' : 'text-lg',
         'font-semibold leading-tight',
@@ -42,6 +47,7 @@ export interface StepTextProps
 export function StepText({ className, ...props }: StepTextProps) {
   return (
     <motion.p
+      layout="position"
       className={cn('text-sm text-muted-foreground leading-relaxed', className)}
       {...props}
     />
@@ -54,6 +60,7 @@ export interface StepHintProps
 export function StepHint({ className, ...props }: StepHintProps) {
   return (
     <motion.p
+      layout="position"
       className={cn(
         'text-sm text-muted-foreground leading-relaxed italic',
         className,
