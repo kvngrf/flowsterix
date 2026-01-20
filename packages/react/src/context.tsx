@@ -459,6 +459,9 @@ export const TourProvider = ({
 
     return () => {
       cancelled = true
+      if (!activeFlowId) {
+        autoStartRequestedRef.current = null
+      }
     }
   }, [activeFlowId, autoStartFlow, startFlow, storageAdapter, storageNamespace])
 
