@@ -4,11 +4,36 @@ Flowsterix ships with opinionated accessibility support so you can keep onboardi
 
 ## Focus Management
 
-While a tour step is active, keyboard focus stays inside the popover and the highlighted target. Tabbing cycles through the popover controls first, then any focusable elements inside the current target. When the tour closes, focus returns to wherever it started.
+While a tour step is active, keyboard focus stays inside the popover and the highlighted target. Flowsterix inserts two hidden focus guards around the target and two around the popover to preserve native tabbing while keeping focus trapped. This keeps `:focus-visible` styles consistent while still allowing keyboard users to reach both regions. When the tour closes, focus returns to wherever it started.
+
+When a step targets `screen` (no element), Flowsterix falls back to a popover-only loop: the popover guards wrap to each other so focus never leaves the popover.
 
 If you need to exclude an element from the trap, add `data-tour-focus-skip="true"` anywhere in its ancestor chain. This is useful for decorative buttons or utility controls that should remain reachable by screen readers but not considered part of the interaction loop.
 
 Target descriptions (`target.description`) are announced via an off-screen description that is referenced by the popover’s `aria-describedby`, so users get context about what the highlight represents.
+
+### Guard focus indicators
+
+When focus lands on a guard, Flowsterix can render a highlight ring around the spotlight cutout. Pass `highlightRect` and `targetRingOffset` to `TourFocusManager` to align the ring with the overlay geometry and control the offset:
+
+```tsx
+const overlayGeometry = useTourOverlay({
+  target: hudState.hudTarget,
+  padding: overlay.padding,
+  radius: overlay.radius,
+  interactionMode: overlay.interactionMode,
+})
+
+<TourFocusManager
+  active={focusManager.active}
+  target={focusManager.target}
+  popoverNode={focusManager.popoverNode}
+  highlightRect={overlayGeometry.highlight.rect}
+  targetRingOffset={2}
+/>
+```
+
+The guard elements also carry `data-tour-prevent-shortcut="true"` so HUD shortcuts do not advance steps when a guard is focused.
 
 ## Dominating Other Focus Traps
 

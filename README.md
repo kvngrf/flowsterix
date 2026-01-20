@@ -89,11 +89,19 @@ import {
   TourFocusManager,
   TourPopoverPortal,
   useTourHud,
+  useTourOverlay,
 } from '@flowsterix/react'
 
 function CustomHud() {
   const hud = useTourHud()
-  const { hudState, popover, description, focusManager, targetIssue } = hud
+  const { hudState, popover, description, focusManager, targetIssue, overlay } =
+    hud
+  const overlayGeometry = useTourOverlay({
+    target: hudState.hudTarget,
+    padding: overlay.padding,
+    radius: overlay.radius,
+    interactionMode: overlay.interactionMode,
+  })
 
   if (!hudState.shouldRender || !hudState.runningStep) return null
 
@@ -103,6 +111,8 @@ function CustomHud() {
         active={focusManager.active}
         target={focusManager.target}
         popoverNode={focusManager.popoverNode}
+        highlightRect={overlayGeometry.highlight.rect}
+        targetRingOffset={2}
       />
       <TourPopoverPortal
         target={hudState.hudTarget}
