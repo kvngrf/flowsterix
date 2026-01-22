@@ -73,9 +73,10 @@ const ensureMenuClosed = () => {
   if (!(panel instanceof HTMLElement)) return
   const isClosed = panel.classList.contains('-translate-x-full')
   if (isClosed) return
-  const trigger = document.querySelector('[data-tour-target="menu-button"]')
-  if (trigger instanceof HTMLElement) {
-    trigger.click()
+  // Click the close button inside the panel, not the menu-button (which only opens)
+  const closeButton = panel.querySelector('[aria-label="Close menu"]')
+  if (closeButton instanceof HTMLElement) {
+    closeButton.click()
   }
 }
 
@@ -193,7 +194,9 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         ensureMenuOpen()
         ensureSsrGroupExpanded()
       },
-      onExit: () => ensureMenuClosed(),
+      onExit: () => {
+        setTimeout(() => ensureMenuClosed(), 0)
+      },
       placement: 'right',
       advance: [{ type: 'delay', ms: 2000 }],
       content: <DelayDemoContent />,
@@ -208,7 +211,9 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         scrollMargin: { top: STICKY_HEADER_OFFSET },
         scrollMode: 'center',
       },
-      onEnter: () => ensureMenuClosed(),
+      onEnter: () => {
+        setTimeout(() => ensureMenuClosed(), 0)
+      },
       onResume: () => ensureMenuClosed(),
       placement: 'top',
       advance: [{ type: 'manual' }],
@@ -257,6 +262,9 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         description: 'Link to the API request demo route',
       },
       placement: 'right',
+      onEnter: () => ensureMenuOpen(),
+      onResume: () => ensureMenuOpen(),
+      onExit: () => ensureMenuClosed(),
       advance: [{ type: 'route', to: '/demo/start/api-request' }],
       content: (
         <StepContent>
