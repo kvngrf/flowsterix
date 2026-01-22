@@ -1,0 +1,22 @@
+{
+  "name": "@flowsterix/video",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion render MarketingVideo out/marketing.mp4",
+    "preview": "remotion preview"
+  },
+  "dependencies": {
+    "remotion": "^4.0.242",
+    "@remotion/cli": "^4.0.242",
+    "@remotion/transitions": "^4.0.242",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/react": "^19.2.3"
+  }
+}
