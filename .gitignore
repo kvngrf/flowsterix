@@ -13,3 +13,6 @@ count.txt
 .vinxi
 .turbo
 todos.json
+
+# Video package output
+packages/video/out
