@@ -1,6 +1,6 @@
 'use client'
 
-import { useDelayAdvance } from '@flowsterix/react'
+import { useDelayAdvance, useTourLabels } from '@flowsterix/react'
 
 import { cn } from '@/lib/utils'
 
@@ -10,12 +10,10 @@ export interface DelayProgressBarProps {
   indicatorClassName?: string
   labelClassName?: string
   showCountdown?: boolean
+  /** Custom formatter for remaining time (overrides provider labels) */
   formatRemaining?: (milliseconds: number) => string
-}
-
-const defaultFormatter = (milliseconds: number) => {
-  const seconds = Math.max(0, Math.ceil(milliseconds / 1000))
-  return `${seconds}s remaining`
+  /** Custom aria-label for the progress bar (overrides provider labels) */
+  ariaLabel?: string
 }
 
 export function DelayProgressBar({
@@ -24,9 +22,13 @@ export function DelayProgressBar({
   indicatorClassName,
   labelClassName,
   showCountdown = true,
-  formatRemaining = defaultFormatter,
+  formatRemaining,
+  ariaLabel,
 }: DelayProgressBarProps) {
   const progress = useDelayAdvance()
+  const labels = useTourLabels()
+  const formatter = formatRemaining ?? ((ms: number) => labels.formatTimeRemaining({ ms }))
+  const resolvedAriaLabel = ariaLabel ?? labels.ariaDelayProgress
 
   if (!progress.flowId || progress.totalMs <= 0) {
     return null
@@ -46,7 +48,7 @@ export function DelayProgressBar({
         aria-valuemin={0}
         aria-valuemax={progress.totalMs}
         aria-valuenow={elapsedMs}
-        aria-label="Auto-advance progress"
+        aria-label={resolvedAriaLabel}
       >
         <div
           className={cn(
@@ -67,7 +69,7 @@ export function DelayProgressBar({
             labelClassName,
           )}
         >
-          {formatRemaining(progress.remainingMs)}
+          {formatter(progress.remainingMs)}
         </span>
       ) : null}
     </div>

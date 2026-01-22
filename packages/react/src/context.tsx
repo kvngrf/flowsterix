@@ -32,6 +32,8 @@ import {
   useRef,
   useState,
 } from 'react'
+import type { TourLabels } from './labels'
+import { defaultLabels, LabelsProvider } from './labels'
 import type { AnimationAdapter } from './motion/animationAdapter'
 import {
   AnimationAdapterProvider,
@@ -61,6 +63,8 @@ export interface TourProviderProps {
   analytics?: FlowAnalyticsHandlers<ReactNode>
   backdropInteraction?: BackdropInteractionMode
   lockBodyScroll?: boolean
+  /** Customize UI labels for internationalization */
+  labels?: Partial<TourLabels>
 }
 
 export interface TourContextValue {
@@ -113,7 +117,12 @@ export const TourProvider = ({
   analytics,
   backdropInteraction: backdropInteractionProp = 'passthrough',
   lockBodyScroll: lockBodyScrollProp = false,
+  labels: labelsProp,
 }: PropsWithChildren<TourProviderProps>) => {
+  const mergedLabels = useMemo<TourLabels>(
+    () => ({ ...defaultLabels, ...labelsProp }),
+    [labelsProp],
+  )
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
@@ -591,9 +600,11 @@ export const TourProvider = ({
 
   return (
     <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
-      <TourContext.Provider value={contextValue}>
-        {children}
-      </TourContext.Provider>
+      <LabelsProvider value={mergedLabels}>
+        <TourContext.Provider value={contextValue}>
+          {children}
+        </TourContext.Provider>
+      </LabelsProvider>
     </AnimationAdapterProvider>
   )
 }

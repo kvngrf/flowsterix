@@ -1,6 +1,11 @@
 'use client'
 
-import { useHudMotion, useTour, useTourControls } from '@flowsterix/react'
+import {
+  useHudMotion,
+  useTour,
+  useTourControls,
+  useTourLabels,
+} from '@flowsterix/react'
 import { AnimatePresence, motion } from 'motion/react'
 
 import { Button } from '@/components/ui/button'
@@ -17,12 +22,13 @@ export interface TourControlsProps {
   skipMode?: 'click' | 'hold'
   /** Duration in ms to hold skip button when skipMode is 'hold' (default: 1000) */
   skipHoldDurationMs?: number
-  /** Custom labels for buttons */
+  /** Custom labels for buttons (overrides provider labels) */
   labels?: {
     back?: string
     next?: string
     finish?: string
     skip?: string
+    holdToConfirm?: string
   }
   /** Button variant for primary action */
   primaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
@@ -35,13 +41,15 @@ export function TourControls({
   showSkip = true,
   skipMode = 'click',
   skipHoldDurationMs = 1000,
-  labels,
+  labels: labelOverrides,
   primaryVariant = 'default',
   secondaryVariant = 'outline',
 }: TourControlsProps) {
   const { transitions } = useHudMotion()
   const { popoverContent: popoverContentTransition } = transitions
   const { cancel } = useTour()
+  const providerLabels = useTourLabels()
+  const labels = { ...providerLabels, ...labelOverrides }
   const {
     showBackButton,
     backDisabled,
@@ -96,7 +104,7 @@ export function TourControls({
                     layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
                   }}
                 >
-                  <span>{labels?.back ?? 'Back'}</span>
+                  <span>{labels.back}</span>
                 </motion.button>
               </Button>
             </motion.div>
@@ -111,7 +119,8 @@ export function TourControls({
               layout="position"
             >
               <HoldToSkipButton
-                label={labels?.skip ?? 'Skip tour'}
+                label={labels.skip}
+                tooltipText={labels.holdToConfirm}
                 holdDurationMs={skipHoldDurationMs}
                 onConfirm={() => cancel('skipped')}
               />
@@ -139,7 +148,7 @@ export function TourControls({
                     layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
                   }}
                 >
-                  {labels?.skip ?? 'Skip tour'}
+                  {labels.skip}
                 </motion.button>
               </Button>
             </motion.div>
@@ -172,9 +181,7 @@ export function TourControls({
                   layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
                 }}
               >
-                {isLast
-                  ? (labels?.finish ?? 'Finish')
-                  : (labels?.next ?? 'Next')}
+                {isLast ? labels.finish : labels.next}
               </motion.button>
             </Button>
           </motion.div>

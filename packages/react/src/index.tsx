@@ -5,6 +5,9 @@ export type {
   TourProviderProps,
 } from './context'
 
+export { defaultLabels, useTourLabels } from './labels'
+export type { TourLabels } from './labels'
+
 export { useTourTarget } from './hooks/useTourTarget'
 export type { TourTargetInfo } from './hooks/useTourTarget'
 

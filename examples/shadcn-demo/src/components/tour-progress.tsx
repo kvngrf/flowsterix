@@ -1,6 +1,6 @@
 'use client'
 
-import { useTour } from '@flowsterix/react'
+import { useTour, useTourLabels } from '@flowsterix/react'
 
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,8 @@ export interface TourProgressProps {
   size?: 'sm' | 'md' | 'lg'
   /** Whether to show step labels (only for "steps" variant) */
   showLabels?: boolean
+  /** Custom formatter for step progress aria-label (overrides provider labels) */
+  ariaStepProgress?: (params: { current: number; total: number }) => string
 }
 
 export function TourProgress({
@@ -20,8 +22,11 @@ export function TourProgress({
   variant = 'dots',
   size = 'md',
   showLabels = false,
+  ariaStepProgress,
 }: TourProgressProps) {
   const { state, activeStep, flows, activeFlowId } = useTour()
+  const labels = useTourLabels()
+  const formatAriaLabel = ariaStepProgress ?? labels.ariaStepProgress
 
   const isRunning = state?.status === 'running'
   const currentIndex = state?.stepIndex ?? 0
@@ -52,7 +57,7 @@ export function TourProgress({
         aria-valuenow={currentIndex + 1}
         aria-valuemin={1}
         aria-valuemax={totalSteps}
-        aria-label={`Step ${currentIndex + 1} of ${totalSteps}`}
+        aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
       >
         {Array.from({ length: totalSteps }).map((_, index) => (
           <span
@@ -83,7 +88,7 @@ export function TourProgress({
         aria-valuenow={currentIndex + 1}
         aria-valuemin={1}
         aria-valuemax={totalSteps}
-        aria-label={`Step ${currentIndex + 1} of ${totalSteps}`}
+        aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
       >
         <div
           className={cn(
@@ -107,7 +112,7 @@ export function TourProgress({
       <div
         className={cn('text-sm font-medium text-muted-foreground', className)}
         role="status"
-        aria-label={`Step ${currentIndex + 1} of ${totalSteps}`}
+        aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
       >
         <span className="text-foreground">{currentIndex + 1}</span>
         <span className="mx-1">/</span>
@@ -124,7 +129,7 @@ export function TourProgress({
         aria-valuenow={currentIndex + 1}
         aria-valuemin={1}
         aria-valuemax={totalSteps}
-        aria-label={`Step ${currentIndex + 1} of ${totalSteps}`}
+        aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
       >
         {flow?.steps.map((step, index) => (
           <div

@@ -1,5 +1,6 @@
 'use client'
 
+import { useTourLabels } from '@flowsterix/react'
 import type { Variants } from 'motion/react'
 import { motion } from 'motion/react'
 import type { KeyboardEventHandler } from 'react'
@@ -9,25 +10,28 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export interface HoldToSkipButtonProps {
-  /** Button label text */
+  /** Button label text (overrides provider labels) */
   label?: string
   /** Duration in ms to hold before confirming (default: 1000) */
   holdDurationMs?: number
   /** Callback when hold is completed */
   onConfirm: () => void
-  /** Tooltip text shown while holding */
+  /** Tooltip text shown while holding (overrides provider labels) */
   tooltipText?: string
   /** Additional class names */
   className?: string
 }
 
 export function HoldToSkipButton({
-  label = 'Skip tour',
+  label,
   holdDurationMs = 1000,
   onConfirm,
-  tooltipText = 'Hold to confirm',
+  tooltipText,
   className,
 }: HoldToSkipButtonProps) {
+  const labels = useTourLabels()
+  const resolvedLabel = label ?? labels.skip
+  const resolvedTooltipText = tooltipText ?? labels.holdToConfirm
   const holdTimeoutRef = useRef<number | null>(null)
   const holdReadyRef = useRef(false)
 
@@ -139,7 +143,7 @@ export function HoldToSkipButton({
         onKeyUp={handleKeyUp}
         onBlur={resetHoldState}
       >
-        <span aria-hidden="true">{label}</span>
+        <span aria-hidden="true">{resolvedLabel}</span>
         <motion.div
           variants={tooltipVariants}
           className={cn(
@@ -148,7 +152,7 @@ export function HoldToSkipButton({
             'border border-border',
           )}
         >
-          {tooltipText}
+          {resolvedTooltipText}
           <div className="absolute -bottom-1 left-1/2 -z-10 size-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-popover" />
         </motion.div>
 
@@ -158,7 +162,7 @@ export function HoldToSkipButton({
             'bg-destructive text-background',
           )}
         >
-          {label}
+          {resolvedLabel}
         </motion.div>
 
         <motion.div
@@ -169,7 +173,7 @@ export function HoldToSkipButton({
             'hover:bg-accent hover:text-accent-foreground',
           )}
         >
-          {label}
+          {resolvedLabel}
         </motion.div>
       </motion.button>
     </Button>
