@@ -130,7 +130,7 @@
 - [ ] Branching flows / conditional steps
 - [x] Backdrop interaction modes (block, passthrough)
 - [ ] Multi-target steps and guided cursor
-- [ ] Internationalization surface (message ids, binding render)
+- [x] Internationalization surface (labels prop on TourProvider, useTourLabels hook)
 - [ ] Plugin ecosystem (analytics, external storage, tour builder)
 - [ ] Shadow DOM and iframe support
 

@@ -79,6 +79,35 @@ function StartTourButton() {
 }
 ```
 
+## Internationalization
+
+All UI labels are configurable via `TourProvider`. Pass a `labels` object to customize or translate strings:
+
+```tsx
+import { TourProvider } from '@flowsterix/react'
+
+<TourProvider
+  flows={flows}
+  labels={{
+    back: 'Zurück',
+    next: 'Weiter',
+    finish: 'Fertig',
+    skip: 'Tour überspringen',
+    holdToConfirm: 'Halten zum Bestätigen',
+    ariaStepProgress: ({ current, total }) => `Schritt ${current} von ${total}`,
+    ariaTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)} Sekunden verbleibend`,
+    ariaDelayProgress: 'Fortschritt der automatischen Weiterleitung',
+    formatTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)}s verbleibend`,
+  }}
+>
+```
+
+Components also accept label overrides via props for one-off customization:
+
+```tsx
+<TourControls labels={{ next: 'Continue' }} />
+```
+
 ## Customization
 
 All components accept standard `className` props and use Tailwind CSS.

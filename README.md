@@ -210,6 +210,27 @@ Adapters can provide alternative motion components (e.g. `animated.div`) and tun
 
 Flows auto-detect `prefers-reduced-motion`, trap keyboard focus within the popover and highlighted target, and expose hooks for extra ARIA metadata. See `docs/guides/accessibility.md` for details on overriding popover roles, adding custom descriptions, or excluding controls from the focus loop.
 
+## Internationalization
+
+All UI labels are customizable through `TourProvider`. Pass a partial `labels` object to translate or override any string:
+
+```tsx
+<TourProvider
+  flows={flows}
+  labels={{
+    back: 'Zurück',
+    next: 'Weiter',
+    finish: 'Fertig',
+    skip: 'Tour überspringen',
+    holdToConfirm: 'Halten zum Bestätigen',
+    ariaStepProgress: ({ current, total }) => `Schritt ${current} von ${total}`,
+    formatTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)}s verbleibend`,
+  }}
+>
+```
+
+The `useTourLabels()` hook provides access to the merged labels for custom components. Components also accept direct label overrides via props when you need per-instance customization.
+
 ### Backdrop interaction modes
 
 Some products want the dimmed backdrop to block clicks, while others prefer letting users continue interacting with the underlying UI. `TourProvider` exposes a `backdropInteraction` switch so you can choose the default globally:

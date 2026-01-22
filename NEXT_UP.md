@@ -22,7 +22,8 @@
 
 5. Optional/roadmap
    - Declarative `<Flow>/<Step>` API decision for v0.
-   - Defer branching flows, i18n surface, plugin ecosystem, Shadow DOM/iframe.
+   - Defer branching flows, plugin ecosystem, Shadow DOM/iframe.
+   - ~~i18n surface~~ ✓ Done (labels prop on TourProvider, useTourLabels hook)
 
 How to run examples
 
