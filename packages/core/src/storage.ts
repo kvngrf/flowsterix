@@ -121,3 +121,101 @@ function getLocalStorage(): Storage | null {
   }
   return null
 }
+
+export interface ApiStorageAdapterOptions {
+  /** Base URL for the storage API (e.g., '/api/tour-state' or 'https://api.example.com/tours') */
+  baseUrl: string
+  /** Function to get headers for each request (e.g., for auth tokens) */
+  getHeaders?: () => Promise<HeadersInit> | HeadersInit
+  /** Custom fetch implementation (defaults to global fetch) */
+  fetch?: typeof fetch
+}
+
+/**
+ * Creates a storage adapter that persists tour state via HTTP API.
+ *
+ * Expects the API to implement:
+ * - GET /{key} → returns StorageSnapshot JSON or 404
+ * - PUT /{key} → accepts StorageSnapshot JSON body
+ * - DELETE /{key} → removes the snapshot
+ *
+ * @example
+ * ```ts
+ * const storageAdapter = createApiStorageAdapter({
+ *   baseUrl: '/api/tour-state',
+ *   getHeaders: () => ({ Authorization: `Bearer ${getToken()}` }),
+ * })
+ *
+ * <TourProvider flows={flows} storageAdapter={storageAdapter}>
+ * ```
+ */
+export function createApiStorageAdapter(
+  options: ApiStorageAdapterOptions,
+): StorageAdapter {
+  const {
+    baseUrl,
+    getHeaders = () => ({}),
+    fetch: fetchFn = globalThis.fetch,
+  } = options
+
+  const buildUrl = (key: string) =>
+    `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(key)}`
+
+  const get: StorageAdapter['get'] = async (key) => {
+    try {
+      const headers = await Promise.resolve(getHeaders())
+      const res = await fetchFn(buildUrl(key), { headers })
+
+      if (res.status === 404) return null
+      if (!res.ok) {
+        console.warn('[tour][storage] API get failed', res.status, res.statusText)
+        return null
+      }
+
+      const data = (await res.json()) as unknown
+      if (!isStorageSnapshotShape(data)) {
+        console.warn('[tour][storage] Invalid snapshot shape from API')
+        return null
+      }
+      return data
+    } catch (error) {
+      console.warn('[tour][storage] API get error', error)
+      return null
+    }
+  }
+
+  const set: StorageAdapter['set'] = async (key, snapshot) => {
+    try {
+      const headers = await Promise.resolve(getHeaders())
+      const res = await fetchFn(buildUrl(key), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify(snapshot),
+      })
+
+      if (!res.ok) {
+        console.warn('[tour][storage] API set failed', res.status, res.statusText)
+      }
+    } catch (error) {
+      console.warn('[tour][storage] API set error', error)
+    }
+  }
+
+  const remove: StorageAdapter['remove'] = async (key) => {
+    try {
+      const headers = await Promise.resolve(getHeaders())
+      const res = await fetchFn(buildUrl(key), {
+        method: 'DELETE',
+        headers,
+      })
+
+      if (!res.ok && res.status !== 404) {
+        console.warn('[tour][storage] API remove failed', res.status, res.statusText)
+      }
+    } catch (error) {
+      console.warn('[tour][storage] API remove error', error)
+    }
+  }
+
+  return { get, set, remove }
+}

@@ -292,6 +292,23 @@ const flow = createFlow({
 
 The React binding reference-counts locks, so scroll state is restored automatically when the tour closes—even if you start another tour immediately afterward.
 
+## Storage Adapters
+
+Tour state is persisted via a `StorageAdapter` interface. By default, Flowsterix uses localStorage, but you can persist per-user state to your database using `createApiStorageAdapter`:
+
+```tsx
+import { createApiStorageAdapter } from '@flowsterix/core'
+
+const storageAdapter = createApiStorageAdapter({
+  baseUrl: '/api/tour-state',
+  getHeaders: () => ({ Authorization: `Bearer ${getToken()}` }),
+})
+
+<TourProvider flows={flows} storageAdapter={storageAdapter}>
+```
+
+The adapter expects your API to implement `GET /{key}`, `PUT /{key}`, and `DELETE /{key}` endpoints. See `docs/guides/storage-adapters.md` for API contract details and example implementations.
+
 ## Analytics & Error Reporting
 
 Every `FlowStore` exposes an event bus so you can subscribe to lifecycle changes such as `flowStart`, `stepEnter`, and `flowComplete`. In React you can listen through `useTourEvents('stepEnter', handler)` to drive custom product analytics.

@@ -42,5 +42,6 @@
 - [x] Implement robust edge-case handling (missing elements, hidden targets, mobile layout)
 - [ ] Author comprehensive unit tests (Vitest) and begin Playwright scenarios
 - [ ] Capture visual regression snapshots for key placements
-- [ ] Create example apps (React Vite, Next.js) and usage docs
+- [x] Create example apps (React Vite, Next.js, React Router, shadcn-demo)
+- [x] Document storage adapters, routing, and accessibility guides
 - [ ] Prepare release checklist, versioning via Changesets, and publish v0.1.0

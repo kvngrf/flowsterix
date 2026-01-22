@@ -62,6 +62,7 @@
 - [x] StorageAdapter contract (`get`, `set`, `remove`, optional `subscribe`)
 - [x] LocalStorage implementation with namespacing and schema versioning
 - [x] MemoryStorage for testing and sample CustomStorageAdapter
+- [x] API storage adapter for server-side/per-user persistence (`createApiStorageAdapter`)
 
 ## 7. Animations (smooth by default, swappable later)
 

@@ -6,9 +6,9 @@
    - Add visual snapshot coverage for placements.
 
 2. Example apps and docs
-   - Build `examples/next` (App Router first, Pages Router if needed).
-   - Add a React Router example (or update existing example to include it).
-   - Document setup for adapters and storage.
+   - ~~Build `examples/next`~~ ✓ Done
+   - ~~Add a React Router example~~ ✓ Done (`examples/react-router-vite`)
+   - ~~Document setup for adapters and storage~~ ✓ Done (`docs/guides/storage-adapters.md`)
 
 3. Release readiness
    - Add Changesets + commitlint and a release checklist.
