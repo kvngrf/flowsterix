@@ -13,7 +13,7 @@ pnpm start
 
 This repo ships with multiple demo apps showing different integrations:
 
-- `examples/react-vite` (TanStack Router + themes)
+- `examples/react-vite` (TanStack Router)
 - `examples/react-router-vite` (React Router + route adapter)
 - `examples/next` (Next.js App Router + route adapter)
 - `examples/shadcn-demo` (shadcn HUD)
@@ -53,7 +53,7 @@ This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
 Flowsterix no longer ships a default HUD stylesheet. The UI lives in the shadcn registry components, which you sync into each app and customize with Tailwind or your own CSS variables.
 
-See `docs/guides/theming.md` for the current theming approach and `packages/shadcn-registry/README.md` for the registry workflow.
+See `packages/shadcn-registry/README.md` for the registry workflow.
 
 ### Headless React bindings
 

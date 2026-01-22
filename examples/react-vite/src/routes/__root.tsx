@@ -9,7 +9,6 @@ import { TourProvider } from '../components/tour-provider'
 import { demoAnalytics } from '../tour/analytics'
 import { demoFlows } from '../tour/flows'
 import { TanStackRouterSync } from '../tour/routerBridge'
-import { TourThemeProvider } from '../tour/theme'
 
 import appCss from '../styles.css?url'
 
@@ -45,42 +44,33 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body className="bg-slate-900">
-        <TourThemeProvider>
-          <TourThemeAwareShell>{children}</TourThemeAwareShell>
-        </TourThemeProvider>
+        <TourProvider
+          flows={demoFlows}
+          storageNamespace="flowsterix-demo"
+          autoDetectReducedMotion
+          defaultDebug={false}
+          analytics={demoAnalytics}
+          backdropInteraction="block"
+          lockBodyScroll
+        >
+          <TanStackRouterSync />
+          <Header />
+          {children}
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+          <TourHUD controls={{ skipMode: 'hold' }} />
+        </TourProvider>
         <Scripts />
       </body>
     </html>
-  )
-}
-
-const TourThemeAwareShell = ({ children }: { children: ReactNode }) => {
-  return (
-    <TourProvider
-      flows={demoFlows}
-      storageNamespace="flowsterix-demo"
-      autoDetectReducedMotion
-      defaultDebug={false}
-      analytics={demoAnalytics}
-      backdropInteraction="block"
-      lockBodyScroll
-    >
-      <TanStackRouterSync />
-      <Header />
-      {children}
-      <TanStackDevtools
-        config={{
-          position: 'bottom-right',
-        }}
-        plugins={[
-          {
-            name: 'Tanstack Router',
-            render: <TanStackRouterDevtoolsPanel />,
-          },
-        ]}
-      />
-      <TourHUD controls={{ skipMode: 'hold' }} />
-      {/* <HeadlessHUD /> */}
-    </TourProvider>
   )
 }

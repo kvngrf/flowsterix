@@ -1,6 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { APPLE_SPRING, TEXT_SPRING } from '../utils/animations'
-import { DEFAULT_THEME } from '../styles/themes'
+import { colors, card } from '../styles/styles'
 
 export const CTAScene = () => {
   const frame = useCurrentFrame()
@@ -21,7 +21,7 @@ export const CTAScene = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: DEFAULT_THEME.background,
+        backgroundColor: colors.background,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -34,7 +34,7 @@ export const CTAScene = () => {
         style={{
           fontSize: 48,
           fontWeight: 700,
-          color: DEFAULT_THEME.foreground,
+          color: colors.foreground,
           marginBottom: 32,
           letterSpacing: '-0.03em',
           opacity: interpolate(textProgress, [0, 0.3], [0, 1], { extrapolateRight: 'clamp' }),
@@ -47,10 +47,10 @@ export const CTAScene = () => {
       {/* Install command */}
       <div
         style={{
-          backgroundColor: DEFAULT_THEME.card.background,
+          backgroundColor: card.background,
           borderRadius: 12,
           padding: '18px 36px',
-          border: `1px solid ${DEFAULT_THEME.border}`,
+          border: `1px solid ${colors.border}`,
           opacity: interpolate(codeProgress, [0, 0.3], [0, 1], { extrapolateRight: 'clamp' }),
           transform: `scale(${interpolate(codeProgress, [0, 1], [0.95, 1])})`,
         }}
@@ -58,12 +58,12 @@ export const CTAScene = () => {
         <code
           style={{
             fontSize: 22,
-            color: DEFAULT_THEME.foreground,
+            color: colors.foreground,
             fontFamily: "'SF Mono', 'JetBrains Mono', monospace",
           }}
         >
-          <span style={{ color: DEFAULT_THEME.muted }}>npm install</span>{' '}
-          <span style={{ color: DEFAULT_THEME.success }}>@flowsterix/react</span>
+          <span style={{ color: colors.muted }}>npm install</span>{' '}
+          <span style={{ color: colors.success }}>@flowsterix/react</span>
         </code>
       </div>
 
@@ -75,7 +75,7 @@ export const CTAScene = () => {
           opacity: 0.3,
           fontSize: 18,
           fontWeight: 600,
-          color: DEFAULT_THEME.muted,
+          color: colors.muted,
         }}
       >
         flowsterix

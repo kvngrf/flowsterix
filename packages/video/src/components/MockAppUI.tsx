@@ -1,15 +1,20 @@
 import { AbsoluteFill } from 'remotion'
-import { DEFAULT_THEME } from '../styles/themes'
+import { card, colors } from '../styles/styles'
 
 interface MockAppUIProps {
-  highlightTarget?: 'sidebar-nav' | 'header-avatar' | 'main-card' | 'settings-btn' | null
+  highlightTarget?:
+    | 'sidebar-nav'
+    | 'header-avatar'
+    | 'main-card'
+    | 'settings-btn'
+    | null
 }
 
 export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: DEFAULT_THEME.background,
+        backgroundColor: colors.background,
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
@@ -21,8 +26,8 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
           top: 0,
           bottom: 0,
           width: 260,
-          backgroundColor: DEFAULT_THEME.card.background,
-          borderRight: `1px solid ${DEFAULT_THEME.border}`,
+          backgroundColor: card.background,
+          borderRight: `1px solid ${colors.border}`,
           padding: 20,
           display: 'flex',
           flexDirection: 'column',
@@ -34,7 +39,7 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
           style={{
             fontSize: 20,
             fontWeight: 700,
-            color: DEFAULT_THEME.foreground,
+            color: colors.foreground,
             marginBottom: 28,
             display: 'flex',
             alignItems: 'center',
@@ -46,7 +51,7 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
               width: 32,
               height: 32,
               borderRadius: 8,
-              backgroundColor: DEFAULT_THEME.foreground,
+              backgroundColor: colors.foreground,
             }}
           />
           Flowsterix
@@ -60,8 +65,9 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
             style={{
               padding: '12px 14px',
               borderRadius: 8,
-              color: i === 0 ? DEFAULT_THEME.foreground : DEFAULT_THEME.muted,
-              backgroundColor: i === 0 ? 'rgba(250, 250, 250, 0.1)' : 'transparent',
+              color: i === 0 ? colors.foreground : colors.muted,
+              backgroundColor:
+                i === 0 ? 'rgba(250, 250, 250, 0.1)' : 'transparent',
               fontSize: 14,
               fontWeight: 500,
               display: 'flex',
@@ -74,7 +80,7 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
                 width: 18,
                 height: 18,
                 borderRadius: 4,
-                backgroundColor: i === 0 ? DEFAULT_THEME.foreground : DEFAULT_THEME.muted,
+                backgroundColor: i === 0 ? colors.foreground : colors.muted,
                 opacity: i === 0 ? 1 : 0.4,
               }}
             />
@@ -91,15 +97,17 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
           top: 0,
           right: 0,
           height: 64,
-          backgroundColor: DEFAULT_THEME.card.background,
-          borderBottom: `1px solid ${DEFAULT_THEME.border}`,
+          backgroundColor: card.background,
+          borderBottom: `1px solid ${colors.border}`,
           padding: '0 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 600, color: DEFAULT_THEME.foreground }}>
+        <div
+          style={{ fontSize: 18, fontWeight: 600, color: colors.foreground }}
+        >
           Dashboard
         </div>
 
@@ -111,7 +119,7 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
               height: 36,
               borderRadius: 8,
               backgroundColor: 'rgba(250, 250, 250, 0.05)',
-              border: `1px solid ${DEFAULT_THEME.border}`,
+              border: `1px solid ${colors.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -122,7 +130,7 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
                 width: 16,
                 height: 16,
                 borderRadius: '50%',
-                border: `2px solid ${DEFAULT_THEME.muted}`,
+                border: `2px solid ${colors.muted}`,
               }}
             />
           </div>
@@ -132,11 +140,11 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              backgroundColor: DEFAULT_THEME.foreground,
+              backgroundColor: colors.foreground,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: DEFAULT_THEME.background,
+              color: colors.background,
               fontWeight: 600,
               fontSize: 14,
             }}
@@ -172,14 +180,14 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
               id={i === 0 ? 'main-card' : undefined}
               style={{
                 flex: 1,
-                backgroundColor: DEFAULT_THEME.card.background,
+                backgroundColor: card.background,
                 borderRadius: 12,
                 padding: 20,
-                border: `1px solid ${DEFAULT_THEME.border}`,
+                border: `1px solid ${colors.border}`,
               }}
             >
               <div
-                style={{ color: DEFAULT_THEME.muted, fontSize: 13, marginBottom: 6 }}
+                style={{ color: colors.muted, fontSize: 13, marginBottom: 6 }}
               >
                 {stat.label}
               </div>
@@ -191,11 +199,21 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
                 }}
               >
                 <div
-                  style={{ color: DEFAULT_THEME.foreground, fontSize: 28, fontWeight: 700 }}
+                  style={{
+                    color: colors.foreground,
+                    fontSize: 28,
+                    fontWeight: 700,
+                  }}
                 >
                   {stat.value}
                 </div>
-                <div style={{ color: DEFAULT_THEME.success, fontSize: 13, fontWeight: 500 }}>
+                <div
+                  style={{
+                    color: colors.success,
+                    fontSize: 13,
+                    fontWeight: 500,
+                  }}
+                >
                   {stat.change}
                 </div>
               </div>
@@ -207,15 +225,15 @@ export const MockAppUI = ({ highlightTarget }: MockAppUIProps) => {
         <div
           style={{
             flex: 1,
-            backgroundColor: DEFAULT_THEME.card.background,
+            backgroundColor: card.background,
             borderRadius: 12,
             padding: 20,
-            border: `1px solid ${DEFAULT_THEME.border}`,
+            border: `1px solid ${colors.border}`,
           }}
         >
           <div
             style={{
-              color: DEFAULT_THEME.foreground,
+              color: colors.foreground,
               fontSize: 16,
               fontWeight: 600,
               marginBottom: 20,

@@ -1,6 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { APPLE_SPRING } from '../utils/animations'
-import { DEFAULT_THEME, Theme } from '../styles/themes'
+import { overlay } from '../styles/styles'
 
 interface TargetRect {
   x: number
@@ -12,7 +12,6 @@ interface TargetRect {
 interface SpotlightOverlayProps {
   targetRect: TargetRect
   previousRect?: TargetRect
-  theme?: Theme
   padding?: number
   transitionStartFrame?: number
 }
@@ -20,7 +19,6 @@ interface SpotlightOverlayProps {
 export const SpotlightOverlay = ({
   targetRect,
   previousRect,
-  theme = DEFAULT_THEME,
   padding = 12,
   transitionStartFrame = 0,
 }: SpotlightOverlayProps) => {
@@ -49,7 +47,7 @@ export const SpotlightOverlay = ({
     [from.height + padding * 2, targetRect.height + padding * 2]
   )
 
-  const radius = theme.overlay.radius
+  const radius = overlay.radius
 
   const maskId = 'spotlight-mask'
 
@@ -75,7 +73,7 @@ export const SpotlightOverlay = ({
         <rect
           width="100%"
           height="100%"
-          fill={theme.overlay.background}
+          fill={overlay.background}
           mask={`url(#${maskId})`}
         />
       </svg>
@@ -89,7 +87,7 @@ export const SpotlightOverlay = ({
           width,
           height,
           borderRadius: radius,
-          boxShadow: theme.overlay.ringShadow,
+          boxShadow: overlay.ringShadow,
           pointerEvents: 'none',
         }}
       />

@@ -11,7 +11,6 @@ Flowsterix is an onboarding tour/flow library with a framework-agnostic core and
 - `@flowsterix/core` – Framework-agnostic state machine, flow definitions (Zod-validated), persistence, event bus. Zero React dependencies.
 - `@flowsterix/react` – React bindings with `TourProvider`, hooks (`useTour`, `useTourTarget`, `useTourHud`), UI components, router adapters, and `motion/react` animation system.
 - `@flowsterix/headless` – Re-exports `@flowsterix/react` minus UI components/CSS for custom HUD implementations. **Preferred entry point** for shadcn-style customization.
-- `@flowsterix/themes` – Token presets for theming.
 - `examples/react-vite` – Reference app using TanStack Router.
 
 ### Key Data Flow
@@ -53,8 +52,8 @@ See [examples/react-vite/src/tour/flows.tsx](examples/react-vite/src/tour/flows.
 
 ### Styling
 
-- CSS variables for theming (see [docs/guides/theming.md](docs/guides/theming.md))
-- Import `@flowsterix/react/styles.css` once in app entry
+- UI lives in shadcn registry components synced into each app
+- Customize with Tailwind or your own CSS variables
 - Use `data-tour-*` attributes for custom styling hooks
 - Tailwind classes in `@flowsterix/react` components use `tailwind-merge`
 

@@ -23,7 +23,6 @@
     "@tanstack/router-plugin": "^1.132.0",
     "@flowsterix/core": "workspace:*",
     "@flowsterix/react": "workspace:*",
-    "@flowsterix/themes": "workspace:*",
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

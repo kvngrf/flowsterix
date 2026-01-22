@@ -1,6 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { APPLE_SPRING, TEXT_SPRING } from '../utils/animations'
-import { DEFAULT_THEME } from '../styles/themes'
+import { colors } from '../styles/styles'
 
 export const ProblemScene = () => {
   const frame = useCurrentFrame()
@@ -29,7 +29,7 @@ export const ProblemScene = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: DEFAULT_THEME.background,
+        backgroundColor: colors.background,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -42,7 +42,7 @@ export const ProblemScene = () => {
         style={{
           fontSize: 180,
           fontWeight: 700,
-          color: DEFAULT_THEME.destructive,
+          color: colors.destructive,
           letterSpacing: '-0.04em',
           lineHeight: 1,
           transform: `scale(${numberScale})`,
@@ -57,7 +57,7 @@ export const ProblemScene = () => {
         style={{
           fontSize: 32,
           fontWeight: 600,
-          color: DEFAULT_THEME.foreground,
+          color: colors.foreground,
           marginTop: 20,
           transform: `translateY(${textY}px)`,
           opacity: textOpacity,
@@ -71,7 +71,7 @@ export const ProblemScene = () => {
         style={{
           fontSize: 20,
           fontWeight: 500,
-          color: DEFAULT_THEME.muted,
+          color: colors.muted,
           marginTop: 12,
           transform: `translateY(${textY}px)`,
           opacity: textOpacity,

@@ -32,7 +32,7 @@
 - [x] `@flowsterix/react` bindings (Provider, hooks, headless utilities)
 - [x] AnimationAdapter using Framer Motion
 - [x] Router adapters (React Router, Next App/Pages, TanStack) exported via `@flowsterix/react`
-- [x] Optional packages (`@flowsterix/themes`, example apps)
+- [x] Optional packages (example apps)
 
 ## 3. Core Types and DSL
 
@@ -82,7 +82,7 @@
 - [x] Focus trap within popover and focus return on close
 - [x] `aria-modal` dialog semantics with linked descriptions
 - [x] Keyboard support (Enter/Space next, Shift+Tab/Tab within trap, Esc exit)
-- [x] High-contrast theme, visible focus ring, screen-reader-only descriptions
+- [x] Visible focus ring, screen-reader-only descriptions
 - [x] Option to ensure target is keyboard reachable (temporary tabindex)
 
 ## 10. Edge Cases to Handle Early
@@ -99,7 +99,7 @@
 - [x] Vitest setup with initial core/react unit tests
 - [ ] Expand unit tests for engine, adapters, and persistence (beyond core events + React hooks/components)
 - [ ] Integration tests (Playwright) for DOM, routes, key flows
-- [ ] Visual snapshots per theme and placement
+- [ ] Visual snapshots per placement
 - [ ] Type tests to lock public API surface
 - [x] Example app: Vite + TanStack Router (`examples/react-vite`)
 - [x] Example apps: React Router + Next.js for real-world validation
@@ -107,7 +107,7 @@
 ## 12. Packaging and Repo Layout
 
 - [x] Monorepo via pnpm + Turborepo with workspace packages
-- [x] `packages/core`, `packages/react`, `packages/themes`, `packages/shadcn-registry` scaffolded
+- [x] `packages/core`, `packages/react`, `packages/shadcn-registry` scaffolded
 - [x] `examples/react-vite`
 - [x] `examples/shadcn-demo`
 - [x] `examples/next`
@@ -122,7 +122,7 @@
 
 - [x] Zod schemas plus invariant error codes with actionable tips
 - [x] Debug mode overlay for step diagnostics
-- [x] UI theming handled in shadcn components (no react package tokens)
+- [x] UI styling handled in shadcn components
 - [x] Analytics hooks (`onFlowStart`, `onStepEnter`, `onStepComplete`, `onFlowComplete`)
 
 ## 14. Roadmap After MVP

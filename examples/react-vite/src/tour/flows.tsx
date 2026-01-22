@@ -67,6 +67,18 @@ const ensureMenuOpen = () => {
   }
 }
 
+const ensureMenuClosed = () => {
+  if (typeof document === 'undefined') return
+  const panel = document.querySelector('[data-tour-target="menu-panel"]')
+  if (!(panel instanceof HTMLElement)) return
+  const isClosed = panel.classList.contains('-translate-x-full')
+  if (isClosed) return
+  const trigger = document.querySelector('[data-tour-target="menu-button"]')
+  if (trigger instanceof HTMLElement) {
+    trigger.click()
+  }
+}
+
 const ensureSsrGroupExpanded = () => {
   if (typeof document === 'undefined') return
   ensureMenuOpen()
@@ -84,6 +96,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   //   render: 'none',
   // },
   autoStart: true,
+  resumeStrategy: 'current',
   version: 1,
   steps: [
     {
@@ -102,26 +115,6 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       ),
     },
     {
-      id: 'theme-toggle',
-      target: {
-        selector: '[data-tour-target="theme-toggle"]',
-        description: 'Preset toggle for the tour HUD themes',
-      },
-      placement: 'bottom',
-      advance: [{ type: 'manual' }],
-      content: (
-        <StepContent>
-          <StepTitle>Try a Different Look</StepTitle>
-          <StepText>
-            The controls here swap the token overrides (and corresponding CSS
-            variables) that drive every part of the HUD. Flip to the Aurora or
-            Nebula presets to see dramatically different popovers, buttons, and
-            overlay treatments, then switch back whenever you like.
-          </StepText>
-        </StepContent>
-      ),
-    },
-    {
       id: 'menu',
       target: {
         selector: '[data-tour-target="menu-button"]',
@@ -129,7 +122,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
-      onResume: () => ensureMenuOpen(),
+      onResume: () => ensureMenuClosed(),
       content: (
         <StepContent>
           <StepTitle>Navigation Drawer</StepTitle>
@@ -149,7 +142,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
-      onResume: () => ensureSsrGroupExpanded(),
+      onResume: () => {
+        ensureMenuOpen()
+        ensureSsrGroupExpanded()
+      },
       content: (
         <StepContent>
           <StepTitle>Route Groups</StepTitle>
@@ -166,6 +162,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       target: {
         selector: '[data-tour-target="ssr-submenu"]',
         description: 'SSR examples submenu links',
+      },
+      onResume: () => {
+        ensureMenuOpen()
+        ensureSsrGroupExpanded()
       },
       placement: 'right',
       advance: [{ type: 'manual' }],
@@ -185,6 +185,15 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         selector: '[data-tour-target="ssr-submenu"]',
         description: 'SSR examples submenu links',
       },
+      onResume: () => {
+        ensureMenuOpen()
+        ensureSsrGroupExpanded()
+      },
+      onEnter: () => {
+        ensureMenuOpen()
+        ensureSsrGroupExpanded()
+      },
+      onExit: () => ensureMenuClosed(),
       placement: 'right',
       advance: [{ type: 'delay', ms: 2000 }],
       content: <DelayDemoContent />,
@@ -199,6 +208,8 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         scrollMargin: { top: STICKY_HEADER_OFFSET },
         scrollMode: 'center',
       },
+      onEnter: () => ensureMenuClosed(),
+      onResume: () => ensureMenuClosed(),
       placement: 'top',
       advance: [{ type: 'manual' }],
       content: (

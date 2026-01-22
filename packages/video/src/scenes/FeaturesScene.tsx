@@ -1,6 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { APPLE_SPRING, TEXT_SPRING } from '../utils/animations'
-import { DEFAULT_THEME } from '../styles/themes'
+import { colors, card } from '../styles/styles'
 
 const FEATURES = [
   { title: 'Smooth Animations', icon: '✨' },
@@ -22,7 +22,7 @@ export const FeaturesScene = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: DEFAULT_THEME.background,
+        backgroundColor: colors.background,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -35,7 +35,7 @@ export const FeaturesScene = () => {
         style={{
           fontSize: 56,
           fontWeight: 700,
-          color: DEFAULT_THEME.foreground,
+          color: colors.foreground,
           marginBottom: 48,
           letterSpacing: '-0.03em',
           opacity: interpolate(titleProgress, [0, 0.3], [0, 1], { extrapolateRight: 'clamp' }),
@@ -67,10 +67,10 @@ export const FeaturesScene = () => {
             <div
               key={feature.title}
               style={{
-                backgroundColor: DEFAULT_THEME.card.background,
+                backgroundColor: card.background,
                 borderRadius: 16,
                 padding: '24px 32px',
-                border: `1px solid ${DEFAULT_THEME.border}`,
+                border: `1px solid ${colors.border}`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 14,
@@ -83,7 +83,7 @@ export const FeaturesScene = () => {
                 style={{
                   fontSize: 18,
                   fontWeight: 600,
-                  color: DEFAULT_THEME.foreground,
+                  color: colors.foreground,
                 }}
               >
                 {feature.title}

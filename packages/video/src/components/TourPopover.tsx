@@ -1,6 +1,6 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { APPLE_SPRING } from '../utils/animations'
-import { DEFAULT_THEME, Theme } from '../styles/themes'
+import { colors, popover, button } from '../styles/styles'
 
 interface TourPopoverProps {
   title: string
@@ -8,7 +8,6 @@ interface TourPopoverProps {
   stepNumber: number
   totalSteps: number
   position: { x: number; y: number }
-  theme?: Theme
   enterFrame?: number
 }
 
@@ -18,7 +17,6 @@ export const TourPopover = ({
   stepNumber,
   totalSteps,
   position,
-  theme = DEFAULT_THEME,
   enterFrame = 0,
 }: TourPopoverProps) => {
   const frame = useCurrentFrame()
@@ -43,10 +41,10 @@ export const TourPopover = ({
         left: position.x,
         top: position.y,
         width: 280,
-        backgroundColor: theme.popover.background,
-        borderRadius: theme.popover.radius,
-        border: `1px solid ${theme.popover.border}`,
-        boxShadow: theme.popover.shadow,
+        backgroundColor: popover.background,
+        borderRadius: popover.radius,
+        border: `1px solid ${popover.border}`,
+        boxShadow: popover.shadow,
         padding: '18px 20px',
         opacity,
         transform: `scale(${scale}) translateY(${translateY}px)`,
@@ -70,7 +68,7 @@ export const TourPopover = ({
               borderRadius: 3,
               backgroundColor:
                 i + 1 === stepNumber
-                  ? theme.accent
+                  ? colors.accent
                   : `rgba(250, 250, 250, 0.2)`,
               transition: 'width 0.2s',
             }}
@@ -83,7 +81,7 @@ export const TourPopover = ({
         style={{
           fontSize: 16,
           fontWeight: 600,
-          color: theme.popover.foreground,
+          color: popover.foreground,
           marginBottom: 6,
         }}
       >
@@ -94,7 +92,7 @@ export const TourPopover = ({
       <div
         style={{
           fontSize: 13,
-          color: theme.muted,
+          color: colors.muted,
           lineHeight: 1.5,
           marginBottom: 16,
         }}
@@ -108,8 +106,8 @@ export const TourPopover = ({
           width: '100%',
           padding: '10px 16px',
           borderRadius: 8,
-          backgroundColor: theme.button.primary.bg,
-          color: theme.button.primary.color,
+          backgroundColor: button.primary.bg,
+          color: button.primary.color,
           border: 'none',
           fontSize: 13,
           fontWeight: 600,

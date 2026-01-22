@@ -2,7 +2,6 @@ import { AbsoluteFill, useCurrentFrame } from 'remotion'
 import { MockAppUI, TARGET_RECTS } from '../components/MockAppUI'
 import { SpotlightOverlay } from '../components/SpotlightOverlay'
 import { TourPopover } from '../components/TourPopover'
-import { DEFAULT_THEME } from '../styles/themes'
 
 const STEPS = [
   {
@@ -52,7 +51,6 @@ export const SpotlightDemoScene = () => {
       <SpotlightOverlay
         targetRect={targetRect}
         previousRect={previousRect}
-        theme={DEFAULT_THEME}
         padding={14}
         transitionStartFrame={stepStartFrame}
       />
@@ -63,7 +61,6 @@ export const SpotlightDemoScene = () => {
         stepNumber={currentStepIndex + 1}
         totalSteps={STEPS.length}
         position={currentStep.popoverPosition}
-        theme={DEFAULT_THEME}
         enterFrame={stepStartFrame}
       />
     </AbsoluteFill>

@@ -1,6 +1,6 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { APPLE_SPRING, TEXT_SPRING } from '../utils/animations'
-import { DEFAULT_THEME } from '../styles/themes'
+import { colors } from '../styles/styles'
 
 export const IntroScene = () => {
   const frame = useCurrentFrame()
@@ -29,7 +29,7 @@ export const IntroScene = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: DEFAULT_THEME.background,
+        backgroundColor: colors.background,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -43,7 +43,7 @@ export const IntroScene = () => {
           width: 72,
           height: 72,
           borderRadius: 18,
-          backgroundColor: DEFAULT_THEME.foreground,
+          backgroundColor: colors.foreground,
           marginBottom: 28,
           transform: `scale(${logoScale})`,
           opacity: logoOpacity,
@@ -55,7 +55,7 @@ export const IntroScene = () => {
         style={{
           fontSize: 80,
           fontWeight: 700,
-          color: DEFAULT_THEME.foreground,
+          color: colors.foreground,
           letterSpacing: '-0.04em',
           transform: `translateY(${textY}px)`,
           opacity: textOpacity,
@@ -69,7 +69,7 @@ export const IntroScene = () => {
         style={{
           fontSize: 26,
           fontWeight: 500,
-          color: DEFAULT_THEME.muted,
+          color: colors.muted,
           marginTop: 12,
           transform: `translateY(${textY}px)`,
           opacity: textOpacity,
