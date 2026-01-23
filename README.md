@@ -56,6 +56,14 @@ pnpm test:e2e:ui # Run E2E tests with UI
 - Persistence (resume after refresh, completed/cancelled states)
 - UI accessibility (dialog role, overlay, controls)
 
+## Browser Support
+
+Flowsterix targets modern browsers only (no polyfills required):
+
+- Chrome/Edge 90+
+- Firefox 90+
+- Safari 15+
+
 ## Styling
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.

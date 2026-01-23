@@ -16,8 +16,8 @@
    - ~~Decide peer/dependency policy for Motion and Floating UI.~~ ✓ Done (Motion=peer, Floating UI=dep)
 
 4. Product decisions to close
-   - Default outside-click behavior (advance/dismiss/no-op).
-   - Minimum browser support + polyfills.
+   - ~~Default outside-click behavior (advance/dismiss/no-op).~~ ✓ Keep as-is (passthrough/block modes)
+   - ~~Minimum browser support + polyfills.~~ ✓ Modern only (Chrome/Edge 90+, Firefox 90+, Safari 15+)
    - ~~Persistence/version migration policy.~~ Done (semantic versioning with migration support)
 
 5. Optional/roadmap
