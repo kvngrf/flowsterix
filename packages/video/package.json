@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "remotion studio",
-    "build": "remotion render MarketingVideo out/marketing.mp4",
+    "render": "remotion render MarketingVideo out/marketing.mp4",
     "preview": "remotion preview"
   },
   "dependencies": {

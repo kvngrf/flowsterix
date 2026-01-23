@@ -40,7 +40,7 @@ import * as React from 'react'
 export const onboardingFlow = createFlow({
   id: 'onboarding',
   autoStart: true,
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     // Step 1: Welcome screen (no target, centered modal)
     {

@@ -98,7 +98,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   // },
   autoStart: true,
   resumeStrategy: 'current',
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'welcome',

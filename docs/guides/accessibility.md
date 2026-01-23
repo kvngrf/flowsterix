@@ -73,7 +73,7 @@ Popover dialogs use `role="dialog"` by default with `aria-modal="false"` so user
 ```ts
 const flow = createFlow({
   id: 'guided-demo',
-  version: 1,
+  version: { major: 1, minor: 0 },
   hud: {
     popover: {
       role: 'dialog',
@@ -108,7 +108,7 @@ When only a subset of tours should block interaction, override the default throu
 ```ts
 const flow = createFlow({
   id: 'critical-setup',
-  version: 1,
+  version: { major: 1, minor: 0 },
   hud: {
     backdrop: {
       interaction: 'block',
@@ -138,7 +138,7 @@ When a tour step grabs the user's attention, drifting content can be just as dis
 ```ts
 const flow = createFlow({
   id: 'onboarding',
-  version: 1,
+  version: { major: 1, minor: 0 },
   hud: {
     behavior: {
       lockBodyScroll: true,
@@ -161,7 +161,7 @@ Control the behavior per step with `targetBehavior`:
 ```ts
 const flow = createFlow({
   id: 'guided-demo',
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'filters',

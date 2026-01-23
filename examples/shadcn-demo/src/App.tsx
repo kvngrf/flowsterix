@@ -71,7 +71,7 @@ const demoFlow = createFlow<ReactNode>({
   },
   resumeStrategy: 'current',
   autoStart: true,
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'welcome',

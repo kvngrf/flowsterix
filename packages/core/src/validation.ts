@@ -130,6 +130,21 @@ const resumeStrategySchema = z.union([
   z.literal('current'),
 ])
 
+/**
+ * Flow version schema: { major: number, minor: number }
+ */
+const flowVersionSchema = z.object({
+  major: z.number().nonnegative().int(),
+  minor: z.number().nonnegative().int(),
+})
+
+const migrateFnSchema = z
+  .custom<(...args: Array<unknown>) => unknown>(
+    (value) => typeof value === 'function',
+    { message: 'migrate must be a function' },
+  )
+  .optional()
+
 const placementSchema = z.union([
   z.literal('auto'),
   z.literal('top'),
@@ -192,12 +207,13 @@ const stepSchema = z.object({
 
 export const flowDefinitionSchema = z.object({
   id: z.string().min(1),
-  version: z.number().nonnegative().int(),
+  version: flowVersionSchema,
   steps: z.array(stepSchema).min(1),
   hud: hudSchema.optional(),
   resumeStrategy: resumeStrategySchema.optional(),
   autoStart: z.boolean().optional(),
   metadata: z.record(z.string(), z.any()).optional(),
+  migrate: migrateFnSchema,
 })
 
 export const validateFlowDefinition = <TContent>(

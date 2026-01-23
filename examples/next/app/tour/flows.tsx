@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 
 export const demoFlow = createFlow<ReactNode>({
   id: 'next-demo',
-  version: 1,
+  version: { major: 1, minor: 0 },
   autoStart: true,
   steps: [
     {

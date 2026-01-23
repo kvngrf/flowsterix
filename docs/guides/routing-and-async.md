@@ -83,7 +83,7 @@ Set a `resumeStrategy` to control that behavior:
 ```ts
 const flow = createFlow({
   id: 'demo-flow',
-  version: 1,
+  version: { major: 1, minor: 0 },
   resumeStrategy: 'current',
   steps: [
     {
@@ -158,7 +158,7 @@ Virtualized scrollers often render targets only after you scroll them into view 
 ```ts
 const employeeFlow = createFlow({
   id: 'employees-onboarding',
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'virtual-row',

@@ -69,11 +69,13 @@ The adapter expects your API to implement:
 
 ```typescript
 interface StorageSnapshot {
-  version: number    // Flow version for migration detection
+  version: string    // Flow version as "major.minor" (e.g., "1.0")
   value: FlowState   // The actual tour state
   updatedAt: number  // Unix timestamp
 }
 ```
+
+> **Note:** The version format changed from a number to a string in the semantic versioning update. Legacy numeric versions are automatically migrated. See `docs/guides/versioning.md` for details.
 
 ### Example: Next.js API Route
 
@@ -172,7 +174,7 @@ model TourState {
   id        String   @id @default(cuid())
   userId    String
   key       String   // e.g., "tour:onboarding"
-  version   Int
+  version   String   // e.g., "1.0"
   state     Json     // FlowState
   updatedAt DateTime @updatedAt
 

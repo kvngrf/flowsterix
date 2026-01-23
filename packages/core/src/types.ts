@@ -9,10 +9,23 @@ export type FlowStatus =
 
 export type FlowCancelReason = 'skipped' | 'keyboard'
 
+/**
+ * Semantic version for flow definitions.
+ * - major: Increment for breaking changes (steps restructured, removed, IDs changed)
+ * - minor: Increment for additive/cosmetic changes (content tweaks, new optional steps)
+ */
+export interface FlowVersion {
+  major: number
+  minor: number
+}
+
 export interface FlowState {
   status: FlowStatus
   stepIndex: number
-  version: number
+  /** Serialized version stored as "major.minor" string for stable storage */
+  version: string
+  /** Step ID at time of storage, used for migration matching */
+  stepId?: string
   updatedAt: number
   cancelReason?: FlowCancelReason
 }
@@ -218,14 +231,63 @@ export interface FlowHudOptions {
   behavior?: FlowHudBehaviorOptions
 }
 
+/**
+ * Result of comparing two flow versions.
+ * - 'same': Versions match exactly
+ * - 'minor': Only minor version differs (non-breaking)
+ * - 'major': Major version differs (breaking change)
+ */
+export type VersionCompareResult = 'same' | 'minor' | 'major'
+
+/**
+ * Action taken after version mismatch detection.
+ */
+export type VersionMismatchAction = 'continued' | 'migrated' | 'reset'
+
+/**
+ * Context provided to migration functions.
+ */
+export interface MigrationContext<TContent = unknown> {
+  oldState: FlowState
+  oldVersion: FlowVersion
+  newVersion: FlowVersion
+  /** Map of step ID to new index in current definition */
+  stepIdMap: Map<string, number>
+  /** Current flow definition */
+  definition: FlowDefinition<TContent>
+}
+
+/**
+ * Migration function type. Return new state or null to trigger reset.
+ */
+export type FlowMigrateFn<TContent = unknown> = (
+  ctx: MigrationContext<TContent>,
+) => FlowState | null
+
+/**
+ * Information about a version mismatch event.
+ */
+export interface VersionMismatchInfo {
+  flowId: string
+  oldVersion: FlowVersion
+  newVersion: FlowVersion
+  action: VersionMismatchAction
+  /** Step ID that was resolved to (if continued/migrated) */
+  resolvedStepId?: string
+  /** Step index that was resolved to (if continued/migrated) */
+  resolvedStepIndex?: number
+}
+
 export interface FlowDefinition<TContent = unknown> {
   id: string
-  version: number
+  version: FlowVersion
   steps: Array<Step<TContent>>
   hud?: FlowHudOptions
   resumeStrategy?: ResumeStrategy
   autoStart?: boolean
   metadata?: Record<string, unknown>
+  /** Optional migration function for handling version upgrades */
+  migrate?: FlowMigrateFn<TContent>
 }
 
 export type FlowErrorCode =
@@ -235,6 +297,7 @@ export type FlowErrorCode =
   | 'storage.hydrate_failed'
   | 'flow.step_not_found'
   | 'flow.store_destroyed'
+  | 'flow.migration_failed'
 
 export interface FlowErrorEvent<TContent = unknown> {
   flow: FlowDefinition<TContent>
@@ -266,6 +329,7 @@ export interface FlowEvents<TContent = unknown>
   stepExit: StepExitEvent<TContent>
   stepComplete: StepCompleteEvent<TContent>
   flowError: FlowErrorEvent<TContent>
+  versionMismatch: VersionMismatchInfo & { flow: FlowDefinition<TContent> }
 }
 
 type AnalyticsHandlerName<TName extends string> = `on${Capitalize<TName>}`

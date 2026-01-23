@@ -10,13 +10,21 @@ import type {
   FlowEvents,
   FlowState,
   FlowStore,
+  FlowVersion,
   StartFlowOptions,
   Step,
   StepCompleteReason,
   StepDirection,
   StepEnterReason,
   StepExitReason,
+  VersionMismatchInfo,
 } from './types'
+import {
+  buildStepIdMap,
+  handleVersionMismatch,
+  parseVersion,
+  serializeVersion,
+} from './version'
 
 export interface FlowStoreOptions<TContent = unknown> {
   storageAdapter?: StorageAdapter
@@ -25,6 +33,8 @@ export interface FlowStoreOptions<TContent = unknown> {
   now?: () => number
   persistOnChange?: boolean
   analytics?: FlowAnalyticsHandlers<TContent>
+  /** Callback when a version mismatch is detected and resolved */
+  onVersionMismatch?: (info: VersionMismatchInfo) => void
 }
 
 interface CommitOptions {
@@ -94,7 +104,7 @@ const createInitialState = <TContent>(
 ): FlowState => ({
   status: 'idle',
   stepIndex: -1,
-  version: definition.version,
+  version: serializeVersion(definition.version),
   updatedAt: now(),
 })
 
@@ -121,10 +131,13 @@ const isFlowStateSnapshot = (
     return false
   }
   const flowValue = value as Partial<FlowState>
+  // Accept both string (new format) and number (legacy) for backward compatibility
+  const hasValidVersion =
+    typeof flowValue.version === 'string' || typeof flowValue.version === 'number'
   return (
     typeof flowValue.status === 'string' &&
     typeof flowValue.stepIndex === 'number' &&
-    typeof flowValue.version === 'number'
+    hasValidVersion
   )
 }
 
@@ -139,7 +152,11 @@ export const createFlowStore = <TContent>(
     now = () => Date.now(),
     persistOnChange = true,
     analytics,
+    onVersionMismatch,
   } = flowOptions
+
+  const currentVersion: FlowVersion = definition.version
+  const stepIdMap = buildStepIdMap(definition)
 
   let state = createInitialState(definition, now)
   const subscribers = new Set<(next: FlowState) => void>()
@@ -359,9 +376,15 @@ export const createFlowStore = <TContent>(
 
     const previousState = state
     const timestamp = preserveTimestamp ? nextState.updatedAt : now()
+    // Include stepId for version migration matching
+    const currentStepId =
+      nextState.stepIndex >= 0
+        ? definition.steps[nextState.stepIndex]?.id
+        : undefined
     const hydratedNext: FlowState = {
       ...nextState,
-      version: definition.version,
+      version: serializeVersion(currentVersion),
+      stepId: currentStepId,
       updatedAt: timestamp,
     }
 
@@ -396,20 +419,59 @@ export const createFlowStore = <TContent>(
         storageAdapter.get(storageKey),
       )) as StorageSnapshot<FlowState> | null
       if (!snapshot || !isFlowStateSnapshot(snapshot)) return
-      if (snapshot.version !== definition.version) {
-        const removal = storageAdapter.remove(storageKey)
-        if (removal instanceof Promise) {
-          removal.catch((error) => {
-            console.warn(
-              '[tour][storage] failed to remove outdated snapshot',
-              error,
-            )
-            emitFlowError('storage.remove_failed', error, { key: storageKey })
-          })
-        }
-        return
+
+      // Parse stored version (handles both legacy number and new string format)
+      const storedVersion = parseVersion(snapshot.version)
+      const storedState: FlowState = {
+        ...snapshot.value,
+        // Normalize version to string format if it was legacy number
+        version:
+          typeof snapshot.value.version === 'number'
+            ? serializeVersion({ major: snapshot.value.version, minor: 0 })
+            : snapshot.value.version,
       }
-      commit(snapshot.value, { persist: false, preserveTimestamp: true })
+
+      // Handle version mismatch
+      const { state: resolvedState, action } = handleVersionMismatch({
+        storedState,
+        storedVersion,
+        definition,
+        currentVersion,
+        stepIdMap,
+        now,
+      })
+
+      // Emit version mismatch event if version changed
+      if (action !== 'continued' || serializeVersion(storedVersion) !== serializeVersion(currentVersion)) {
+        const mismatchInfo: VersionMismatchInfo = {
+          flowId: definition.id,
+          oldVersion: storedVersion,
+          newVersion: currentVersion,
+          action,
+          resolvedStepId:
+            resolvedState.stepIndex >= 0
+              ? definition.steps[resolvedState.stepIndex]?.id
+              : undefined,
+          resolvedStepIndex:
+            resolvedState.stepIndex >= 0 ? resolvedState.stepIndex : undefined,
+        }
+
+        emitEvent('versionMismatch', { ...mismatchInfo, flow: definition })
+        onVersionMismatch?.(mismatchInfo)
+
+        // If we reset, just update state without persisting (will persist on next action)
+        if (action === 'reset') {
+          state = resolvedState
+          notifySubscribers()
+          return
+        }
+      }
+
+      // Commit the resolved state
+      commit(resolvedState, {
+        persist: action !== 'continued', // Persist if we migrated
+        preserveTimestamp: action === 'continued',
+      })
     } catch (error) {
       console.warn('[tour][storage] failed to hydrate flow state', error)
       emitFlowError('storage.hydrate_failed', error, { key: storageKey })
@@ -473,7 +535,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'running',
       stepIndex: targetIndex,
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }
@@ -488,7 +550,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'running',
       stepIndex: state.stepIndex + 1,
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }
@@ -503,7 +565,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'running',
       stepIndex: state.stepIndex - 1,
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }
@@ -532,7 +594,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'running',
       stepIndex: targetIndex,
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }
@@ -544,7 +606,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'paused',
       stepIndex: state.stepIndex,
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }
@@ -560,7 +622,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'running',
       stepIndex: index,
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }
@@ -573,7 +635,7 @@ export const createFlowStore = <TContent>(
       {
         status: 'cancelled',
         stepIndex: state.stepIndex,
-        version: definition.version,
+        version: state.version,
         updatedAt: state.updatedAt,
         cancelReason: reason,
       },
@@ -588,7 +650,7 @@ export const createFlowStore = <TContent>(
     return commit({
       status: 'completed',
       stepIndex: clampIndex(state.stepIndex, definition.steps.length - 1),
-      version: definition.version,
+      version: state.version,
       updatedAt: state.updatedAt,
     })
   }

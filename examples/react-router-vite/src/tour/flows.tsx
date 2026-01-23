@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 export const demoFlow = createFlow<ReactNode>({
   id: 'react-router-demo',
   autoStart: true,
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'welcome',

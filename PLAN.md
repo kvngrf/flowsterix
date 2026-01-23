@@ -152,5 +152,5 @@
 
 - [ ] Decide on inclusion of declarative API (`<Flow><Step/>`) in v0
 - [ ] Define minimum browser support and necessary polyfills
-- [ ] Establish persistence policy across app versions (flow.version migrations)
+- [x] Establish persistence policy across app versions (flow.version migrations)
 - [ ] Determine default behavior for outside click (advance, dismiss, no-op)

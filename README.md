@@ -249,7 +249,7 @@ Override the behavior per flow via HUD options when a specific tour needs differ
 ```ts
 const flow = createFlow({
   id: 'paywall-tour',
-  version: 1,
+  version: { major: 1, minor: 0 },
   hud: {
     backdrop: {
       interaction: 'block',
@@ -278,7 +278,7 @@ If only a handful of flows need the behavior, override the provider default thro
 ```ts
 const flow = createFlow({
   id: 'critical-setup',
-  version: 1,
+  version: { major: 1, minor: 0 },
   hud: {
     behavior: {
       lockBodyScroll: true,
@@ -308,6 +308,38 @@ const storageAdapter = createApiStorageAdapter({
 ```
 
 The adapter expects your API to implement `GET /{key}`, `PUT /{key}`, and `DELETE /{key}` endpoints. See `docs/guides/storage-adapters.md` for API contract details and example implementations.
+
+## Flow Versioning
+
+Flows use semantic versioning to handle state across deployments:
+
+```tsx
+const flow = createFlow({
+  id: 'onboarding',
+  version: { major: 1, minor: 0 },
+  steps: [...]
+})
+```
+
+When you update a flow, the versioning system determines how to handle users mid-flow:
+
+- **Minor changes** (1.0 → 1.1): Attempts to preserve progress by matching step IDs
+- **Major changes** (1.0 → 2.0): Resets or calls your `migrate` function
+
+Listen for version mismatches to notify users:
+
+```tsx
+<TourProvider
+  flows={flows}
+  onVersionMismatch={({ action }) => {
+    if (action === 'reset') {
+      toast('This tour has been updated.')
+    }
+  }}
+>
+```
+
+See `docs/guides/versioning.md` for migration strategies and best practices.
 
 ## Analytics & Error Reporting
 

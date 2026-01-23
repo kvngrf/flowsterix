@@ -5,7 +5,7 @@ import { createWaitForPredicateController } from '../waitForPredicate'
 
 const demoFlow: FlowDefinition<string> = {
   id: 'demo-flow',
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'demo-step',
@@ -20,7 +20,7 @@ const demoStep: Step<string> = demoFlow.steps[0]
 const demoState: FlowState = {
   status: 'running',
   stepIndex: 0,
-  version: 1,
+  version: '1.0',
   updatedAt: 0,
 }
 

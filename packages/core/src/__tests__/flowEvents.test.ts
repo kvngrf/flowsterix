@@ -5,7 +5,7 @@ import type { FlowAnalyticsHandlers, FlowDefinition } from '../types'
 
 const demoFlow: FlowDefinition<string> = {
   id: 'demo',
-  version: 1,
+  version: { major: 1, minor: 0 },
   steps: [
     {
       id: 'welcome',

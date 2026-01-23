@@ -1,5 +1,6 @@
 export interface StorageSnapshot<TValue = unknown> {
-  version: number
+  /** Version stored as "major.minor" string */
+  version: string
   value: TValue
   updatedAt: number
 }
@@ -52,8 +53,11 @@ const isStorageSnapshotShape = (value: unknown): value is StorageSnapshot => {
     return false
   }
   const snapshot = value as Partial<StorageSnapshot>
+  // Accept both string (new format) and number (legacy) for backward compatibility
+  const hasValidVersion =
+    typeof snapshot.version === 'string' || typeof snapshot.version === 'number'
   return (
-    typeof snapshot.version === 'number' &&
+    hasValidVersion &&
     typeof snapshot.updatedAt === 'number' &&
     'value' in snapshot
   )

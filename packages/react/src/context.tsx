@@ -11,11 +11,13 @@ import type {
   StartFlowOptions,
   Step,
   StorageAdapter,
+  VersionMismatchInfo,
 } from '@flowsterix/core'
 import {
   createFlowStore,
   createLocalStorageAdapter,
   resolveMaybePromise,
+  serializeVersion,
 } from '@flowsterix/core'
 import type {
   Dispatch,
@@ -65,6 +67,8 @@ export interface TourProviderProps {
   lockBodyScroll?: boolean
   /** Customize UI labels for internationalization */
   labels?: Partial<TourLabels>
+  /** Callback when a version mismatch is detected and resolved */
+  onVersionMismatch?: (info: VersionMismatchInfo) => void
 }
 
 export interface TourContextValue {
@@ -118,6 +122,7 @@ export const TourProvider = ({
   backdropInteraction: backdropInteractionProp = 'passthrough',
   lockBodyScroll: lockBodyScrollProp = false,
   labels: labelsProp,
+  onVersionMismatch,
 }: PropsWithChildren<TourProviderProps>) => {
   const mergedLabels = useMemo<TourLabels>(
     () => ({ ...defaultLabels, ...labelsProp }),
@@ -233,6 +238,7 @@ export const TourProvider = ({
           : undefined,
         persistOnChange,
         analytics,
+        onVersionMismatch,
       })
 
       // Subscribe to step lifecycle events immediately (before start() is called)
@@ -269,6 +275,7 @@ export const TourProvider = ({
     [
       analytics,
       flowMap,
+      onVersionMismatch,
       persistOnChange,
       storageAdapter,
       storageNamespace,
@@ -449,7 +456,15 @@ export const TourProvider = ({
 
       if (cancelled) return
 
-      if (snapshot && snapshot.version === autoStartFlow.version) {
+      // Compare versions using serialized format for consistency
+      const currentVersionStr = serializeVersion(autoStartFlow.version)
+      // Handle legacy numeric versions in storage
+      const storedVersionStr =
+        typeof snapshot?.version === 'number'
+          ? serializeVersion({ major: snapshot.version, minor: 0 })
+          : snapshot?.version
+
+      if (snapshot && storedVersionStr === currentVersionStr) {
         const storedState = snapshot.value as FlowState
         const isFinished = storedState.status === 'completed'
         const isSkipped =

@@ -16,3 +16,9 @@ export type {
 } from './storage'
 export * from './types'
 export { flowDefinitionSchema, validateFlowDefinition } from './validation'
+export {
+  buildStepIdMap,
+  compareVersions,
+  parseVersion,
+  serializeVersion,
+} from './version'

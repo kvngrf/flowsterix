@@ -18,7 +18,7 @@
 4. Product decisions to close
    - Default outside-click behavior (advance/dismiss/no-op).
    - Minimum browser support + polyfills.
-   - Persistence/version migration policy.
+   - ~~Persistence/version migration policy.~~ Done (semantic versioning with migration support)
 
 5. Optional/roadmap
    - Declarative `<Flow>/<Step>` API decision for v0.
