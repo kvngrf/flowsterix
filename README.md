@@ -39,11 +39,22 @@ pnpm build
 
 ## Testing
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+This project uses [Vitest](https://vitest.dev/) for unit tests and [Playwright](https://playwright.dev/) for E2E tests.
 
 ```bash
-pnpm test
+pnpm test        # Run unit tests
+pnpm test:e2e    # Run E2E tests
+pnpm test:e2e:ui # Run E2E tests with UI
 ```
+
+**Unit test coverage:**
+- `@flowsterix/core`: 99 tests (EventBus, validation schemas, storage adapters, version management)
+- `@flowsterix/react`: 5 test files (focus management, scroll utilities, hidden target fallback)
+
+**E2E coverage:**
+- Tour lifecycle (auto-start, navigation, back)
+- Persistence (resume after refresh, completed/cancelled states)
+- UI accessibility (dialog role, overlay, controls)
 
 ## Styling
 

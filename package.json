@@ -16,10 +16,13 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "format": "prettier --check .",
     "format:write": "prettier --write ."
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.0",
     "@tanstack/eslint-config": "^0.3.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
@@ -31,8 +34,8 @@
     "jsdom": "^27.0.0",
     "prettier": "^3.5.3",
     "tailwindcss": "^4.0.6",
-    "turbo": "^2.1.0",
     "tsup": "^8.0.2",
+    "turbo": "^2.1.0",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
     "vitest": "^3.0.5"

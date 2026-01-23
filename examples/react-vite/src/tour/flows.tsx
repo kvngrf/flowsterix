@@ -194,9 +194,6 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         ensureMenuOpen()
         ensureSsrGroupExpanded()
       },
-      onExit: () => {
-        setTimeout(() => ensureMenuClosed(), 0)
-      },
       placement: 'right',
       advance: [{ type: 'delay', ms: 2000 }],
       content: <DelayDemoContent />,

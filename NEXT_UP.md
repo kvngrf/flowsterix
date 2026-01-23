@@ -1,8 +1,8 @@
 # Next Up (Prioritized)
 
 1. Testing and QA coverage
-   - Expand unit tests for core engine, adapters, and persistence.
-   - Add Playwright smoke tests for DOM targeting, routing, and flows.
+   - ~~Expand unit tests for core engine, adapters, and persistence.~~ ✓ Done (EventBus, validation, storage adapters)
+   - ~~Add Playwright smoke tests for DOM targeting, routing, and flows.~~ ✓ Done (lifecycle, persistence, UI tests)
    - Add visual snapshot coverage for placements.
 
 2. Example apps and docs

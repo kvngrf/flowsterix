@@ -16,3 +16,7 @@ todos.json
 
 # Video package output
 packages/video/out
+
+# Playwright
+test-results/
+playwright-report/
