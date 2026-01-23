@@ -78,7 +78,7 @@ describe('validateFlowDefinition', () => {
         resumeStrategy: 'chain',
         autoStart: true,
         metadata: { custom: 'value' },
-        migrate: () => ({}),
+        migrate: () => null,
       }
       expect(() => validateFlowDefinition(flow)).not.toThrow()
     })
@@ -145,7 +145,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
 
     it('rejects predicate advance without function', () => {
@@ -160,7 +160,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
 
     it('accepts valid predicate advance', () => {
@@ -190,7 +190,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
   })
 
@@ -207,7 +207,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
 
     it('accepts valid mask literals', () => {
@@ -241,7 +241,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
   })
 
@@ -258,7 +258,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
   })
 
@@ -292,7 +292,7 @@ describe('validateFlowDefinition', () => {
           },
         ],
       }
-      expect(() => validateFlowDefinition(flow as FlowDefinition<string>)).toThrow()
+      expect(() => validateFlowDefinition(flow as unknown as FlowDefinition<string>)).toThrow()
     })
   })
 })

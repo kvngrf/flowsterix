@@ -3,7 +3,7 @@
 1. Testing and QA coverage
    - ~~Expand unit tests for core engine, adapters, and persistence.~~ ✓ Done (EventBus, validation, storage adapters)
    - ~~Add Playwright smoke tests for DOM targeting, routing, and flows.~~ ✓ Done (lifecycle, persistence, UI tests)
-   - Add visual snapshot coverage for placements.
+   - ~~Add visual snapshot coverage for placements.~~ Skipped (relying on E2E + manual QA)
 
 2. Example apps and docs
    - ~~Build `examples/next`~~ ✓ Done
@@ -11,9 +11,9 @@
    - ~~Document setup for adapters and storage~~ ✓ Done (`docs/guides/storage-adapters.md`)
 
 3. Release readiness
-   - Add Changesets + commitlint and a release checklist.
-   - Decide `sideEffects` flags and tree-shaking policy.
-   - Decide peer/dependency policy for Motion and Floating UI.
+   - ~~Add Changesets + commitlint and a release checklist.~~ ✓ Done (Changesets only, commitlint skipped)
+   - ~~Decide `sideEffects` flags and tree-shaking policy.~~ ✓ Done (`sideEffects: false` on both packages)
+   - ~~Decide peer/dependency policy for Motion and Floating UI.~~ ✓ Done (Motion=peer, Floating UI=dep)
 
 4. Product decisions to close
    - Default outside-click behavior (advance/dismiss/no-op).
