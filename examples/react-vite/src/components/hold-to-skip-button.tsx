@@ -1,5 +1,3 @@
-'use client'
-
 import { useTourLabels } from '@flowsterix/react'
 import type { Variants } from 'motion/react'
 import { motion } from 'motion/react'

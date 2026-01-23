@@ -193,6 +193,9 @@ importers:
 
   examples/react-vite:
     dependencies:
+      '@floating-ui/dom':
+        specifier: ^1.7.4
+        version: 1.7.4
       '@flowsterix/core':
         specifier: workspace:*
         version: link:../../packages/core
