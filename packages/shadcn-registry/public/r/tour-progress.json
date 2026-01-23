@@ -8,7 +8,7 @@
     "@flowsterix/react"
   ],
   "registryDependencies": [
-    "tour-provider"
+    "https://flowsterix.vercel.app/r/tour-provider.json"
   ],
   "files": [
     {
