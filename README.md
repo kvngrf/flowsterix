@@ -14,10 +14,9 @@ npm install @flowsterix/core @flowsterix/react motion
 
 ```bash
 npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
-npx shadcn@latest add https://flowsterix.com/r/step-content.json
 ```
 
-This installs the tour HUD (overlay, popover, controls) and step content primitives.
+This installs everything: overlay, popover, controls, progress, and step content primitives.
 
 ### 3. Define your first flow
 
