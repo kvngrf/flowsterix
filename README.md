@@ -73,13 +73,13 @@ That's it. Your tour is ready.
 
 ## Using with AI Assistants
 
-Install the Flowsterix skill to help Claude Code (or other AI agents) implement tours in your codebase:
+Install the Flowsterix skill to help AI agents implement tours in your codebase:
 
 ```bash
-npx @anthropic-ai/claude-code add-skill https://github.com/kvngrf/flowsterix
+npx add-skill kvngrf/flowsterix
 ```
 
-The skill provides patterns for step definitions, advance rules, lifecycle hooks, router integration, and more.
+The skill provides patterns for step definitions, advance rules, lifecycle hooks, router integration, and more. Works with Claude Code, Cursor, and other AI coding assistants.
 
 ---
 
