@@ -1,677 +1,167 @@
-Welcome to your new TanStack app!
+# Flowsterix
 
-# Getting Started
+Guided tours and onboarding flows for React applications. State machine-based, fully typed, with built-in persistence.
 
-To run this application:
+## Getting Started
 
-```bash
-pnpm install
-pnpm start
-```
-
-# Examples
-
-This repo ships with multiple demo apps showing different integrations:
-
-- `examples/react-vite` (TanStack Router)
-- `examples/react-router-vite` (React Router + route adapter)
-- `examples/next` (Next.js App Router + route adapter)
-- `examples/shadcn-demo` (shadcn HUD)
-
-Run any example with the root scripts:
+### 1. Install the packages
 
 ```bash
-pnpm dev:react-vite
-pnpm dev:react-router
-pnpm dev:next
-pnpm dev:shadcn
+npm install @flowsterix/core @flowsterix/react motion @floating-ui/dom
 ```
 
-You can also use `pnpm dev` to start the TanStack Router example by default.
-
-# Building For Production
-
-To build this application for production:
+### 2. Add UI components via shadcn
 
 ```bash
-pnpm build
+npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
 ```
 
-## Testing
+This installs the complete tour HUD with overlay, popover, controls, and progress indicator.
 
-This project uses [Vitest](https://vitest.dev/) for unit tests and [Playwright](https://playwright.dev/) for E2E tests.
+### 3. Define your first flow
+
+```tsx
+import { createFlow } from '@flowsterix/core'
+
+export const onboardingFlow = createFlow({
+  id: 'onboarding',
+  version: { major: 1, minor: 0 },
+  autoStart: true,
+  steps: [
+    {
+      id: 'welcome',
+      target: 'screen',
+      advance: [{ type: 'manual' }],
+      content: <p>Welcome! Let us show you around.</p>,
+    },
+    {
+      id: 'feature',
+      target: { selector: '[data-tour-target="main-feature"]' },
+      advance: [{ type: 'event', event: 'click', on: 'target' }],
+      content: <p>Click this button to continue.</p>,
+    },
+  ],
+})
+```
+
+### 4. Add to your app
+
+```tsx
+import { TourProvider } from '@flowsterix/react'
+import { TourHUD } from '@/components/tour-hud'
+import { onboardingFlow } from './flows'
+
+export function App({ children }) {
+  return (
+    <TourProvider flows={[onboardingFlow]} storageNamespace="my-app">
+      <TourHUD />
+      {children}
+    </TourProvider>
+  )
+}
+```
+
+### 5. Add target attributes to your elements
+
+```tsx
+<button data-tour-target="main-feature">Get Started</button>
+```
+
+That's it. Your tour is ready.
+
+---
+
+## Using with AI Assistants
+
+Install the Flowsterix skill to help Claude Code (or other AI agents) implement tours in your codebase:
 
 ```bash
-pnpm test        # Run unit tests
-pnpm test:e2e    # Run E2E tests
-pnpm test:e2e:ui # Run E2E tests with UI
+npx @anthropic-ai/claude-code add-skill https://github.com/kvngrf/flowsterix
 ```
 
-**Unit test coverage:**
-- `@flowsterix/core`: 99 tests (EventBus, validation schemas, storage adapters, version management)
-- `@flowsterix/react`: 5 test files (focus management, scroll utilities, hidden target fallback)
+The skill provides patterns for step definitions, advance rules, lifecycle hooks, router integration, and more.
 
-**E2E coverage:**
-- Tour lifecycle (auto-start, navigation, back)
-- Persistence (resume after refresh, completed/cancelled states)
-- UI accessibility (dialog role, overlay, controls)
+---
+
+## Features
+
+- **Declarative flows** - Define steps with targets, content, and progression rules
+- **5 advance rule types** - Manual, event, delay, route, predicate
+- **Lifecycle hooks** - onEnter, onResume, onExit for UI synchronization
+- **Persistence** - localStorage, API, or custom storage adapters
+- **Versioning** - Semantic versions with migration support
+- **Router integration** - TanStack Router, React Router, Next.js App/Pages
+- **Accessibility** - Focus trapping, keyboard navigation, ARIA labels
+- **Analytics hooks** - Event system for integrating with your tracking
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Storage Adapters](docs/guides/storage-adapters.md) | Persist state to localStorage, API, or custom backends |
+| [Versioning](docs/guides/versioning.md) | Handle flow updates and migrations |
+| [Accessibility](docs/guides/accessibility.md) | Focus management, ARIA, reduced motion |
+| [Routing](docs/guides/routing.md) | Router adapter setup and route-based steps |
+| [Headless Mode](docs/guides/headless.md) | Build custom UIs with Flowsterix hooks |
+
+## Shadcn Components
+
+All UI components are available via the [shadcn registry](https://flowsterix.com):
+
+```bash
+# Individual components
+npx shadcn@latest add https://flowsterix.com/r/tour-provider.json
+npx shadcn@latest add https://flowsterix.com/r/tour-overlay.json
+npx shadcn@latest add https://flowsterix.com/r/tour-controls.json
+npx shadcn@latest add https://flowsterix.com/r/tour-progress.json
+
+# Complete HUD (recommended)
+npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
+
+# Example flow
+npx shadcn@latest add https://flowsterix.com/r/onboarding-flow.json
+```
+
+## Examples
+
+This repo includes example apps for different frameworks:
+
+```bash
+pnpm dev:react-vite     # TanStack Router
+pnpm dev:react-router   # React Router v6
+pnpm dev:next           # Next.js App Router
+pnpm dev:shadcn         # shadcn component demo
+```
 
 ## Browser Support
-
-Flowsterix targets modern browsers only (no polyfills required):
 
 - Chrome/Edge 90+
 - Firefox 90+
 - Safari 15+
 
-## Styling
+## License
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+MIT
 
-### Tour HUD UI
+---
 
-Flowsterix no longer ships a default HUD stylesheet. The UI lives in the shadcn registry components, which you sync into each app and customize with Tailwind or your own CSS variables.
-
-See `packages/shadcn-registry/README.md` for the registry workflow.
-
-### Headless React bindings
-
-Need total control over the markup, styling, and controls? Use `@flowsterix/react` directly. It ships the Flowsterix provider, hooks, router adapters, and animation utilities without bundling any HUD components or CSS, so you can render your own overlay/popover/buttons from scratch:
-
-```tsx
-import {
-  TourProvider,
-  useTour,
-  useTourTarget,
-  useTourControls,
-} from '@flowsterix/react'
-
-export function App() {
-  return (
-    <TourProvider flows={flows}>
-      <CustomHud />
-    </TourProvider>
-  )
-}
-```
-
-Set `hud: { render: 'none' }` on any flow you plan to render yourself so any HUD you mount can opt out cleanly.
-
-See `docs/guides/headless.md` for a complete walkthrough, including a minimal highlight and popover implementation you can paste into your project.
-
-#### Fast-tracking custom HUDs
-
-Skip the wiring by importing `useTourHud` from `@flowsterix/react`. It bundles the same behavior as the default HUD—body scroll locking, keyboard shortcuts, focus management, ARIA wiring, and target diagnostics—so you only provide markup:
-
-```tsx
-import {
-  TourFocusManager,
-  TourPopoverPortal,
-  useTourHud,
-  useTourOverlay,
-} from '@flowsterix/react'
-
-function CustomHud() {
-  const hud = useTourHud()
-  const { hudState, popover, description, focusManager, targetIssue, overlay } =
-    hud
-  const overlayGeometry = useTourOverlay({
-    target: hudState.hudTarget,
-    padding: overlay.padding,
-    radius: overlay.radius,
-    interactionMode: overlay.interactionMode,
-  })
-
-  if (!hudState.shouldRender || !hudState.runningStep) return null
-
-  return (
-    <>
-      <TourFocusManager
-        active={focusManager.active}
-        target={focusManager.target}
-        popoverNode={focusManager.popoverNode}
-        highlightRect={overlayGeometry.highlight.rect}
-        targetRingOffset={2}
-      />
-      <TourPopoverPortal
-        target={hudState.hudTarget}
-        offset={popover.offset}
-        ariaLabel={popover.ariaLabel}
-        ariaDescribedBy={description.combinedAriaDescribedBy}
-        descriptionId={description.descriptionId}
-        descriptionText={description.text ?? undefined}
-        onContainerChange={focusManager.setPopoverNode}
-      >
-        {targetIssue.issue ? (
-          <p data-target-issue>{targetIssue.issue.title}</p>
-        ) : null}
-        {hudState.runningStep.content}
-      </TourPopoverPortal>
-    </>
-  )
-}
-```
-
-Use the hook’s options to override padding, radius, shortcut handling, or scroll locking globally while keeping your HUD markup completely custom.
-
-Need just the highlight math? Pair the snippet above with `useTourOverlay` to reuse Flowsterix's overlay geometry (padding, viewport clamping, interaction blockers) inside your own backdrop component. See `docs/guides/headless.md#overlay-helper-hook` for a drop-in example.
-
-## Shadcn Registry Sync
-
-The shadcn registry is the source of truth for the tour UI components. To keep the example apps in sync with the latest registry output:
+## Development
 
 ```bash
-pnpm sync:shadcn-examples
-```
+# Install dependencies
+pnpm install
 
-By default this pulls from the local registry output at `packages/shadcn-registry/public/r`. You can override the path with:
+# Run example app
+pnpm dev
 
-```bash
-FLOWSTERIX_REGISTRY_PATH=/absolute/path/to/public/r pnpm sync:shadcn-examples
-```
+# Run tests
+pnpm test        # Unit tests
+pnpm test:e2e    # Playwright E2E tests
 
-### Customizing Animations
+# Build packages
+pnpm build
 
-The React bindings drive motion through an `AnimationAdapter` that ships with a Framer Motion-backed default. `TourProvider` accepts several options so you can adjust timing or respect user preferences without rewriting components:
-
-```tsx
-import { TourProvider, reducedMotionAnimationAdapter } from '@flowsterix/react'
-
-export function App() {
-  return (
-    <TourProvider
-      flows={flows}
-      autoDetectReducedMotion
-      reducedMotionAdapter={reducedMotionAnimationAdapter}
-    >
-      {/* your app */}
-    </TourProvider>
-  )
-}
-```
-
-- `autoDetectReducedMotion` automatically switches to the provided reduced-motion adapter (defaults to the built-in one) when the OS preference is set.
-- `animationAdapter` lets you replace every motion primitive with a custom implementation.
-
-If you need more control—such as dynamically choosing between multiple animation presets—you can call `usePreferredAnimationAdapter` directly:
-
-```tsx
-import {
-  TourProvider,
-  defaultAnimationAdapter,
-  usePreferredAnimationAdapter,
-} from '@flowsterix/react'
-
-const brandAnimationAdapter = {
-  ...defaultAnimationAdapter,
-  transitions: {
-    ...defaultAnimationAdapter.transitions,
-    overlayHighlight: { duration: 0.28, ease: 'easeInOut' },
-  },
-}
-
-export function App() {
-  const animationAdapter = usePreferredAnimationAdapter({
-    defaultAdapter: brandAnimationAdapter,
-  })
-
-  return (
-    <TourProvider flows={flows} animationAdapter={animationAdapter}>
-      {/* your app */}
-    </TourProvider>
-  )
-}
-```
-
-Adapters can provide alternative motion components (e.g. `animated.div`) and tune transitions for the overlay, popover, delay progress indicator, or any future animated surfaces.
-
-## Accessibility
-
-Flows auto-detect `prefers-reduced-motion`, trap keyboard focus within the popover and highlighted target, and expose hooks for extra ARIA metadata. See `docs/guides/accessibility.md` for details on overriding popover roles, adding custom descriptions, or excluding controls from the focus loop.
-
-## Internationalization
-
-All UI labels are customizable through `TourProvider`. Pass a partial `labels` object to translate or override any string:
-
-```tsx
-<TourProvider
-  flows={flows}
-  labels={{
-    back: 'Zurück',
-    next: 'Weiter',
-    finish: 'Fertig',
-    skip: 'Tour überspringen',
-    holdToConfirm: 'Halten zum Bestätigen',
-    ariaStepProgress: ({ current, total }) => `Schritt ${current} von ${total}`,
-    formatTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)}s verbleibend`,
-  }}
->
-```
-
-The `useTourLabels()` hook provides access to the merged labels for custom components. Components also accept direct label overrides via props when you need per-instance customization.
-
-### Backdrop interaction modes
-
-Some products want the dimmed backdrop to block clicks, while others prefer letting users continue interacting with the underlying UI. `TourProvider` exposes a `backdropInteraction` switch so you can choose the default globally:
-
-```tsx
-<TourProvider flows={flows} backdropInteraction="block">
-  {/* ... */}
-</TourProvider>
-```
-
-- `'passthrough'` (default) keeps the highlight purely visual. Pointer events fall through to the page beneath the overlay unless the popover itself captures them.
-- `'block'` turns the backdrop into a modal scrim so clicks, drags, and hovers stop at the overlay until the step advances.
-
-Override the behavior per flow via HUD options when a specific tour needs different affordances:
-
-```ts
-const flow = createFlow({
-  id: 'paywall-tour',
-  version: { major: 1, minor: 0 },
-  hud: {
-    backdrop: {
-      interaction: 'block',
-    },
-  },
-  steps: [
-    /* ... */
-  ],
-})
-```
-
-The React overlay reads these settings and toggles pointer events accordingly, so no extra CSS tweaks are required.
-
-### Scroll locking
-
-Keep long pages from drifting under the HUD by enabling body scroll locking. Opt in globally via `lockBodyScroll`:
-
-```tsx
-<TourProvider flows={flows} lockBodyScroll>
-  {/* ... */}
-</TourProvider>
-```
-
-If only a handful of flows need the behavior, override the provider default through HUD behavior options:
-
-```ts
-const flow = createFlow({
-  id: 'critical-setup',
-  version: { major: 1, minor: 0 },
-  hud: {
-    behavior: {
-      lockBodyScroll: true,
-    },
-  },
-  steps: [
-    /* ... */
-  ],
-})
-```
-
-The React binding reference-counts locks, so scroll state is restored automatically when the tour closes—even if you start another tour immediately afterward.
-
-## Storage Adapters
-
-Tour state is persisted via a `StorageAdapter` interface. By default, Flowsterix uses localStorage, but you can persist per-user state to your database using `createApiStorageAdapter`:
-
-```tsx
-import { createApiStorageAdapter } from '@flowsterix/core'
-
-const storageAdapter = createApiStorageAdapter({
-  baseUrl: '/api/tour-state',
-  getHeaders: () => ({ Authorization: `Bearer ${getToken()}` }),
-})
-
-<TourProvider flows={flows} storageAdapter={storageAdapter}>
-```
-
-The adapter expects your API to implement `GET /{key}`, `PUT /{key}`, and `DELETE /{key}` endpoints. See `docs/guides/storage-adapters.md` for API contract details and example implementations.
-
-## Flow Versioning
-
-Flows use semantic versioning to handle state across deployments:
-
-```tsx
-const flow = createFlow({
-  id: 'onboarding',
-  version: { major: 1, minor: 0 },
-  steps: [...]
-})
-```
-
-When you update a flow, the versioning system determines how to handle users mid-flow:
-
-- **Minor changes** (1.0 → 1.1): Attempts to preserve progress by matching step IDs
-- **Major changes** (1.0 → 2.0): Resets or calls your `migrate` function
-
-Listen for version mismatches to notify users:
-
-```tsx
-<TourProvider
-  flows={flows}
-  onVersionMismatch={({ action }) => {
-    if (action === 'reset') {
-      toast('This tour has been updated.')
-    }
-  }}
->
-```
-
-See `docs/guides/versioning.md` for migration strategies and best practices.
-
-## Analytics & Error Reporting
-
-Every `FlowStore` exposes an event bus so you can subscribe to lifecycle changes such as `flowStart`, `stepEnter`, and `flowComplete`. In React you can listen through `useTourEvents('stepEnter', handler)` to drive custom product analytics.
-
-For zero-boilerplate tracking, pass an `analytics` object to `TourProvider`. Each handler mirrors the event name (e.g. `onFlowStart`, `onStepExit`, `onFlowError`) and receives the typed payload from the core runtime:
-
-```tsx
-import { TourProvider } from '@flowsterix/react'
-
-const analytics = {
-  onFlowStart: ({ flow }) => console.log('Flow started', flow.id),
-  onStepEnter: ({ currentStep }) =>
-    window.plausible?.('Tour Step', { props: { id: currentStep.id } }),
-  onFlowError: ({ code, error }) => reportError(code, error),
-}
-
-export function App() {
-  return (
-    <TourProvider flows={flows} analytics={analytics}>
-      {/* ... */}
-    </TourProvider>
-  )
-}
-```
-
-The core now surfaces structured error events with stable codes (e.g. `storage.persist_failed`, `flow.step_not_found`), so you can alert or fallback before the UI fails silently.
-
-## Linting & Formatting
-
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
-
-```bash
+# Lint and format
 pnpm lint
 pnpm format
-pnpm check
 ```
-
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
-
-```bash
-pnpx shadcn@latest add button
-```
-
-## T3Env
-
-- You can use T3Env to add type safety to your environment variables.
-- Add Environment variables to the `src/env.mjs` file.
-- Use the environment variables in your code.
-
-### Usage
-
-```ts
-import { env } from '@/env'
-
-console.log(env.VITE_APP_TITLE)
-```
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add another a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from '@tanstack/react-router'
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/people',
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json() as Promise<{
-      results: {
-        name: string
-      }[]
-    }>
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData()
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    )
-  },
-})
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-pnpm add @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
-// ...
-
-const queryClient = new QueryClient()
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  )
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from '@tanstack/react-query'
-
-import './App.css'
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ['people'],
-    queryFn: () =>
-      fetch('https://swapi.dev/api/people')
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  })
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-export default App
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-pnpm add @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from '@tanstack/react-store'
-import { Store } from '@tanstack/store'
-import './App.css'
-
-const countStore = new Store(0)
-
-function App() {
-  const count = useStore(countStore)
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  )
-}
-
-export default App
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from '@tanstack/react-store'
-import { Store, Derived } from '@tanstack/store'
-import './App.css'
-
-const countStore = new Store(0)
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-})
-doubledStore.mount()
-
-function App() {
-  const count = useStore(countStore)
-  const doubledCount = useStore(doubledStore)
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  )
-}
-
-export default App
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
