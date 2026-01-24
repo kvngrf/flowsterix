@@ -72,13 +72,7 @@ export function App({ children }) {
 }
 ```
 
-### 5. Add target attributes to your elements
-
-```tsx
-<button data-tour-target="main-feature">Get Started</button>
-```
-
-That's it. Your tour is ready.
+That's it. The `target` selector matches any element in your DOM.
 
 ---
 
