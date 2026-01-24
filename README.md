@@ -14,14 +14,16 @@ npm install @flowsterix/core @flowsterix/react motion @floating-ui/dom
 
 ```bash
 npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
+npx shadcn@latest add https://flowsterix.com/r/step-content.json
 ```
 
-This installs the complete tour HUD with overlay, popover, controls, and progress indicator.
+This installs the tour HUD (overlay, popover, controls) and step content primitives.
 
 ### 3. Define your first flow
 
 ```tsx
 import { createFlow } from '@flowsterix/core'
+import { StepContent, StepTitle, StepText } from '@/components/step-content'
 
 export const onboardingFlow = createFlow({
   id: 'onboarding',
@@ -32,13 +34,23 @@ export const onboardingFlow = createFlow({
       id: 'welcome',
       target: 'screen',
       advance: [{ type: 'manual' }],
-      content: <p>Welcome! Let us show you around.</p>,
+      content: (
+        <StepContent>
+          <StepTitle>Welcome!</StepTitle>
+          <StepText>Let us show you around.</StepText>
+        </StepContent>
+      ),
     },
     {
       id: 'feature',
       target: { selector: '[data-tour-target="main-feature"]' },
       advance: [{ type: 'event', event: 'click', on: 'target' }],
-      content: <p>Click this button to continue.</p>,
+      content: (
+        <StepContent>
+          <StepTitle>Try this feature</StepTitle>
+          <StepText>Click this button to continue.</StepText>
+        </StepContent>
+      ),
     },
   ],
 })
@@ -101,8 +113,7 @@ The skill provides patterns for step definitions, advance rules, lifecycle hooks
 | [Storage Adapters](docs/guides/storage-adapters.md) | Persist state to localStorage, API, or custom backends |
 | [Versioning](docs/guides/versioning.md) | Handle flow updates and migrations |
 | [Accessibility](docs/guides/accessibility.md) | Focus management, ARIA, reduced motion |
-| [Routing](docs/guides/routing.md) | Router adapter setup and route-based steps |
-| [Headless Mode](docs/guides/headless.md) | Build custom UIs with Flowsterix hooks |
+| [Routing & Async](docs/guides/routing-and-async.md) | Router adapters, route-based steps, async targeting |
 
 ## Shadcn Components
 
