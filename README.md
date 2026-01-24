@@ -7,7 +7,7 @@ Guided tours and onboarding flows for React applications. State machine-based, f
 ### 1. Install the packages
 
 ```bash
-npm install @flowsterix/core @flowsterix/react motion @floating-ui/dom
+npm install @flowsterix/core @flowsterix/react motion
 ```
 
 ### 2. Add UI components via shadcn
