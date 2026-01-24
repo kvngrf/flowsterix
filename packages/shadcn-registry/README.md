@@ -8,16 +8,16 @@ Install components directly from the registry:
 
 ```bash
 # Install individual components
-npx shadcn@latest add https://flowsterix.vercel.app/r/tour-controls.json
-npx shadcn@latest add https://flowsterix.vercel.app/r/tour-overlay.json
-npx shadcn@latest add https://flowsterix.vercel.app/r/tour-progress.json
-npx shadcn@latest add https://flowsterix.vercel.app/r/delay-progress-bar.json
+npx shadcn@latest add https://flowsterix.com/r/tour-controls.json
+npx shadcn@latest add https://flowsterix.com/r/tour-overlay.json
+npx shadcn@latest add https://flowsterix.com/r/tour-progress.json
+npx shadcn@latest add https://flowsterix.com/r/delay-progress-bar.json
 
 # Or install the complete HUD block
-npx shadcn@latest add https://flowsterix.vercel.app/r/tour-hud.json
+npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
 
 # Install an example flow
-npx shadcn@latest add https://flowsterix.vercel.app/r/onboarding-flow.json
+npx shadcn@latest add https://flowsterix.com/r/onboarding-flow.json
 ```
 
 ## Local Development

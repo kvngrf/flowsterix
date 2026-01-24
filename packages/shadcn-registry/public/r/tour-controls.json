@@ -9,7 +9,7 @@
     "motion"
   ],
   "registryDependencies": [
-    "https://flowsterix.vercel.app/r/tour-provider.json",
+    "https://flowsterix.com/r/tour-provider.json",
     "button"
   ],
   "files": [

@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "flowsterix",
-  "homepage": "https://flowsterix.vercel.app",
+  "homepage": "https://flowsterix.com",
   "items": [
     {
       "name": "tour-provider",
@@ -23,7 +23,7 @@
       "title": "Tour Overlay",
       "description": "Production-quality spotlight overlay with SVG masking, backdrop blur, spring animations, and highlight ring effects.",
       "dependencies": ["@flowsterix/react", "motion"],
-      "registryDependencies": ["https://flowsterix.vercel.app/r/tour-provider.json"],
+      "registryDependencies": ["https://flowsterix.com/r/tour-provider.json"],
       "files": [
         {
           "path": "registry/flowsterix/tour-overlay.tsx",
@@ -38,7 +38,7 @@
       "title": "Tour Popover Handle",
       "description": "Drag handle for moving the tour popover.",
       "dependencies": ["@flowsterix/react"],
-      "registryDependencies": ["https://flowsterix.vercel.app/r/tour-provider.json"],
+      "registryDependencies": ["https://flowsterix.com/r/tour-provider.json"],
       "files": [
         {
           "path": "registry/flowsterix/tour-popover-handle.tsx",
@@ -53,7 +53,7 @@
       "title": "Tour Controls",
       "description": "Navigation buttons (Back, Next, Skip) with proper state management via useTourControls hook.",
       "dependencies": ["@flowsterix/react", "motion"],
-      "registryDependencies": ["https://flowsterix.vercel.app/r/tour-provider.json", "button"],
+      "registryDependencies": ["https://flowsterix.com/r/tour-provider.json", "button"],
       "files": [
         {
           "path": "registry/flowsterix/tour-controls.tsx",
@@ -72,7 +72,7 @@
       "title": "Tour Progress",
       "description": "A step progress indicator showing current position in the tour.",
       "dependencies": ["@flowsterix/react"],
-      "registryDependencies": ["https://flowsterix.vercel.app/r/tour-provider.json"],
+      "registryDependencies": ["https://flowsterix.com/r/tour-provider.json"],
       "files": [
         {
           "path": "registry/flowsterix/tour-progress.tsx",
@@ -87,7 +87,7 @@
       "title": "Delay Progress Bar",
       "description": "Countdown progress bar for auto-advance delay steps.",
       "dependencies": ["@flowsterix/react"],
-      "registryDependencies": ["https://flowsterix.vercel.app/r/tour-provider.json"],
+      "registryDependencies": ["https://flowsterix.com/r/tour-provider.json"],
       "files": [
         {
           "path": "registry/flowsterix/delay-progress-bar.tsx",
@@ -102,7 +102,7 @@
       "title": "Tour Tooltip",
       "description": "A lightweight tooltip variant for simpler tour implementations.",
       "dependencies": ["@flowsterix/react"],
-      "registryDependencies": ["https://flowsterix.vercel.app/r/tour-provider.json"],
+      "registryDependencies": ["https://flowsterix.com/r/tour-provider.json"],
       "files": [
         {
           "path": "registry/flowsterix/tour-tooltip.tsx",
@@ -145,10 +145,10 @@
       "description": "Complete heads-up display with SVG spotlight overlay, smart popover positioning, blur effects, and navigation controls.",
       "dependencies": ["@flowsterix/react", "motion", "@floating-ui/dom"],
       "registryDependencies": [
-        "https://flowsterix.vercel.app/r/tour-provider.json",
-        "https://flowsterix.vercel.app/r/tour-controls.json",
-        "https://flowsterix.vercel.app/r/tour-popover-handle.json",
-        "https://flowsterix.vercel.app/r/tour-progress.json",
+        "https://flowsterix.com/r/tour-provider.json",
+        "https://flowsterix.com/r/tour-controls.json",
+        "https://flowsterix.com/r/tour-popover-handle.json",
+        "https://flowsterix.com/r/tour-progress.json",
         "button"
       ],
       "files": [
@@ -166,8 +166,8 @@
       "description": "A complete onboarding tour example with welcome screen, feature highlights, and completion step.",
       "dependencies": ["@flowsterix/react", "motion"],
       "registryDependencies": [
-        "https://flowsterix.vercel.app/r/tour-hud.json",
-        "https://flowsterix.vercel.app/r/step-content.json"
+        "https://flowsterix.com/r/tour-hud.json",
+        "https://flowsterix.com/r/step-content.json"
       ],
       "files": [
         {

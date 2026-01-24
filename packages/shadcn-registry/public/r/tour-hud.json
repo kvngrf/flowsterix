@@ -10,10 +10,10 @@
     "@floating-ui/dom"
   ],
   "registryDependencies": [
-    "https://flowsterix.vercel.app/r/tour-provider.json",
-    "https://flowsterix.vercel.app/r/tour-controls.json",
-    "https://flowsterix.vercel.app/r/tour-popover-handle.json",
-    "https://flowsterix.vercel.app/r/tour-progress.json",
+    "https://flowsterix.com/r/tour-provider.json",
+    "https://flowsterix.com/r/tour-controls.json",
+    "https://flowsterix.com/r/tour-popover-handle.json",
+    "https://flowsterix.com/r/tour-progress.json",
     "button"
   ],
   "files": [

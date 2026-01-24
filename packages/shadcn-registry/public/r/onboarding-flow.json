@@ -9,8 +9,8 @@
     "motion"
   ],
   "registryDependencies": [
-    "https://flowsterix.vercel.app/r/tour-hud.json",
-    "https://flowsterix.vercel.app/r/step-content.json"
+    "https://flowsterix.com/r/tour-hud.json",
+    "https://flowsterix.com/r/step-content.json"
   ],
   "files": [
     {

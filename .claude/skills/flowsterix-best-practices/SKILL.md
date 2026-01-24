@@ -19,7 +19,7 @@ Flowsterix is a state machine-based guided tour library for React applications. 
 npm install @flowsterix/core @flowsterix/react motion @floating-ui/dom
 
 # Or with shadcn components
-npx shadcn@latest add https://flowsterix.vercel.app/r/tour-hud.json
+npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
 ```
 
 ### Minimal Example
