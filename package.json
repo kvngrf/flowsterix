@@ -9,6 +9,7 @@
     "dev:react-router": "pnpm --filter @flowsterix/example-react-router-vite dev",
     "dev:next": "pnpm --filter @flowsterix/example-next dev",
     "dev:shadcn": "pnpm --filter @flowsterix/shadcn-demo dev",
+    "dev:web": "pnpm --filter web dev",
     "dev:video": "pnpm --filter @flowsterix/video dev",
     "build:video": "pnpm --filter @flowsterix/video build",
     "build:shadcn-registry": "pnpm --filter @flowsterix/shadcn-registry registry:build",

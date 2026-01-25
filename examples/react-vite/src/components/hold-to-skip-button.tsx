@@ -1,3 +1,5 @@
+'use client'
+
 import { useTourLabels } from '@flowsterix/react'
 import type { Variants } from 'motion/react'
 import { motion } from 'motion/react'
@@ -167,8 +169,9 @@ export function HoldToSkipButton({
           variants={progressVariants}
           className={cn(
             'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
-            'border border-input bg-background text-foreground',
+            'border bg-background shadow-xs',
             'hover:bg-accent hover:text-accent-foreground',
+            'dark:bg-popover dark:border-input dark:hover:bg-accent',
           )}
         >
           {resolvedLabel}

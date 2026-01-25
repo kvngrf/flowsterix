@@ -1,0 +1,351 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Popover colors */
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* shadcn semantic colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Primary - Moss Green (flow, growth, calm) */
+  --color-primary-50: #f3f6f4;
+  --color-primary-100: #e1e9e3;
+  --color-primary-200: #c5d5c9;
+  --color-primary-300: #9fbaaa;
+  --color-primary-400: #759a84;
+  --color-primary-500: #5a7c65;
+  --color-primary-600: #466350;
+  --color-primary-700: #3a5042;
+  --color-primary-800: #314137;
+  --color-primary-900: #2a372f;
+  --color-primary-950: #151d19;
+
+  /* Accent - Burgundy (warmth, attention) */
+  --color-accent-50: #fdf3f4;
+  --color-accent-100: #fbe5e7;
+  --color-accent-200: #f8cfd3;
+  --color-accent-300: #f2aab1;
+  --color-accent-400: #e97a86;
+  --color-accent-500: #db505f;
+  --color-accent-600: #c73347;
+  --color-accent-700: #a7263a;
+  --color-accent-800: #8b4049;
+  --color-accent-900: #782039;
+  --color-accent-950: #420d1a;
+
+  /* Secondary - Mustard (energy, progress) */
+  --color-secondary-50: #fcf9ed;
+  --color-secondary-100: #f7f0cd;
+  --color-secondary-200: #efdf9b;
+  --color-secondary-300: #e5c962;
+  --color-secondary-400: #ddb63d;
+  --color-secondary-500: #c9a857;
+  --color-secondary-600: #a8801f;
+  --color-secondary-700: #875f1c;
+  --color-secondary-800: #714d1e;
+  --color-secondary-900: #61411f;
+  --color-secondary-950: #38220e;
+
+  /* Tertiary - Mint (fresh, completion) */
+  --color-tertiary-50: #f2f8f5;
+  --color-tertiary-100: #dff0e8;
+  --color-tertiary-200: #c1e1d2;
+  --color-tertiary-300: #92c4b0;
+  --color-tertiary-400: #6ba18d;
+  --color-tertiary-500: #4a8571;
+  --color-tertiary-600: #396a5a;
+  --color-tertiary-700: #305549;
+  --color-tertiary-800: #29453c;
+  --color-tertiary-900: #243a33;
+  --color-tertiary-950: #12201c;
+}
+
+:root {
+  /* Backgrounds - Warm stone */
+  --bg-primary: #faf9f7;
+  --bg-secondary: #f5f3f0;
+  --bg-tertiary: #e8e5e0;
+  --bg-code: #1a1918;
+  --bg-elevated: #ffffff;
+
+  /* Popover (solid background for tour) */
+  --popover: #ffffff;
+  --popover-foreground: #1a1918;
+
+  /* Text - Warm charcoal */
+  --text-primary: #1a1918;
+  --text-secondary: #5c5650;
+  --text-tertiary: #7a7268;
+  --text-inverse: #faf9f7;
+
+  /* Borders */
+  --border-primary: rgba(90, 124, 101, 0.1);
+  --border-secondary: rgba(90, 124, 101, 0.15);
+  --border-hover: rgba(90, 124, 101, 0.25);
+
+  /* shadcn variables */
+  --background: #faf9f7;
+  --foreground: #1a1918;
+  --primary: #5a7c65;
+  --primary-foreground: #faf9f7;
+  --muted: #f5f3f0;
+  --muted-foreground: #7a7268;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.08);
+  --ring: #5a7c65;
+  --secondary: #e1e9e3;
+  --secondary-foreground: #3a5042;
+  --accent: #f5f3f0;
+  --accent-foreground: #1a1918;
+  --destructive: #a7263a;
+  --destructive-foreground: #faf9f7;
+
+  /* Gradients - Moss to Mint flow */
+  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(90, 124, 101, 0.12), transparent);
+  --gradient-primary: linear-gradient(135deg, #5a7c65 0%, #466350 100%);
+  --gradient-accent: linear-gradient(135deg, #5a7c65 0%, #92c4b0 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(90, 124, 101, 0.04) 0%, transparent 100%);
+
+  /* Glow effects */
+  --glow-primary: 0 0 80px rgba(90, 124, 101, 0.1);
+  --glow-accent: 0 0 60px rgba(146, 196, 176, 0.08);
+  --glow-card: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 16px rgba(0, 0, 0, 0.03);
+  --glow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  /* Backgrounds - Warm charcoal */
+  --bg-primary: #1a1918;
+  --bg-secondary: #252321;
+  --bg-tertiary: #302d2a;
+  --bg-code: #141312;
+  --bg-elevated: #1f1e1c;
+
+  /* Popover (solid background for tour) */
+  --popover: #252321;
+  --popover-foreground: #f5f3f0;
+
+  /* Text */
+  --text-primary: #f5f3f0;
+  --text-secondary: #b5aea5;
+  --text-tertiary: #8a827a;
+  --text-inverse: #1a1918;
+
+  /* Borders */
+  --border-primary: rgba(143, 172, 148, 0.08);
+  --border-secondary: rgba(143, 172, 148, 0.12);
+  --border-hover: rgba(143, 172, 148, 0.2);
+
+  /* shadcn variables */
+  --background: #1a1918;
+  --foreground: #f5f3f0;
+  --primary: #759a84;
+  --primary-foreground: #151d19;
+  --muted: #252321;
+  --muted-foreground: #8a827a;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #759a84;
+  --secondary: #2a372f;
+  --secondary-foreground: #9fbaaa;
+  --accent: #302d2a;
+  --accent-foreground: #f5f3f0;
+  --destructive: #c73347;
+  --destructive-foreground: #f5f3f0;
+
+  /* Gradients - Sage to Seafoam */
+  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(143, 172, 148, 0.1), transparent);
+  --gradient-primary: linear-gradient(135deg, #8fac94 0%, #6b9a78 100%);
+  --gradient-accent: linear-gradient(135deg, #8fac94 0%, #a8c9bc 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(143, 172, 148, 0.03) 0%, transparent 100%);
+
+  /* Glow effects */
+  --glow-primary: 0 0 100px rgba(143, 172, 148, 0.12);
+  --glow-accent: 0 0 80px rgba(168, 201, 188, 0.08);
+  --glow-card: 0 1px 2px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.15);
+  --glow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.15), 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Subtle noise texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.012;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.dark body::before {
+  opacity: 0.02;
+}
+
+/* Sugar-high syntax highlighting - Japandi tones */
+[data-highlighted-code] {
+  font-family: var(--font-mono);
+}
+
+:root {
+  --sh-class: #5a7c65;
+  --sh-identifier: #5c5650;
+  --sh-sign: #7a7268;
+  --sh-string: #8b4049;
+  --sh-keyword: #c9a857;
+  --sh-comment: #7a7268;
+  --sh-jsxliterals: #92c4b0;
+  --sh-property: #6ba18d;
+  --sh-entity: #ddb63d;
+}
+
+/* Selection - Moss tint */
+::selection {
+  background: rgba(90, 124, 101, 0.2);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Gradient text utility - Moss to Mint */
+.gradient-text {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.1em;
+  display: inline-block;
+}
+
+/* Glass card effect */
+.glass-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--glow-card);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--glow-card-hover);
+}
+
+/* Animated gradient border - Moss to Mint to Mustard */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.gradient-border {
+  position: relative;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(90, 124, 101, 0.4), rgba(146, 196, 176, 0.4), rgba(201, 168, 87, 0.3));
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+}
+
+/* Pulse animation for architecture nodes - Moss */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(90, 124, 101, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(90, 124, 101, 0);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Smooth reveal animation */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-up {
+  animation: reveal-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Connection line animation */
+@keyframes flow-line {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+.flow-line {
+  stroke-dasharray: 6 6;
+  animation: flow-line 1s linear infinite;
+}

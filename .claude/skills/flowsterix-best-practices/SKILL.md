@@ -252,6 +252,8 @@ const {
 
 The shadcn registry provides preconfigured, polished components. **Always prefer these over custom implementations.**
 
+> **Important**: The tour components require shadcn CSS variables (`--popover`, `--border`, `--destructive`, etc.). If you're not using shadcn/ui, see [CSS Setup](references/css-setup.md) for the required variables.
+
 ### Available Components
 
 | Component           | Install Command                                                  | Usage                            |
@@ -393,6 +395,7 @@ const ensureAccordionExpanded = () => {
 
 ## Additional Resources
 
+- [CSS Setup](references/css-setup.md) - Required shadcn CSS variables
 - [Flow Patterns](references/flow-patterns.md) - Targeting, advance rules, waitFor
 - [React Integration](references/react-integration.md) - Hooks, events, step content
 - [Router Adapters](references/router-adapters.md) - TanStack, React Router, Next.js

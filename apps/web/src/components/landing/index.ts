@@ -1,0 +1,10 @@
+export { Hero } from "./hero";
+export { ProblemSolution } from "./problem-solution";
+export { Features } from "./features";
+export { CodeExamples } from "./code-examples";
+export { Architecture } from "./architecture";
+export { GettingStarted } from "./getting-started";
+export { Footer } from "./footer";
+export { Navbar } from "./navbar";
+export { CodeBlock } from "./code-block";
+export { TourWrapper, StartTourButton } from "./tour-wrapper";

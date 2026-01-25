@@ -66,10 +66,10 @@ export function TourProgress({
               'rounded-full transition-all duration-200',
               sizeClasses[size],
               index === currentIndex
-                ? 'bg-primary scale-125'
+                ? 'bg-primary-500 scale-125 shadow-[0_0_8px_rgba(90,124,101,0.4)]'
                 : index < currentIndex
-                  ? 'bg-primary/60'
-                  : 'bg-muted-foreground/30',
+                  ? 'bg-primary-400'
+                  : 'bg-primary-200/60 dark:bg-primary-800/40',
             )}
             aria-hidden="true"
           />
@@ -92,13 +92,13 @@ export function TourProgress({
       >
         <div
           className={cn(
-            'w-full overflow-hidden rounded-full bg-muted',
+            'w-full overflow-hidden rounded-full bg-primary-100 dark:bg-primary-900/50',
             barHeightClasses[size],
           )}
         >
           <div
             className={cn(
-              'h-full rounded-full bg-primary transition-all duration-300 ease-out',
+              'h-full rounded-full bg-primary-500 transition-all duration-300 ease-out',
             )}
             style={{ width: `${progress}%` }}
           />
