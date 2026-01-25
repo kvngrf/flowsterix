@@ -156,28 +156,25 @@ export function HoldToSkipButton({
           <div className="absolute -bottom-1 left-1/2 -z-10 size-2 -translate-x-1/2 rotate-45 border-b border-r border-border bg-popover" />
         </motion.div>
 
-        <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
-          <motion.div
-            className={cn(
-              'absolute inset-0 flex shrink-0 items-center justify-center',
-              'bg-destructive text-background',
-            )}
-          >
-            {resolvedLabel}
-          </motion.div>
+        <motion.div
+          className={cn(
+            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md border border-border',
+            'bg-destructive text-background',
+          )}
+        >
+          {resolvedLabel}
+        </motion.div>
 
-          <motion.div
-            variants={progressVariants}
-            className={cn(
-              'absolute inset-0 flex shrink-0 items-center justify-center',
-              'bg-background text-foreground',
-              'hover:bg-accent hover:text-accent-foreground',
-            )}
-          >
-            {resolvedLabel}
-          </motion.div>
-        </div>
-        <div className="pointer-events-none absolute inset-0 rounded-[inherit] border border-input" />
+        <motion.div
+          variants={progressVariants}
+          className={cn(
+            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
+            'border border-input bg-background text-foreground',
+            'hover:bg-accent hover:text-accent-foreground',
+          )}
+        >
+          {resolvedLabel}
+        </motion.div>
       </motion.button>
     </Button>
   )
