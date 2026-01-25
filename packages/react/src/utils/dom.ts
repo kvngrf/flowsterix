@@ -60,16 +60,22 @@ export const expandRect = (
   if (!isBrowser) return rect
 
   const viewport = getViewportRect()
-  const top = Math.max(0, rect.top - padding)
-  const left = Math.max(0, rect.left - padding)
-  const width = Math.min(viewport.width - left, rect.width + padding * 2)
-  const height = Math.min(viewport.height - top, rect.height + padding * 2)
+
+  // Calculate available space on each side
+  const spaceTop = rect.top
+  const spaceBottom = viewport.height - rect.bottom
+  const spaceLeft = rect.left
+  const spaceRight = viewport.width - rect.right
+
+  // Use the minimum available space on each axis for symmetrical padding
+  const verticalPadding = Math.min(padding, spaceTop, spaceBottom)
+  const horizontalPadding = Math.min(padding, spaceLeft, spaceRight)
 
   return createRect({
-    top,
-    left,
-    width: Math.max(0, width),
-    height: Math.max(0, height),
+    top: rect.top - verticalPadding,
+    left: rect.left - horizontalPadding,
+    width: rect.width + horizontalPadding * 2,
+    height: rect.height + verticalPadding * 2,
   })
 }
 
