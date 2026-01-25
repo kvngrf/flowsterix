@@ -1,3 +1,5 @@
+'use client'
+
 import { useTour, useTourLabels } from '@flowsterix/react'
 
 import { cn } from '@/lib/utils'

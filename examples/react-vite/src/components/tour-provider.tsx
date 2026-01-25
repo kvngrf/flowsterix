@@ -1,3 +1,5 @@
+'use client'
+
 import type { TourProviderProps as HeadlessTourProviderProps } from '@flowsterix/react'
 import { TourProvider as HeadlessTourProvider } from '@flowsterix/react'
 
