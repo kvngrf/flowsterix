@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tour-tooltip",
+  "type": "registry:component",
+  "title": "Tour Tooltip",
+  "description": "A lightweight tooltip variant for simpler tour implementations.",
+  "dependencies": [
+    "@flowsterix/react"
+  ],
+  "registryDependencies": [
+    "https://flowsterix.com/r/tour-provider.json"
+  ],
+  "files": [
+    {
+      "path": "registry/flowsterix/tour-tooltip.tsx",
+      "content": "'use client'\n\nimport { useTour } from '@flowsterix/react'\nimport * as React from 'react'\n\nimport { cn } from '@/lib/utils'\n\nexport interface TourTooltipProps {\n  /** Additional class names for the tooltip */\n  className?: string\n  /** Tooltip content - defaults to step content if not provided */\n  children?: React.ReactNode\n}\n\n/**\n * A lightweight tooltip variant for simpler tour implementations.\n * Renders near the cursor or target with minimal styling.\n */\nexport function TourTooltip({ className, children }: TourTooltipProps) {\n  const { state, activeStep } = useTour()\n  const [position, setPosition] = React.useState({ x: 0, y: 0 })\n\n  const isRunning = state?.status === 'running'\n\n  // Track mouse position for tooltip placement\n  React.useEffect(() => {\n    if (!isRunning) return\n\n    const handleMouseMove = (e: MouseEvent) => {\n      setPosition({ x: e.clientX + 16, y: e.clientY + 16 })\n    }\n\n    window.addEventListener('mousemove', handleMouseMove)\n    return () => window.removeEventListener('mousemove', handleMouseMove)\n  }, [isRunning])\n\n  if (!isRunning || !activeStep) {\n    return null\n  }\n\n  return (\n    <div\n      className={cn(\n        'pointer-events-none fixed z-[1001] max-w-xs rounded-md',\n        'bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md',\n        'border animate-in fade-in-0 zoom-in-95',\n        className,\n      )}\n      style={{\n        left: position.x,\n        top: position.y,\n      }}\n      role=\"tooltip\"\n    >\n      {children ?? activeStep.content}\n    </div>\n  )\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "categories": [
+    "tour",
+    "tooltip"
+  ]
+}
