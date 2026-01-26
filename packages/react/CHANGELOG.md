@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 0.2.1
+
+### Patch Changes
+
+- Fix motion type compatibility for motion@12.29.0
+
 ## 0.2.0
 
 ### Minor Changes
