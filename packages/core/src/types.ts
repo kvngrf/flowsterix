@@ -215,6 +215,10 @@ export interface FlowHudBehaviorOptions {
   lockBodyScroll?: boolean
 }
 
+export interface FlowHudGuardElementFocusRing {
+  boxShadow: string
+}
+
 export type FlowHudRenderMode = 'default' | 'none'
 
 export interface FlowHudTokenOverrides {
@@ -229,6 +233,7 @@ export interface FlowHudOptions {
   tokens?: FlowHudTokenOverrides
   backdrop?: FlowHudBackdropOptions
   behavior?: FlowHudBehaviorOptions
+  guardElementFocusRing?: FlowHudGuardElementFocusRing
 }
 
 /**

@@ -117,12 +117,17 @@ const hudBehaviorSchema = z.object({
   lockBodyScroll: z.boolean().optional(),
 })
 
+const guardElementFocusRingSchema = z.object({
+  boxShadow: z.string(),
+})
+
 const hudSchema = z.object({
   render: z.union([z.literal('default'), z.literal('none')]).optional(),
   popover: hudPopoverSchema.optional(),
   backdrop: hudBackdropSchema.optional(),
   behavior: hudBehaviorSchema.optional(),
   tokens: z.record(z.string(), z.any()).optional(),
+  guardElementFocusRing: guardElementFocusRingSchema.optional(),
 })
 
 const resumeStrategySchema = z.union([

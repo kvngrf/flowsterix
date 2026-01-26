@@ -14,26 +14,30 @@ Target descriptions (`target.description`) are announced via an off-screen descr
 
 ### Guard focus indicators
 
-When focus lands on a guard, Flowsterix can render a highlight ring around the spotlight cutout. Pass `highlightRect` and `targetRingOffset` to `TourFocusManager` to align the ring with the overlay geometry and control the offset:
+When focus lands on a guard element, Flowsterix renders a highlight ring around either the spotlight cutout (for target guards) or the popover (for popover guards). Both rings are rendered as positioned `<div>` elements with `box-shadow`.
 
-```tsx
-const overlayGeometry = useTourOverlay({
-  target: hudState.hudTarget,
-  padding: overlay.padding,
-  radius: overlay.radius,
-  interactionMode: overlay.interactionMode,
+The guard elements carry `data-tour-prevent-shortcut="true"` so HUD shortcuts do not advance steps when a guard is focused.
+
+### Customizing the focus ring
+
+Customize the focus ring appearance through the flow's HUD options using the `guardElementFocusRing` API:
+
+```ts
+const flow = createFlow({
+  id: 'guided-demo',
+  version: { major: 1, minor: 0 },
+  hud: {
+    guardElementFocusRing: {
+      boxShadow: '0 0 0 2px white, 0 0 0 4px blue, 0 0 12px 4px rgba(59, 130, 246, 0.4)',
+    },
+  },
+  steps: [
+    /* ... */
+  ],
 })
-
-<TourFocusManager
-  active={focusManager.active}
-  target={focusManager.target}
-  popoverNode={focusManager.popoverNode}
-  highlightRect={overlayGeometry.highlight.rect}
-  targetRingOffset={2}
-/>
 ```
 
-The guard elements also carry `data-tour-prevent-shortcut="true"` so HUD shortcuts do not advance steps when a guard is focused.
+The `boxShadow` value is applied to both the target ring and popover ring when their respective guards receive focus. If not specified, the default uses `--primary` with a subtle outer glow.
 
 ## Dominating Other Focus Traps
 

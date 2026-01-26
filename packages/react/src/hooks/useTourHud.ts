@@ -58,6 +58,7 @@ export interface TourHudFocusManagerState {
   target: TourTargetInfo
   popoverNode: HTMLElement | null
   setPopoverNode: (node: HTMLElement | null) => void
+  guardElementFocusRing?: { boxShadow: string }
 }
 
 export interface UseTourHudResult {
@@ -150,8 +151,15 @@ export const useTourHud = (
       target: hudState.hudTarget,
       popoverNode,
       setPopoverNode,
+      guardElementFocusRing: hudState.flowHudOptions?.guardElementFocusRing,
     }),
-    [hudState.focusTrapActive, hudState.hudTarget, popoverNode, setPopoverNode],
+    [
+      hudState.focusTrapActive,
+      hudState.hudTarget,
+      popoverNode,
+      setPopoverNode,
+      hudState.flowHudOptions?.guardElementFocusRing,
+    ],
   )
 
   return {

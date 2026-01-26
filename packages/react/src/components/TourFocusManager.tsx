@@ -23,15 +23,18 @@ export interface TourFocusManagerProps {
   target: TourTargetInfo
   popoverNode: HTMLElement | null
   highlightRect?: TourOverlayRect | null
-  targetRingOffset?: number
+  guardElementFocusRing?: { boxShadow: string }
 }
+
+const DEFAULT_BOX_SHADOW =
+  '0 0 0 2px var(--primary), 0 0 8px 2px color-mix(in srgb, var(--primary) 40%, transparent)'
 
 export const TourFocusManager = ({
   active,
   target,
   popoverNode,
   highlightRect,
-  targetRingOffset = -2,
+  guardElementFocusRing,
 }: TourFocusManagerProps) => {
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const guardNodesRef = useRef<Record<string, HTMLElement | null>>({
@@ -42,10 +45,9 @@ export const TourFocusManager = ({
   })
   const lastTabDirectionRef = useRef<'forward' | 'backward'>('forward')
   const suppressGuardHopRef = useRef<HTMLElement | null>(null)
-  const ringStylesRef = useRef(
-    new WeakMap<HTMLElement, { outline: string; outlineOffset: string }>(),
-  )
   const [targetRingActive, setTargetRingActive] = useState(false)
+  const [popoverRingActive, setPopoverRingActive] = useState(false)
+  const [popoverRect, setPopoverRect] = useState<DOMRect | null>(null)
 
   const restoreFocus = () => {
     const previous = previousFocusRef.current
@@ -108,35 +110,9 @@ export const TourFocusManager = ({
       return node
     }
 
-    const applyRing = (element: HTMLElement | null, activeRing: boolean) => {
-      if (!element) return
-      const cache = ringStylesRef.current
-      if (activeRing) {
-        if (!cache.has(element)) {
-          cache.set(element, {
-            outline: element.style.outline,
-            outlineOffset: element.style.outlineOffset,
-          })
-        }
-        element.style.outline =
-          '2px solid var(--tour-focus-ring-color, rgba(59, 130, 246, 0.8))'
-        element.style.outlineOffset = '3px'
-        return
-      }
-      const previous = cache.get(element)
-      if (previous) {
-        element.style.outline = previous.outline
-        element.style.outlineOffset = previous.outlineOffset
-        cache.delete(element)
-      } else {
-        element.style.outline = ''
-        element.style.outlineOffset = ''
-      }
-    }
-
     const clearRings = () => {
       setTargetRingActive(false)
-      applyRing(popoverNode, false)
+      setPopoverRingActive(false)
     }
 
     const removeGuards = () => {
@@ -316,10 +292,10 @@ export const TourFocusManager = ({
         const key = targetNode.getAttribute('data-tour-focus-guard')
         if (key?.startsWith('target')) {
           setTargetRingActive(true)
-          applyRing(popoverNode, false)
+          setPopoverRingActive(false)
         } else if (key?.startsWith('popover')) {
           setTargetRingActive(false)
-          applyRing(popoverNode, true)
+          setPopoverRingActive(true)
         }
         return
       }
@@ -349,25 +325,60 @@ export const TourFocusManager = ({
     target.visibility,
   ])
 
+  useLayoutEffect(() => {
+    if (popoverRingActive && popoverNode) {
+      setPopoverRect(popoverNode.getBoundingClientRect())
+    } else {
+      setPopoverRect(null)
+    }
+  }, [popoverRingActive, popoverNode])
+
   if (!isBrowser) return null
   const host = portalHost()
-  if (!host || !highlightRect || !targetRingActive) return null
+  if (!host) return null
 
-  const offset = Math.max(0, targetRingOffset)
-  const ringStyle = {
-    position: 'fixed' as const,
-    top: highlightRect.top - offset,
-    left: highlightRect.left - offset,
-    width: highlightRect.width + offset * 2,
-    height: highlightRect.height + offset * 2,
-    borderRadius: highlightRect.radius + offset,
-    boxShadow: [
-      '0 0 0 2px var(--tour-focus-ring-offset-color, transparent)',
-      '0 0 0 2px var(--tour-focus-ring-color, rgba(59, 130, 246, 0.8))',
-    ].join(', '),
-    pointerEvents: 'none' as const,
-    zIndex: 2001,
-  }
+  const boxShadow = guardElementFocusRing?.boxShadow ?? DEFAULT_BOX_SHADOW
 
-  return createPortal(<div style={ringStyle} aria-hidden />, host)
+  const showTargetRing = targetRingActive && highlightRect
+  const showPopoverRing = popoverRingActive && popoverRect
+
+  if (!showTargetRing && !showPopoverRing) return null
+
+  return createPortal(
+    <>
+      {showTargetRing && (
+        <div
+          style={{
+            position: 'fixed',
+            top: highlightRect.top,
+            left: highlightRect.left,
+            width: highlightRect.width,
+            height: highlightRect.height,
+            borderRadius: highlightRect.radius,
+            boxShadow,
+            pointerEvents: 'none',
+            zIndex: 2001,
+          }}
+          aria-hidden
+        />
+      )}
+      {showPopoverRing && (
+        <div
+          style={{
+            position: 'fixed',
+            top: popoverRect.top,
+            left: popoverRect.left,
+            width: popoverRect.width,
+            height: popoverRect.height,
+            borderRadius: 12,
+            boxShadow,
+            pointerEvents: 'none',
+            zIndex: 2001,
+          }}
+          aria-hidden
+        />
+      )}
+    </>,
+    host,
+  )
 }

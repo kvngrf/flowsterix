@@ -1,4 +1,4 @@
-# @flowsterix/react
+# @flowsterix/core
 
 ## 0.2.0
 
@@ -10,14 +10,3 @@
   - Default focus ring uses `--primary` CSS variable with outer glow
   - Removed CSS variable-based customization (`--tour-focus-ring-color`, `--tour-focus-ring-offset-color`)
   - Removed `targetRingOffset` prop from `TourFocusManager` (use `guardElementFocusRing` instead)
-
-### Patch Changes
-
-- Updated dependencies []:
-  - @flowsterix/core@0.2.0
-
-## 0.1.1
-
-### Patch Changes
-
-- Fix asymmetrical highlight padding for elements near viewport edges. Padding now scales symmetrically based on available space, keeping highlights visually balanced regardless of element position.

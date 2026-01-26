@@ -13,6 +13,25 @@ Add these to your global CSS file. The tour components use:
 - `--destructive` - Skip button hold state
 - `--ring` - Focus rings
 
+## Focus Ring Customization
+
+The focus trap uses hidden guard elements to keep focus within the tour. When these elements receive focus, a visible ring is rendered around the target or popover. Customize the ring appearance through the flow's HUD options:
+
+```ts
+const flow = createFlow({
+  id: 'my-tour',
+  version: { major: 1, minor: 0 },
+  hud: {
+    guardElementFocusRing: {
+      boxShadow: '0 0 0 2px white, 0 0 0 4px blue',
+    },
+  },
+  steps: [/* ... */],
+})
+```
+
+The default `boxShadow` uses `--primary` with a subtle outer glow: `0 0 0 2px var(--primary), 0 0 8px 2px color-mix(in srgb, var(--primary) 40%, transparent)`.
+
 ## Minimal Setup (Tailwind v4)
 
 ```css

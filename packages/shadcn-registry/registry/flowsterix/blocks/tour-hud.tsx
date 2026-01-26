@@ -97,8 +97,6 @@ export interface TourHUDProps {
   }
   /** Keyboard shortcut configuration */
   shortcuts?: boolean | UseHudShortcutsOptions
-  /** Focus ring offset in pixels for the highlight guard ring (default: 2) */
-  focusRingOffset?: number
   /** Custom content to render inside the popover (overrides step content) */
   children?: React.ReactNode
   /** Custom step content renderer */
@@ -148,7 +146,6 @@ export function TourHUD({
   controls = {},
   progress = { show: false, variant: 'dots', position: 'bottom', size: 'sm' },
   shortcuts = { escape: false },
-  focusRingOffset,
   children,
   renderContent,
 }: TourHUDProps) {
@@ -229,7 +226,7 @@ export function TourHUD({
         target={focusManager.target}
         popoverNode={focusManager.popoverNode}
         highlightRect={overlayGeometry.highlight.rect}
-        targetRingOffset={focusRingOffset}
+        guardElementFocusRing={focusManager.guardElementFocusRing}
       />
 
       {/* Spotlight overlay with SVG masking and animations */}
