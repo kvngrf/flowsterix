@@ -506,9 +506,6 @@ importers:
       '@tanstack/react-router':
         specifier: '>=1'
         version: 1.134.12(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      motion:
-        specifier: '>=11'
-        version: 12.23.24(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       next:
         specifier: '>=13'
         version: 16.0.3(@babel/core@7.28.5)(@playwright/test@1.58.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -521,6 +518,10 @@ importers:
       react-router-dom:
         specifier: '>=6'
         version: 7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+    devDependencies:
+      motion:
+        specifier: ^12.29.0
+        version: 12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
 
   packages/shadcn-registry:
     dependencies:
@@ -10835,15 +10836,6 @@ snapshots:
 
   forwarded@0.2.0: {}
 
-  framer-motion@12.23.24(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      motion-dom: 12.23.23
-      motion-utils: 12.23.6
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-
   framer-motion@12.23.24(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       motion-dom: 12.23.23
@@ -10852,6 +10844,15 @@ snapshots:
     optionalDependencies:
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
+
+  framer-motion@12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      motion-dom: 12.29.0
+      motion-utils: 12.27.2
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
 
   framer-motion@12.29.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
@@ -11600,14 +11601,6 @@ snapshots:
 
   motion-utils@12.27.2: {}
 
-  motion@12.23.24(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      framer-motion: 12.23.24(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-
   motion@12.23.24(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       framer-motion: 12.23.24(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -11615,6 +11608,14 @@ snapshots:
     optionalDependencies:
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
+
+  motion@12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      framer-motion: 12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
 
   motion@12.29.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:

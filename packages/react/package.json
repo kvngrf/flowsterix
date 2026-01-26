@@ -79,6 +79,9 @@
     "next": ">=13",
     "react-router-dom": ">=6"
   },
+  "devDependencies": {
+    "motion": "^12.29.0"
+  },
   "peerDependenciesMeta": {
     "motion": {
       "optional": false
