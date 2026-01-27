@@ -14,7 +14,6 @@
     "build:video": "pnpm --filter @flowsterix/video build",
     "build:web": "pnpm --filter web build",
     "build:web:registry": "pnpm --filter web registry:build",
-    "build:shadcn-registry": "pnpm --filter @flowsterix/shadcn-registry registry:build",
     "sync:shadcn-examples": "node scripts/sync-shadcn-examples.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
