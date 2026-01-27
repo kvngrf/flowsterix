@@ -9,7 +9,7 @@ const repoRoot = path.resolve(__dirname, '..')
 
 const registryDir =
   process.env.FLOWSTERIX_REGISTRY_PATH ??
-  path.resolve(repoRoot, 'packages/shadcn-registry/public/r')
+  path.resolve(repoRoot, 'apps/web/public/r')
 
 const components = [
   'tour-provider',
@@ -161,7 +161,7 @@ const ensureUICard = async (exampleRoot, aliases, srcPrefix) => {
 const syncExamples = async () => {
   run(
     'pnpm',
-    ['--filter', '@flowsterix/shadcn-registry', 'registry:build'],
+    ['--filter', 'web', 'registry:build'],
     repoRoot,
   )
 
