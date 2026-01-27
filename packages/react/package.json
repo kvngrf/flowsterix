@@ -1,6 +1,6 @@
 {
   "name": "@flowsterix/react",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "React bindings for Flowsterix - guided tours and onboarding flows",
   "license": "MIT",
   "repository": {

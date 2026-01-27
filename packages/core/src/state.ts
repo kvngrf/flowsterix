@@ -237,16 +237,10 @@ export const createFlowStore = <TContent>(
     }
   }
 
-  const persistState = (nextState: FlowState) => {
+  const persistState = (nextState: FlowState): void | Promise<void> => {
     if (!storageAdapter || !persistOnChange) return
     if (isHydrating) return
-    const result = storageAdapter.set(storageKey, snapshotFromState(nextState))
-    if (result instanceof Promise) {
-      result.catch((error) => {
-        console.warn('[tour][storage] Failed to persist flow state', error)
-        emitFlowError('storage.persist_failed', error, { key: storageKey })
-      })
-    }
+    return storageAdapter.set(storageKey, snapshotFromState(nextState))
   }
 
   const emitLifecycleEvents = (
@@ -360,7 +354,7 @@ export const createFlowStore = <TContent>(
   const commit = (
     nextState: FlowState,
     commitConfig: CommitOptions = {},
-  ): FlowState => {
+  ): FlowState | Promise<FlowState> => {
     const {
       persist: shouldPersist = true,
       emitLifecycle = true,
@@ -400,7 +394,19 @@ export const createFlowStore = <TContent>(
     state = hydratedNext
 
     if (shouldPersist) {
-      persistState(state)
+      const persistResult = persistState(state)
+      if (persistResult instanceof Promise) {
+        if (emitLifecycle) {
+          emitLifecycleEvents(previousState, state, { cancelReason })
+        }
+        notifySubscribers()
+        return persistResult
+          .catch((error) => {
+            console.warn('[tour][storage] Failed to persist flow state', error)
+            emitFlowError('storage.persist_failed', error, { key: storageKey })
+          })
+          .then(() => state)
+      }
     }
 
     if (emitLifecycle) {

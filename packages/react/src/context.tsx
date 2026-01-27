@@ -7,6 +7,7 @@ import type {
   FlowEvents,
   FlowState,
   FlowStore,
+  MaybePromise,
   ResumeStrategy,
   StartFlowOptions,
   Step,
@@ -76,14 +77,14 @@ export interface TourContextValue {
   activeFlowId: string | null
   state: FlowState | null
   activeStep: Step<ReactNode> | null
-  startFlow: (flowId: string, options?: StartFlowOptions) => FlowState
-  next: () => FlowState
-  back: () => FlowState
-  goToStep: (step: number | string) => FlowState
-  pause: () => FlowState
-  resume: () => FlowState
-  cancel: (reason?: FlowCancelReason) => FlowState
-  complete: () => FlowState
+  startFlow: (flowId: string, options?: StartFlowOptions) => MaybePromise<FlowState>
+  next: () => MaybePromise<FlowState>
+  back: () => MaybePromise<FlowState>
+  goToStep: (step: number | string) => MaybePromise<FlowState>
+  pause: () => MaybePromise<FlowState>
+  resume: () => MaybePromise<FlowState>
+  cancel: (reason?: FlowCancelReason) => MaybePromise<FlowState>
+  complete: () => MaybePromise<FlowState>
   events: EventBus<FlowEvents<ReactNode>> | null
   debugEnabled: boolean
   setDebugEnabled: (value: boolean) => void
@@ -396,10 +397,12 @@ export const TourProvider = ({
         pendingResumeRef.current.delete(flowId)
       }
 
-      const nextState = store.start(options)
+      const result = store.start(options)
+      // State is updated synchronously; use getState() to access properties
+      const nextState = store.getState()
 
       if (!options?.resume) {
-        return nextState
+        return result
       }
 
       if (previousState.stepIndex >= 0 && nextState.status === 'running') {
@@ -416,7 +419,7 @@ export const TourProvider = ({
         pendingResumeRef.current.delete(flowId)
       }
 
-      return nextState
+      return result
     },
     [ensureStore, resolveResumeStrategy, runResumeHooks],
   )
@@ -504,7 +507,9 @@ export const TourProvider = ({
       pendingResumeRef.current.add(store.definition.id)
     }
 
-    const nextState = store.resume()
+    const result = store.resume()
+    // State is updated synchronously; use getState() to access properties
+    const nextState = store.getState()
 
     if (
       previousState.status === 'paused' &&
@@ -520,7 +525,7 @@ export const TourProvider = ({
       }
     }
 
-    return nextState
+    return result
   }, [getActiveStore, resolveResumeStrategy, runResumeHooks])
   const cancel = useCallback(
     (reason?: FlowCancelReason) => getActiveStore().cancel(reason),

@@ -1,5 +1,22 @@
 # @flowsterix/react
 
+## 0.3.0
+
+### Minor Changes
+
+- Add async-aware state methods for storage persistence
+
+  State-changing methods (`complete`, `cancel`, `start`, `next`, `back`, `goToStep`, `pause`, `resume`) now return `MaybePromise<FlowState>`:
+  - Sync storage adapters return `FlowState` immediately (unchanged behavior)
+  - Async storage adapters return `Promise<FlowState>` that resolves after persistence
+
+  This allows consumers to `await complete()` before page redirects to ensure API persistence completes.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @flowsterix/core@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes

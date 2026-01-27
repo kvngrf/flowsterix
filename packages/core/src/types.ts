@@ -1,5 +1,7 @@
 import type { EventBus } from './events'
 
+export type MaybePromise<T> = T | Promise<T>
+
 export type FlowStatus =
   | 'idle'
   | 'running'
@@ -359,14 +361,14 @@ export interface FlowStore<TContent = unknown> {
   readonly definition: FlowDefinition<TContent>
   readonly events: EventBus<FlowEvents<TContent>>
   getState: () => FlowState
-  start: (options?: StartFlowOptions) => FlowState
-  next: () => FlowState
-  back: () => FlowState
-  goToStep: (step: number | string) => FlowState
-  pause: () => FlowState
-  resume: () => FlowState
-  cancel: (reason?: FlowCancelReason) => FlowState
-  complete: () => FlowState
+  start: (options?: StartFlowOptions) => MaybePromise<FlowState>
+  next: () => MaybePromise<FlowState>
+  back: () => MaybePromise<FlowState>
+  goToStep: (step: number | string) => MaybePromise<FlowState>
+  pause: () => MaybePromise<FlowState>
+  resume: () => MaybePromise<FlowState>
+  cancel: (reason?: FlowCancelReason) => MaybePromise<FlowState>
+  complete: () => MaybePromise<FlowState>
   subscribe: (listener: (state: FlowState) => void) => () => void
   destroy: () => void
 }
