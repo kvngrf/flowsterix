@@ -115,15 +115,15 @@ export type {
   WaitForPredicateControllerOptions,
 } from './hooks/waitForPredicate'
 
+// Router utilities that don't require external router dependencies
 export {
-  createPathString,
   getCurrentRoutePath,
-  getTanStackRouter,
-  getTourRouter,
   notifyRouteChange,
-  setTanStackRouter,
-  setTourRouter,
   subscribeToRouteChanges,
-  TanStackRouterSync,
-  useTanStackRouterTourAdapter,
-} from './router'
+} from './router/routeGating'
+export { createPathString } from './router/utils'
+
+// TanStack Router - import from '@flowsterix/react/router/tanstack'
+// React Router - import from '@flowsterix/react/router/react-router'
+// Next.js App Router - import from '@flowsterix/react/router/next-app'
+// Next.js Pages Router - import from '@flowsterix/react/router/next-pages'

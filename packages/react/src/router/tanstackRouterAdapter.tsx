@@ -4,6 +4,16 @@ import { useEffect } from 'react'
 import { notifyRouteChange } from './routeGating'
 import { createPathString } from './utils'
 
+// Re-export TanStack Router sync utilities for convenience
+export {
+  getTanStackRouter,
+  getTourRouter,
+  setTanStackRouter,
+  setTourRouter,
+  TanStackRouterSync,
+} from './tanstackRouterSync'
+export type { TanStackRouterSyncProps } from './tanstackRouterSync'
+
 export const useTanStackRouterTourAdapter = () => {
   const location = useRouterState({
     select: (state) => state.location,

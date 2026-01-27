@@ -1,5 +1,20 @@
 # @flowsterix/react
 
+## 0.3.1
+
+### Patch Changes
+
+- Fix module resolution error for @tanstack/react-router
+
+  Router-specific utilities (TanStackRouterSync, getTourRouter, etc.) are no longer
+  exported from the main entry point. Import them from subpaths instead:
+  - `@flowsterix/react/router/tanstack` - TanStack Router
+  - `@flowsterix/react/router/react-router` - React Router
+  - `@flowsterix/react/router/next-app` - Next.js App Router
+  - `@flowsterix/react/router/next-pages` - Next.js Pages Router
+
+  This prevents bundlers from trying to resolve optional router dependencies.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -7,7 +7,8 @@ This guide shows how to keep Flowsterix tours in sync with single-page routers a
 The React bindings expose lightweight adapters that report navigation events into the tour runtime. Add the adapter that matches your environment inside a component that renders under `TourProvider`.
 
 ```tsx
-import { TanStackRouterSync, TourProvider } from '@flowsterix/react'
+import { TourProvider } from '@flowsterix/react'
+import { TanStackRouterSync } from '@flowsterix/react/router/tanstack'
 
 import { demoFlows } from './flows'
 
@@ -21,14 +22,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 ```
 
-Available adapters:
+Available adapters (import from their respective subpaths):
 
-- `useTanStackRouterTourAdapter`
-- `useReactRouterTourAdapter`
-- `useNextAppRouterTourAdapter`
-- `useNextPagesRouterTourAdapter`
+- `@flowsterix/react/router/tanstack` - TanStack Router (`useTanStackRouterTourAdapter`, `TanStackRouterSync`)
+- `@flowsterix/react/router/react-router` - React Router v6 (`useReactRouterTourAdapter`)
+- `@flowsterix/react/router/next-app` - Next.js App Router (`useNextAppRouterTourAdapter`)
+- `@flowsterix/react/router/next-pages` - Next.js Pages Router (`useNextPagesRouterTourAdapter`)
 
-Each hook reads the active location, converts it to a normalized path via `createPathString`, and passes it into the shared `routeGatingChannel`. The reusable sync components (like the `TanStackRouterSync` above) simply wrap these hooks and pad in any router-specific plumbing so your layout stays tidy.
+Each hook reads the active location, converts it to a normalized path via `createPathString`, and passes it into the shared `routeGatingChannel`. The reusable sync components (like the `TanStackRouterSync` above) simply wrap these hooks and add any router-specific plumbing so your layout stays tidy.
 
 ### Custom Routers
 
@@ -47,9 +48,8 @@ router.subscribe((state) => {
 When a flow resumes after the user reloads or navigates away, the previous step may belong to a different route. Use the step-level `onResume` hook to rerun any UI setup or spa navigation.
 
 ```ts
-import { getTourRouter } from '@flowsterix/react'
-
 import { createFlow } from '@flowsterix/core'
+import { getTourRouter } from '@flowsterix/react/router/tanstack'
 
 const flow = createFlow({
   id: 'demo-flow',
