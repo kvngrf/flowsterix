@@ -38,11 +38,11 @@ export function HoldToSkipButton({
   const progressVariants = useMemo<Variants>(
     () => ({
       holding: {
-        clipPath: 'inset(0% 0% 0% 100%)',
+        clipPath: 'inset(0% 0% 0% 0%)',
         transition: { duration: holdDurationMs / 1000, ease: 'linear' },
       },
       idle: {
-        clipPath: 'inset(0% 0% 0% 0%)',
+        clipPath: 'inset(0% 100% 0% 0%)',
         transition: { duration: 0.3, ease: 'easeOut' },
       },
     }),
@@ -158,8 +158,10 @@ export function HoldToSkipButton({
 
         <motion.div
           className={cn(
-            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md border border-border',
-            'bg-destructive text-background',
+            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
+            'border bg-background shadow-xs',
+            'hover:bg-accent hover:text-accent-foreground',
+            'dark:bg-popover dark:border-input dark:hover:bg-accent',
           )}
         >
           {resolvedLabel}
@@ -168,10 +170,8 @@ export function HoldToSkipButton({
         <motion.div
           variants={progressVariants}
           className={cn(
-            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
-            'border bg-background text-foreground shadow-xs',
-            'hover:bg-accent hover:text-accent-foreground',
-            'dark:bg-popover dark:border-input dark:hover:bg-accent',
+            'absolute inset-0 flex shrink-0 items-center justify-center rounded-md border border-border',
+            'bg-destructive text-background',
           )}
         >
           {resolvedLabel}
