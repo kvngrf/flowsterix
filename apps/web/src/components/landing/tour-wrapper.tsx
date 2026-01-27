@@ -56,7 +56,7 @@ export function TourWrapper({ children }: { children: React.ReactNode }) {
         }}
         controls={{
           showSkip: true,
-          skipMode: 'click',
+          skipMode: 'hold',
           labels: {
             next: 'Next',
             back: 'Back',
