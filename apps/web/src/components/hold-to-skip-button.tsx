@@ -169,7 +169,7 @@ export function HoldToSkipButton({
           variants={progressVariants}
           className={cn(
             'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
-            'border bg-background shadow-xs',
+            'border bg-background text-foreground shadow-xs',
             'hover:bg-accent hover:text-accent-foreground',
             'dark:bg-popover dark:border-input dark:hover:bg-accent',
           )}
