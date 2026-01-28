@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 0.4.1
+
+### Patch Changes
+
+- Fix autostart flow selection to consider route matching. Previously, only the first eligible flow was considered regardless of route. Now all eligible flows are checked and the first one whose route matches the current path is started.
+
 ## 0.4.0
 
 ### Minor Changes

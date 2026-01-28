@@ -40,7 +40,7 @@ import {
   useState,
 } from 'react'
 import type { TourLabels } from './labels'
-import { defaultLabels, LabelsProvider } from './labels'
+import { LabelsProvider, defaultLabels } from './labels'
 import type { AnimationAdapter } from './motion/animationAdapter'
 import {
   AnimationAdapterProvider,
@@ -153,11 +153,6 @@ export const TourProvider = ({
   )
   const [debugEnabled, setDebugEnabled] = useState(defaultDebug)
   const [delayInfo, setDelayInfo] = useState<DelayAdvanceInfo | null>(null)
-  const [eligibleAutoStart, setEligibleAutoStart] = useState<{
-    flow: FlowDefinition<ReactNode>
-    resolvedState: FlowState | null
-    stepIndex: number
-  } | null>(null)
 
   const teardownStore = useCallback(() => {
     unsubscribeRef.current?.()
@@ -206,12 +201,8 @@ export const TourProvider = ({
     if (!hook) return
     try {
       const result = hook(context)
-      if (
-        typeof result === 'object' &&
-        result !== null &&
-        typeof (result as PromiseLike<unknown>).then === 'function'
-      ) {
-        ;(result as Promise<void>).catch((error: unknown) => {
+      if (result instanceof Promise) {
+        result.catch((error: unknown) => {
           console.warn(`[tour][step] ${phase} hook rejected`, error)
         })
       }
@@ -434,11 +425,19 @@ export const TourProvider = ({
     [ensureStore, resolveResumeStrategy, runResumeHooks],
   )
 
-  // Eligibility selection: find first autoStart flow that is not completed/skipped
+  // Eligibility selection: find all autoStart flows that are not completed/skipped
+  const [eligibleFlows, setEligibleFlows] = useState<
+    Array<{
+      flow: FlowDefinition<ReactNode>
+      resolvedState: FlowState | null
+      stepIndex: number
+    }>
+  >([])
+
   useEffect(() => {
     const autoStartFlows = flows.filter((f) => f.autoStart)
     if (autoStartFlows.length === 0) {
-      setEligibleAutoStart(null)
+      setEligibleFlows([])
       return
     }
 
@@ -448,13 +447,15 @@ export const TourProvider = ({
 
     const resolvedStorageAdapter = storageAdapter ?? fallbackStorageRef.current
 
-    // No storage - use first autoStart flow as eligible (fresh start)
+    // No storage - all autoStart flows are eligible (fresh start)
     if (!resolvedStorageAdapter) {
-      setEligibleAutoStart({
-        flow: autoStartFlows[0],
-        resolvedState: null,
-        stepIndex: 0,
-      })
+      setEligibleFlows(
+        autoStartFlows.map((flow) => ({
+          flow,
+          resolvedState: null,
+          stepIndex: 0,
+        })),
+      )
       return
     }
 
@@ -475,15 +476,21 @@ export const TourProvider = ({
 
       if (cancelled) return
 
-      // Find first eligible flow (in array order)
+      // Build list of all eligible flows
+      const eligible: Array<{
+        flow: FlowDefinition<ReactNode>
+        resolvedState: FlowState | null
+        stepIndex: number
+      }> = []
+
       for (let i = 0; i < autoStartFlows.length; i++) {
         const flow = autoStartFlows[i]
         const snapshot = snapshots[i] as StorageSnapshot<FlowState> | null
 
         // No snapshot = fresh start, this flow is eligible
         if (!snapshot) {
-          setEligibleAutoStart({ flow, resolvedState: null, stepIndex: 0 })
-          return
+          eligible.push({ flow, resolvedState: null, stepIndex: 0 })
+          continue
         }
 
         // Handle version mismatch to get resolved state
@@ -516,12 +523,10 @@ export const TourProvider = ({
 
         // This flow is eligible
         const stepIndex = Math.max(0, resolvedState.stepIndex)
-        setEligibleAutoStart({ flow, resolvedState, stepIndex })
-        return
+        eligible.push({ flow, resolvedState, stepIndex })
       }
 
-      // All flows completed/skipped
-      setEligibleAutoStart(null)
+      setEligibleFlows(eligible)
     }
 
     void findEligible()
@@ -531,42 +536,42 @@ export const TourProvider = ({
     }
   }, [flows, storageAdapter, storageNamespace])
 
-  // Route-gated autostart: only start when current step's route matches
+  // Route-gated autostart: find first eligible flow whose route matches
   useEffect(() => {
-    if (!eligibleAutoStart) {
+    if (eligibleFlows.length === 0) {
       autoStartRequestedRef.current = null
       return
     }
     if (activeFlowId) return
-    if (autoStartRequestedRef.current === eligibleAutoStart.flow.id) return
 
-    const { flow, stepIndex } = eligibleAutoStart
-    const step = flow.steps[stepIndex]
-
-    // No route constraint - start immediately
-    if (!step?.route) {
-      autoStartRequestedRef.current = flow.id
-      startFlow(flow.id, { resume: true })
-      return
+    // Find first eligible flow that matches current route
+    const findMatchingFlow = (path: string) => {
+      for (const { flow, stepIndex } of eligibleFlows) {
+        const step = flow.steps[stepIndex]
+        // No route constraint or route matches
+        if (!step.route || matchRoute({ pattern: step.route, path })) {
+          return flow
+        }
+      }
+      return null
     }
 
-    // Check if current route matches
-    const currentPath = getCurrentRoutePath()
-    if (matchRoute({ pattern: step.route, path: currentPath })) {
-      autoStartRequestedRef.current = flow.id
-      startFlow(flow.id, { resume: true })
-      return
-    }
-
-    // Route doesn't match - subscribe and wait for navigation
-    const unsubscribe = subscribeToRouteChanges((path) => {
+    const tryStart = (path: string) => {
       if (activeFlowId) return
-      if (autoStartRequestedRef.current === flow.id) return
-
-      if (matchRoute({ pattern: step.route, path })) {
+      const flow = findMatchingFlow(path)
+      if (flow && autoStartRequestedRef.current !== flow.id) {
         autoStartRequestedRef.current = flow.id
         startFlow(flow.id, { resume: true })
       }
+    }
+
+    // Check immediately
+    const currentPath = getCurrentRoutePath()
+    tryStart(currentPath)
+
+    // Subscribe to route changes to re-check
+    const unsubscribe = subscribeToRouteChanges((path) => {
+      tryStart(path)
     })
 
     return () => {
@@ -575,7 +580,7 @@ export const TourProvider = ({
         autoStartRequestedRef.current = null
       }
     }
-  }, [activeFlowId, eligibleAutoStart, startFlow])
+  }, [activeFlowId, eligibleFlows, startFlow])
 
   const next = useCallback(() => getActiveStore().next(), [getActiveStore])
   const back = useCallback(() => getActiveStore().back(), [getActiveStore])
