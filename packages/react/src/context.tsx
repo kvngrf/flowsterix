@@ -12,11 +12,15 @@ import type {
   StartFlowOptions,
   Step,
   StorageAdapter,
+  StorageSnapshot,
   VersionMismatchInfo,
 } from '@flowsterix/core'
 import {
+  buildStepIdMap,
   createFlowStore,
   createLocalStorageAdapter,
+  handleVersionMismatch,
+  parseVersion,
   resolveMaybePromise,
   serializeVersion,
 } from '@flowsterix/core'
@@ -43,6 +47,11 @@ import {
   defaultAnimationAdapter,
   usePreferredAnimationAdapter,
 } from './motion/animationAdapter'
+import {
+  getCurrentRoutePath,
+  matchRoute,
+  subscribeToRouteChanges,
+} from './router/routeGating'
 import { isBrowser } from './utils/dom'
 
 export interface DelayAdvanceInfo {
@@ -144,10 +153,11 @@ export const TourProvider = ({
   )
   const [debugEnabled, setDebugEnabled] = useState(defaultDebug)
   const [delayInfo, setDelayInfo] = useState<DelayAdvanceInfo | null>(null)
-
-  const autoStartFlow = useMemo(() => {
-    return flows.find((flow) => flow.autoStart)
-  }, [flows])
+  const [eligibleAutoStart, setEligibleAutoStart] = useState<{
+    flow: FlowDefinition<ReactNode>
+    resolvedState: FlowState | null
+    stepIndex: number
+  } | null>(null)
 
   const teardownStore = useCallback(() => {
     unsubscribeRef.current?.()
@@ -424,73 +434,148 @@ export const TourProvider = ({
     [ensureStore, resolveResumeStrategy, runResumeHooks],
   )
 
+  // Eligibility selection: find first autoStart flow that is not completed/skipped
   useEffect(() => {
-    if (!autoStartFlow) {
-      autoStartRequestedRef.current = null
+    const autoStartFlows = flows.filter((f) => f.autoStart)
+    if (autoStartFlows.length === 0) {
+      setEligibleAutoStart(null)
       return
     }
-    if (activeFlowId) return
-    if (autoStartRequestedRef.current === autoStartFlow.id) return
 
-    autoStartRequestedRef.current = autoStartFlow.id
+    if (!storageAdapter && !fallbackStorageRef.current && isBrowser) {
+      fallbackStorageRef.current = createLocalStorageAdapter()
+    }
+
+    const resolvedStorageAdapter = storageAdapter ?? fallbackStorageRef.current
+
+    // No storage - use first autoStart flow as eligible (fresh start)
+    if (!resolvedStorageAdapter) {
+      setEligibleAutoStart({
+        flow: autoStartFlows[0],
+        resolvedState: null,
+        stepIndex: 0,
+      })
+      return
+    }
+
     let cancelled = false
 
-    const maybeAutoStart = async () => {
-      if (!storageAdapter && !fallbackStorageRef.current && isBrowser) {
-        fallbackStorageRef.current = createLocalStorageAdapter()
-      }
-
-      const resolvedStorageAdapter = storageAdapter
-        ? storageAdapter
-        : fallbackStorageRef.current
-
-      if (!resolvedStorageAdapter) {
-        startFlow(autoStartFlow.id, { resume: true })
-        return
-      }
-
-      const storageKey = storageNamespace
-        ? `${storageNamespace}:${autoStartFlow.id}`
-        : `${DEFAULT_STORAGE_PREFIX}:${autoStartFlow.id}`
-
-      const snapshot = await resolveMaybePromise(
-        resolvedStorageAdapter.get(storageKey),
+    const findEligible = async () => {
+      // Parallel storage reads for constant latency
+      const storageKeys = autoStartFlows.map((f) =>
+        storageNamespace
+          ? `${storageNamespace}:${f.id}`
+          : `${DEFAULT_STORAGE_PREFIX}:${f.id}`,
+      )
+      const snapshots = await Promise.all(
+        storageKeys.map((key) =>
+          resolveMaybePromise(resolvedStorageAdapter.get(key)),
+        ),
       )
 
       if (cancelled) return
 
-      // Compare versions using serialized format for consistency
-      const currentVersionStr = serializeVersion(autoStartFlow.version)
-      // Handle legacy numeric versions in storage
-      const storedVersionStr =
-        typeof snapshot?.version === 'number'
-          ? serializeVersion({ major: snapshot.version, minor: 0 })
-          : snapshot?.version
+      // Find first eligible flow (in array order)
+      for (let i = 0; i < autoStartFlows.length; i++) {
+        const flow = autoStartFlows[i]
+        const snapshot = snapshots[i] as StorageSnapshot<FlowState> | null
 
-      if (snapshot && storedVersionStr === currentVersionStr) {
-        const storedState = snapshot.value as FlowState
-        const isFinished = storedState.status === 'completed'
-        const isSkipped =
-          storedState.status === 'cancelled' &&
-          storedState.cancelReason === 'skipped'
-
-        if (isFinished || isSkipped) {
+        // No snapshot = fresh start, this flow is eligible
+        if (!snapshot) {
+          setEligibleAutoStart({ flow, resolvedState: null, stepIndex: 0 })
           return
         }
+
+        // Handle version mismatch to get resolved state
+        const storedVersionStr =
+          typeof snapshot.version === 'number'
+            ? serializeVersion({ major: snapshot.version, minor: 0 })
+            : snapshot.version
+        const storedVersion = parseVersion(storedVersionStr)
+        const stepIdMap = buildStepIdMap(flow)
+
+        const { state: resolvedState } = handleVersionMismatch({
+          storedState: snapshot.value,
+          storedVersion,
+          definition: flow,
+          currentVersion: flow.version,
+          stepIdMap,
+          now: () => Date.now(),
+        })
+
+        // Skip completed flows
+        if (resolvedState.status === 'completed') continue
+
+        // Skip flows cancelled with 'skipped' reason
+        if (
+          resolvedState.status === 'cancelled' &&
+          resolvedState.cancelReason === 'skipped'
+        ) {
+          continue
+        }
+
+        // This flow is eligible
+        const stepIndex = Math.max(0, resolvedState.stepIndex)
+        setEligibleAutoStart({ flow, resolvedState, stepIndex })
+        return
       }
 
-      startFlow(autoStartFlow.id, { resume: true })
+      // All flows completed/skipped
+      setEligibleAutoStart(null)
     }
 
-    void maybeAutoStart()
+    void findEligible()
 
     return () => {
       cancelled = true
+    }
+  }, [flows, storageAdapter, storageNamespace])
+
+  // Route-gated autostart: only start when current step's route matches
+  useEffect(() => {
+    if (!eligibleAutoStart) {
+      autoStartRequestedRef.current = null
+      return
+    }
+    if (activeFlowId) return
+    if (autoStartRequestedRef.current === eligibleAutoStart.flow.id) return
+
+    const { flow, stepIndex } = eligibleAutoStart
+    const step = flow.steps[stepIndex]
+
+    // No route constraint - start immediately
+    if (!step?.route) {
+      autoStartRequestedRef.current = flow.id
+      startFlow(flow.id, { resume: true })
+      return
+    }
+
+    // Check if current route matches
+    const currentPath = getCurrentRoutePath()
+    if (matchRoute({ pattern: step.route, path: currentPath })) {
+      autoStartRequestedRef.current = flow.id
+      startFlow(flow.id, { resume: true })
+      return
+    }
+
+    // Route doesn't match - subscribe and wait for navigation
+    const unsubscribe = subscribeToRouteChanges((path) => {
+      if (activeFlowId) return
+      if (autoStartRequestedRef.current === flow.id) return
+
+      if (matchRoute({ pattern: step.route, path })) {
+        autoStartRequestedRef.current = flow.id
+        startFlow(flow.id, { resume: true })
+      }
+    })
+
+    return () => {
+      unsubscribe()
       if (!activeFlowId) {
         autoStartRequestedRef.current = null
       }
     }
-  }, [activeFlowId, autoStartFlow, startFlow, storageAdapter, storageNamespace])
+  }, [activeFlowId, eligibleAutoStart, startFlow])
 
   const next = useCallback(() => getActiveStore().next(), [getActiveStore])
   const back = useCallback(() => getActiveStore().back(), [getActiveStore])

@@ -1,5 +1,6 @@
 export {
   getCurrentRoutePath,
+  matchRoute,
   notifyRouteChange,
   routeGatingChannel,
   subscribeToRouteChanges,

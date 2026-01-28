@@ -19,6 +19,7 @@ export { flowDefinitionSchema, validateFlowDefinition } from './validation'
 export {
   buildStepIdMap,
   compareVersions,
+  handleVersionMismatch,
   parseVersion,
   serializeVersion,
 } from './version'

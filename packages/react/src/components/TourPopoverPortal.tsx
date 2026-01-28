@@ -492,7 +492,7 @@ export const TourPopoverPortal = ({
               alignment: autoAlignment,
             }),
           ]
-        : [flip({ padding: FLOATING_OFFSET })]),
+        : [flip({ padding: FLOATING_OFFSET, fallbackStrategy: 'bestFit' })]),
       shift({ padding: FLOATING_OFFSET }),
     ]
 

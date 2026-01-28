@@ -156,3 +156,13 @@ export const notifyRouteChange = (path?: string) => {
 export const subscribeToRouteChanges = (listener: RouteChangeListener) => {
   return routeGatingChannel.subscribe(listener)
 }
+
+export const matchRoute = (params: {
+  pattern: string | RegExp | undefined
+  path: string
+}): boolean => {
+  const { pattern, path } = params
+  if (!pattern) return true
+  if (typeof pattern === 'string') return path === pattern
+  return pattern.test(path)
+}

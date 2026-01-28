@@ -1,5 +1,15 @@
 # @flowsterix/core
 
+## 0.4.0
+
+### Minor Changes
+
+- - Route-gated autostart: flows with `autoStart` now wait until the current route matches the first step's `route` pattern before starting
+  - Multi-flow eligibility: when multiple flows have `autoStart`, the first non-completed/non-skipped flow is selected
+  - Parallel storage reads for autostart eligibility check
+  - Fix popover placement fallback: uses `bestFit` strategy to try all placements before docking
+  - Export `handleVersionMismatch` from core and `matchRoute` from react/router
+
 ## 0.3.0
 
 ### Minor Changes
