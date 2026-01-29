@@ -27,5 +27,19 @@ jobs:
       - name: Run Test
         run: pnpm run test
 
-      - name: Run Publish
-        run: pnpm changeset publish
+      - name: Publish Public Packages
+        run: |
+          for pkg in packages/*; do
+            if [ -f "$pkg/package.json" ]; then
+              is_private=$(node -p "require('./$pkg/package.json').private || false")
+
+              if [ "$is_private" = "false" ]; then
+                echo "Publishing $pkg..."
+                cd "$pkg"
+                npm publish --provenance --access public || true
+                cd - > /dev/null
+              else
+                echo "Skipping $pkg (private)"
+              fi
+            fi
+          done
