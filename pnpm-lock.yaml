@@ -370,6 +370,15 @@ importers:
       eslint:
         specifier: ^9.13.0
         version: 9.39.1(jiti@2.6.1)
+      eslint-plugin-react-hooks:
+        specifier: ^7.0.1
+        version: 7.0.1(eslint@9.39.1(jiti@2.6.1))
+      eslint-plugin-react-refresh:
+        specifier: ^0.4.24
+        version: 0.4.25(eslint@9.39.1(jiti@2.6.1))
+      globals:
+        specifier: ^16.0.0
+        version: 16.5.0
       jsdom:
         specifier: ^27.0.0
         version: 27.1.0
@@ -505,23 +514,23 @@ importers:
         version: link:../core
       '@tanstack/react-router':
         specifier: '>=1'
-        version: 1.134.12(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 1.134.12(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next:
         specifier: '>=13'
-        version: 16.0.3(@babel/core@7.28.5)(@playwright/test@1.58.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      react:
-        specifier: '>=18'
-        version: 19.2.0
-      react-dom:
-        specifier: '>=18'
-        version: 19.2.0(react@19.2.0)
+        version: 16.0.3(@babel/core@7.28.5)(@playwright/test@1.58.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-router-dom:
         specifier: '>=6'
-        version: 7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 7.9.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     devDependencies:
       motion:
         specifier: ^12.29.0
-        version: 12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 12.29.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.3(react@19.2.3)
 
   packages/video:
     dependencies:
@@ -5487,11 +5496,6 @@ packages:
     resolution: {integrity: sha512-K5zQjDllxWkf7Z5xJdV0/B0WTNqx6vxG70zJE4N0kBs4LovmEYWJzQGxC9bS9RAKu3bgM40lrd5zoLJ12MQ5BA==}
     engines: {node: '>= 0.10'}
 
-  react-dom@19.2.0:
-    resolution: {integrity: sha512-UlbRu4cAiGaIewkPyiRGJk0imDN2T3JjieT6spoL2UeSf5od4n5LB/mQ4ejmxhCFT1tYe8IvaFulzynWovsEFQ==}
-    peerDependencies:
-      react: ^19.2.0
-
   react-dom@19.2.1:
     resolution: {integrity: sha512-ibrK8llX2a4eOskq1mXKu/TGZj9qzomO+sNfO98M6d9zIPOEhlBkMkBUBLd1vgS0gQsLDBzA+8jJBVXDnfHmJg==}
     peerDependencies:
@@ -5579,10 +5583,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  react@19.2.0:
-    resolution: {integrity: sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==}
-    engines: {node: '>=0.10.0'}
 
   react@19.2.1:
     resolution: {integrity: sha512-DGrYcCWK7tvYMnWh79yrPHt+vdx9tY+1gPZa7nJQtO/p8bLTDaHp4dzwEhQB7pZ4Xe3ok4XKuEPrVuc+wlpkmw==}
@@ -8705,17 +8705,6 @@ snapshots:
     transitivePeerDependencies:
       - '@tanstack/router-core'
 
-  '@tanstack/react-router@1.134.12(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
-    dependencies:
-      '@tanstack/history': 1.133.28
-      '@tanstack/react-store': 0.8.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@tanstack/router-core': 1.134.12
-      isbot: 5.1.32
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      tiny-invariant: 1.3.3
-      tiny-warning: 1.0.3
-
   '@tanstack/react-router@1.134.12(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@tanstack/history': 1.133.28
@@ -8724,6 +8713,17 @@ snapshots:
       isbot: 5.1.32
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
+      tiny-invariant: 1.3.3
+      tiny-warning: 1.0.3
+
+  '@tanstack/react-router@1.134.12(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@tanstack/history': 1.133.28
+      '@tanstack/react-store': 0.8.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@tanstack/router-core': 1.134.12
+      isbot: 5.1.32
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
 
@@ -8781,13 +8781,6 @@ snapshots:
       - vite-plugin-solid
       - webpack
 
-  '@tanstack/react-store@0.8.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
-    dependencies:
-      '@tanstack/store': 0.8.0
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      use-sync-external-store: 1.6.0(react@19.2.0)
-
   '@tanstack/react-store@0.8.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@tanstack/store': 0.8.0
@@ -8801,7 +8794,6 @@ snapshots:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       use-sync-external-store: 1.6.0(react@19.2.3)
-    optional: true
 
   '@tanstack/router-core@1.134.12':
     dependencies:
@@ -10327,7 +10319,7 @@ snapshots:
       '@next/eslint-plugin-next': 16.1.4
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import-x@4.16.1(@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import-x@4.16.1(@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.1(jiti@2.6.1))
@@ -10357,7 +10349,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import-x@4.16.1(@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import-x@4.16.1(@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -10380,7 +10372,7 @@ snapshots:
       '@typescript-eslint/parser': 8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import-x@4.16.1(@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import-x@4.16.1(@typescript-eslint/utils@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)))(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -10776,15 +10768,6 @@ snapshots:
       fetch-blob: 3.2.0
 
   forwarded@0.2.0: {}
-
-  framer-motion@12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      motion-dom: 12.29.0
-      motion-utils: 12.27.2
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
 
   framer-motion@12.29.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
@@ -11536,14 +11519,6 @@ snapshots:
 
   motion-utils@12.27.2: {}
 
-  motion@12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      framer-motion: 12.29.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-
   motion@12.29.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       framer-motion: 12.29.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -11688,15 +11663,15 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
-  next@16.0.3(@babel/core@7.28.5)(@playwright/test@1.58.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  next@16.0.3(@babel/core@7.28.5)(@playwright/test@1.58.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       '@next/env': 16.0.3
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001753
       postcss: 8.4.31
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      styled-jsx: 5.1.6(@babel/core@7.28.5)(react@19.2.0)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      styled-jsx: 5.1.6(@babel/core@7.28.5)(react@19.2.3)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.0.3
       '@next/swc-darwin-x64': 16.0.3
@@ -12079,11 +12054,6 @@ snapshots:
       iconv-lite: 0.7.1
       unpipe: 1.0.0
 
-  react-dom@19.2.0(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-      scheduler: 0.27.0
-
   react-dom@19.2.1(react@19.2.1):
     dependencies:
       react: 19.2.1
@@ -12128,17 +12098,17 @@ snapshots:
       react-router: 7.13.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     optional: true
 
-  react-router-dom@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      react-router: 7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-
   react-router-dom@7.9.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
       react-router: 7.9.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+
+  react-router-dom@7.9.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-router: 7.9.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
 
   react-router@7.13.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
@@ -12149,14 +12119,6 @@ snapshots:
       react-dom: 19.2.3(react@19.2.3)
     optional: true
 
-  react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      cookie: 1.0.2
-      react: 19.2.0
-      set-cookie-parser: 2.7.2
-    optionalDependencies:
-      react-dom: 19.2.0(react@19.2.0)
-
   react-router@7.9.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1):
     dependencies:
       cookie: 1.0.2
@@ -12165,6 +12127,14 @@ snapshots:
     optionalDependencies:
       react-dom: 19.2.1(react@19.2.1)
 
+  react-router@7.9.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      cookie: 1.0.2
+      react: 19.2.3
+      set-cookie-parser: 2.7.2
+    optionalDependencies:
+      react-dom: 19.2.3(react@19.2.3)
+
   react-style-singleton@2.2.3(@types/react@19.2.7)(react@19.2.1):
     dependencies:
       get-nonce: 1.0.1
@@ -12172,8 +12142,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.7
-
-  react@19.2.0: {}
 
   react@19.2.1: {}
 
@@ -12756,13 +12724,6 @@ snapshots:
     optionalDependencies:
       '@babel/core': 7.28.5
 
-  styled-jsx@5.1.6(@babel/core@7.28.5)(react@19.2.0):
-    dependencies:
-      client-only: 0.0.1
-      react: 19.2.0
-    optionalDependencies:
-      '@babel/core': 7.28.5
-
   styled-jsx@5.1.6(@babel/core@7.28.5)(react@19.2.3):
     dependencies:
       client-only: 0.0.1
@@ -13141,10 +13102,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.7
 
-  use-sync-external-store@1.6.0(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-
   use-sync-external-store@1.6.0(react@19.2.1):
     dependencies:
       react: 19.2.1
@@ -13152,7 +13109,6 @@ snapshots:
   use-sync-external-store@1.6.0(react@19.2.3):
     dependencies:
       react: 19.2.3
-    optional: true
 
   util-deprecate@1.0.2: {}
 

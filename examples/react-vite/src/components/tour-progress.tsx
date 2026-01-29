@@ -121,75 +121,72 @@ export function TourProgress({
     )
   }
 
-  if (variant === 'steps') {
-    return (
-      <div
-        className={cn('flex items-center gap-2', className)}
-        role="progressbar"
-        aria-valuenow={currentIndex + 1}
-        aria-valuemin={1}
-        aria-valuemax={totalSteps}
-        aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
-      >
-        {flow?.steps.map((step, index) => (
+  // variant === 'steps'
+  return (
+    <div
+      className={cn('flex items-center gap-2', className)}
+      role="progressbar"
+      aria-valuenow={currentIndex + 1}
+      aria-valuemin={1}
+      aria-valuemax={totalSteps}
+      aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
+    >
+      {flow?.steps.map((step, index) => (
+        <div
+          key={step.id}
+          className={cn(
+            'flex items-center gap-1.5',
+            index < totalSteps - 1 && 'flex-1',
+          )}
+        >
+          {/* Step indicator */}
           <div
-            key={step.id}
             className={cn(
-              'flex items-center gap-1.5',
-              index < totalSteps - 1 && 'flex-1',
+              'flex items-center justify-center rounded-full text-xs font-medium transition-all',
+              size === 'sm' && 'h-5 w-5',
+              size === 'md' && 'h-6 w-6',
+              size === 'lg' && 'h-7 w-7',
+              index === currentIndex
+                ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
+                : index < currentIndex
+                  ? 'bg-primary/80 text-primary-foreground'
+                  : 'bg-muted text-muted-foreground',
             )}
           >
-            {/* Step indicator */}
-            <div
-              className={cn(
-                'flex items-center justify-center rounded-full text-xs font-medium transition-all',
-                size === 'sm' && 'h-5 w-5',
-                size === 'md' && 'h-6 w-6',
-                size === 'lg' && 'h-7 w-7',
-                index === currentIndex
-                  ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
-                  : index < currentIndex
-                    ? 'bg-primary/80 text-primary-foreground'
-                    : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {index < currentIndex ? (
-                <CheckIcon className="h-3 w-3" />
-              ) : (
-                index + 1
-              )}
-            </div>
-
-            {/* Step label */}
-            {showLabels && (
-              <span
-                className={cn(
-                  'hidden text-xs sm:inline',
-                  index === currentIndex
-                    ? 'font-medium text-foreground'
-                    : 'text-muted-foreground',
-                )}
-              >
-                {step.id}
-              </span>
-            )}
-
-            {/* Connector line */}
-            {index < totalSteps - 1 && (
-              <div
-                className={cn(
-                  'h-0.5 flex-1 transition-colors',
-                  index < currentIndex ? 'bg-primary/60' : 'bg-muted',
-                )}
-              />
+            {index < currentIndex ? (
+              <CheckIcon className="h-3 w-3" />
+            ) : (
+              index + 1
             )}
           </div>
-        ))}
-      </div>
-    )
-  }
 
-  return null
+          {/* Step label */}
+          {showLabels && (
+            <span
+              className={cn(
+                'hidden text-xs sm:inline',
+                index === currentIndex
+                  ? 'font-medium text-foreground'
+                  : 'text-muted-foreground',
+              )}
+            >
+              {step.id}
+            </span>
+          )}
+
+          {/* Connector line */}
+          {index < totalSteps - 1 && (
+            <div
+              className={cn(
+                'h-0.5 flex-1 transition-colors',
+                index < currentIndex ? 'bg-primary/60' : 'bg-muted',
+              )}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function CheckIcon({ className }: { className?: string }) {

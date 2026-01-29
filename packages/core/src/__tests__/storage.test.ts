@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   MemoryStorageAdapter,
-  createLocalStorageAdapter,
+  
   createApiStorageAdapter,
-  type StorageSnapshot,
+  createLocalStorageAdapter
 } from '../storage'
+import type {StorageSnapshot} from '../storage';
 
 const validSnapshot: StorageSnapshot = {
   version: '1.0',
@@ -332,7 +333,7 @@ describe('createApiStorageAdapter', () => {
       })
 
       const adapter = createAdapter({
-        getHeaders: async () => ({ Authorization: 'Bearer async-token' }),
+        getHeaders: () => Promise.resolve({ Authorization: 'Bearer async-token' }),
       })
       await adapter.get('flow-1')
 

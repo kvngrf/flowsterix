@@ -1,6 +1,7 @@
 "use client";
 
 import { Github } from "lucide-react";
+import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
 
 export function Navbar() {
@@ -8,11 +9,11 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[var(--bg-primary)]/70 border-b border-[var(--border-primary)]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="flex items-center gap-2 group">
           <span className="text-xl font-bold gradient-text">
             Flowsterix
           </span>
-        </a>
+        </Link>
 
         {/* Right side */}
         <div className="flex items-center gap-2">

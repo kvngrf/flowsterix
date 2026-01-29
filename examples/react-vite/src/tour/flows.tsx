@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components -- Flow definitions with inline content components */
+
 import type { FlowDefinition } from '@flowsterix/core'
 import { createFlow } from '@flowsterix/core'
 import type { ReactNode } from 'react'

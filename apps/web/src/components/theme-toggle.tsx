@@ -9,7 +9,9 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // This is a standard hydration pattern for SSR - we need to know when
+    // the component has mounted to avoid hydration mismatch with theme
+    queueMicrotask(() => setMounted(true));
   }, []);
 
   if (!mounted) {

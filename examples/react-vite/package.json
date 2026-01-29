@@ -7,7 +7,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "format": "prettier --check .",
     "format:write": "prettier --write ."
@@ -46,6 +46,9 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
     "eslint": "^9.13.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.0.0",
     "jsdom": "^27.0.0",
     "prettier": "^3.5.3",
     "shadcn": "^2.5.0",

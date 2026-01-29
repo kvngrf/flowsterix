@@ -62,6 +62,7 @@ function Home() {
   const [todo, setTodo] = useState('')
 
   const submitTodo = useCallback(async () => {
+    // eslint-disable-next-line react-hooks/immutability, react-hooks/exhaustive-deps -- Demo code, todos is refreshed via router.invalidate()
     todos = await addTodo({ data: todo })
     setTodo('')
     router.invalidate()

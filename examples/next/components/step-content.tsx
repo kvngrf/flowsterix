@@ -5,8 +5,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { motion } from 'motion/react'
 
-export interface StepContentProps
-  extends React.ComponentPropsWithoutRef<typeof motion.div> {}
+export type StepContentProps = React.ComponentPropsWithoutRef<typeof motion.div>
 
 export function StepContent({ className, ...props }: StepContentProps) {
   return (
@@ -41,8 +40,7 @@ export function StepTitle({
   )
 }
 
-export interface StepTextProps
-  extends React.ComponentPropsWithoutRef<typeof motion.p> {}
+export type StepTextProps = React.ComponentPropsWithoutRef<typeof motion.p>
 
 export function StepText({ className, ...props }: StepTextProps) {
   return (
@@ -54,8 +52,7 @@ export function StepText({ className, ...props }: StepTextProps) {
   )
 }
 
-export interface StepHintProps
-  extends React.ComponentPropsWithoutRef<typeof motion.p> {}
+export type StepHintProps = React.ComponentPropsWithoutRef<typeof motion.p>
 
 export function StepHint({ className, ...props }: StepHintProps) {
   return (

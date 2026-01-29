@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { validateFlowDefinition } from '../validation'
 import type { FlowDefinition } from '../types'
 

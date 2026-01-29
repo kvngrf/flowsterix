@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Registry is the source for syncing to examples - linted in target apps
+    "registry/**",
   ]),
 ]);
 

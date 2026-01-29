@@ -4,7 +4,7 @@ import { useTourLabels } from '@flowsterix/react'
 import type { Variants } from 'motion/react'
 import { motion } from 'motion/react'
 import type { KeyboardEventHandler } from 'react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -67,17 +67,17 @@ export function HoldToSkipButton({
     [],
   )
 
-  const clearHoldTimeout = () => {
+  const clearHoldTimeout = useCallback(() => {
     if (holdTimeoutRef.current !== null) {
       clearTimeout(holdTimeoutRef.current)
       holdTimeoutRef.current = null
     }
-  }
+  }, [])
 
-  const resetHoldState = () => {
+  const resetHoldState = useCallback(() => {
     holdReadyRef.current = false
     clearHoldTimeout()
-  }
+  }, [clearHoldTimeout])
 
   const startHold = () => {
     resetHoldState()
@@ -112,7 +112,7 @@ export function HoldToSkipButton({
     return () => {
       resetHoldState()
     }
-  }, [])
+  }, [resetHoldState])
 
   return (
     <Button

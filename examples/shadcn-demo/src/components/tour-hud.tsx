@@ -1,6 +1,6 @@
 'use client'
 
-import type { StepPlacement } from '@flowsterix/core'
+import type { Step, StepPlacement } from '@flowsterix/core'
 import type { UseHudShortcutsOptions } from '@flowsterix/react'
 import {
   OverlayBackdrop,
@@ -100,7 +100,7 @@ export interface TourHUDProps {
   /** Custom content to render inside the popover (overrides step content) */
   children?: React.ReactNode
   /** Custom step content renderer */
-  renderContent?: (step: any) => React.ReactNode
+  renderContent?: (step: Step) => React.ReactNode
 }
 
 // =============================================================================
@@ -201,7 +201,7 @@ export function TourHUD({
   })
 
   // Popover configuration with defaults
-  const popoverOffset = popover.offset ?? popoverConfig.offset ?? 16
+  const popoverOffset = popover.offset ?? popoverConfig.offset
   const popoverPlacement =
     runningStep?.placement ??
     popover.placement ??
