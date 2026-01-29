@@ -1,5 +1,18 @@
 # @flowsterix/react
 
+## 0.5.0
+
+### Minor Changes
+
+- Add grace period for hidden/missing target handling
+  - Backdrop now shows immediately when target is not found, providing visual feedback
+  - Popover is hidden during 400ms grace period to avoid jarring movements when elements load quickly
+  - If a fallback rect exists (from previous visit), popover shows at that position during grace period
+  - Unified "hidden" and "missing" target states to show consistent "Target not visible" message
+  - New `isInGracePeriod` flag exposed from `useHiddenTargetFallback` and `useHudState`
+  - New `isInGracePeriod` option for `useTourOverlay` to control backdrop visibility during grace
+  - New `isInGracePeriod` prop for `TourPopoverPortal` to control popover visibility
+
 ## 0.4.2
 
 ### Patch Changes

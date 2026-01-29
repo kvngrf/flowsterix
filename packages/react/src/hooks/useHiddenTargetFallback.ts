@@ -7,6 +7,7 @@ import { isBrowser } from '../utils/dom'
 import type { TourTargetInfo } from './useTourTarget'
 
 const DEFAULT_DELAY_MS = 900
+const DEFAULT_GRACE_PERIOD_MS = 400
 
 type HiddenMode = NonNullable<Step<ReactNode>['targetBehavior']>['hidden']
 
@@ -20,6 +21,11 @@ export interface UseHiddenTargetFallbackConfig {
 export interface UseHiddenTargetFallbackResult {
   target: TourTargetInfo
   usingScreenFallback: boolean
+  /**
+   * True during the initial grace period while waiting for target to resolve.
+   * During this time, backdrop should show but popover should be hidden.
+   */
+  isInGracePeriod: boolean
 }
 
 export const useHiddenTargetFallback = ({
@@ -29,7 +35,9 @@ export const useHiddenTargetFallback = ({
   onSkip,
 }: UseHiddenTargetFallbackConfig): UseHiddenTargetFallbackResult => {
   const [usingScreenFallback, setUsingScreenFallback] = useState(false)
+  const [isInGracePeriod, setIsInGracePeriod] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const graceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const skipTriggeredRef = useRef(false)
 
   const hiddenMode: HiddenMode = step?.targetBehavior?.hidden ?? 'screen'
@@ -45,17 +53,30 @@ export const useHiddenTargetFallback = ({
     }
   }
 
+  const clearGraceTimeout = () => {
+    if (graceTimeoutRef.current !== null) {
+      globalThis.clearTimeout(graceTimeoutRef.current)
+      graceTimeoutRef.current = null
+    }
+  }
+
   useEffect(() => {
     skipTriggeredRef.current = false
     setUsingScreenFallback(false)
+    setIsInGracePeriod(false)
     clearPendingTimeout()
-    return clearPendingTimeout
+    clearGraceTimeout()
+    return () => {
+      clearPendingTimeout()
+      clearGraceTimeout()
+    }
   }, [step?.id])
 
   useEffect(() => {
     if (!isBrowser) return undefined
     if (!step) return undefined
     clearPendingTimeout()
+    clearGraceTimeout()
 
     // Handle hidden/detached (element found but not visible) - status is 'ready'
     const isHiddenOrDetached =
@@ -74,13 +95,23 @@ export const useHiddenTargetFallback = ({
 
     if (!shouldHandleHiddenTarget) {
       setUsingScreenFallback(false)
+      setIsInGracePeriod(false)
       return undefined
     }
+
+    // Enter grace period immediately when target is not visible
+    setIsInGracePeriod(true)
 
     if (hiddenMode !== 'screen') {
       setUsingScreenFallback(false)
     }
 
+    // After grace period, exit grace and allow fallback UI to show
+    graceTimeoutRef.current = globalThis.setTimeout(() => {
+      setIsInGracePeriod(false)
+    }, DEFAULT_GRACE_PERIOD_MS)
+
+    // After full delay, trigger screen fallback or skip
     timeoutRef.current = globalThis.setTimeout(() => {
       if (hiddenMode === 'screen') {
         setUsingScreenFallback(true)
@@ -92,7 +123,10 @@ export const useHiddenTargetFallback = ({
       }
     }, hiddenDelayMs)
 
-    return clearPendingTimeout
+    return () => {
+      clearPendingTimeout()
+      clearGraceTimeout()
+    }
   }, [
     step,
     target.visibility,
@@ -124,5 +158,6 @@ export const useHiddenTargetFallback = ({
   return {
     target: resolvedTarget,
     usingScreenFallback,
+    isInGracePeriod,
   }
 }

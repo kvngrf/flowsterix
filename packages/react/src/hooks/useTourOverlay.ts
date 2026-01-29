@@ -32,6 +32,11 @@ export interface UseTourOverlayOptions {
   radius?: number
   edgeBuffer?: number
   interactionMode?: BackdropInteractionMode
+  /**
+   * When true, the overlay is in a grace period waiting for the target to resolve.
+   * The backdrop will show but without a highlight cutout.
+   */
+  isInGracePeriod?: boolean
 }
 
 export interface UseTourOverlayResult {
@@ -92,6 +97,7 @@ export const useTourOverlay = (
     radius = DEFAULT_RADIUS,
     edgeBuffer = DEFAULT_EDGE_BUFFER,
     interactionMode = 'passthrough',
+    isInGracePeriod = false,
   } = options
 
   const hasShownRef = useRef(false)
@@ -182,7 +188,8 @@ export const useTourOverlay = (
 
   const isActive =
     target.status === 'ready' ||
-    (target.status === 'resolving' && cachedTarget !== null)
+    (target.status === 'resolving' && cachedTarget !== null) ||
+    isInGracePeriod
 
   const shouldMask = maskCapable && isActive
 

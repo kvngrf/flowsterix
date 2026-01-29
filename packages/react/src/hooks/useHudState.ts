@@ -36,6 +36,11 @@ export interface UseHudStateResult {
   hudRenderMode: FlowHudRenderMode
   matchesFlowFilter: boolean
   activeFlowId: string | null
+  /**
+   * True during grace period while waiting for target to resolve.
+   * Backdrop should show but popover should be hidden.
+   */
+  isInGracePeriod: boolean
 }
 
 const EXIT_BUFFER_MS = 450
@@ -103,7 +108,7 @@ export const useHudState = (
     }
   }, [activeFlowId, complete, flows, next, runningState])
 
-  const { target: hudTarget } = useHiddenTargetFallback({
+  const { target: hudTarget, isInGracePeriod } = useHiddenTargetFallback({
     step: runningStep,
     target,
     viewportRect,
@@ -132,5 +137,6 @@ export const useHudState = (
     hudRenderMode,
     matchesFlowFilter,
     activeFlowId,
+    isInGracePeriod,
   }
 }

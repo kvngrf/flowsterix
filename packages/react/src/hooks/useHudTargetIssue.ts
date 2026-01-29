@@ -30,20 +30,15 @@ const deriveTargetIssue = (target: TourTargetInfo): HudTargetIssue | null => {
   if (target.status === 'idle') return null
   switch (target.visibility) {
     case 'missing':
+    case 'hidden':
       return {
-        type: 'missing',
-        title: 'Looking for the target',
-        body: 'Flowsterix is still trying to find this element. Make sure the UI piece is mounted or adjust the selector.',
+        type: target.visibility,
+        title: 'Target not visible',
+        body: 'The target element is not currently visible. Make sure the UI piece is mounted and displayed.',
         hint:
           target.rectSource === 'stored'
             ? 'Showing the last known position until the element returns.'
             : undefined,
-      }
-    case 'hidden':
-      return {
-        type: 'hidden',
-        title: 'Target is hidden',
-        body: 'The element exists but is currently hidden, collapsed, or zero-sized. Expand it so the highlight can lock on.',
       }
     case 'detached':
       return {

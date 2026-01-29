@@ -116,6 +116,11 @@ export interface TourPopoverPortalProps {
   containerComponent?: MotionElementComponent
   contentComponent?: MotionElementComponent
   transitionsOverride?: Partial<AnimationAdapterTransitions>
+  /**
+   * When true, the popover is hidden during the grace period while waiting for target.
+   * The backdrop will show but the popover content remains invisible.
+   */
+  isInGracePeriod?: boolean
 }
 
 export const TourPopoverPortal = ({
@@ -137,6 +142,7 @@ export const TourPopoverPortal = ({
   containerComponent,
   contentComponent,
   transitionsOverride,
+  isInGracePeriod = false,
 }: TourPopoverPortalProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -190,6 +196,9 @@ export const TourPopoverPortal = ({
     target.status === 'ready'
       ? target.isScreen
       : (cachedTarget?.isScreen ?? target.isScreen)
+
+  // During grace period, hide popover only if there's no fallback rect
+  const shouldHideForGracePeriod = isInGracePeriod && !resolvedRect
 
   const fallbackRect = resolvedRect ?? viewport
   const fallbackIsScreen = resolvedIsScreen
@@ -842,6 +851,9 @@ export const TourPopoverPortal = ({
     dragHandleProps,
     descriptionProps,
   }
+
+  // During grace period with no fallback rect, don't render popover
+  if (shouldHideForGracePeriod) return null
 
   return createPortal(children(context), host)
 }
