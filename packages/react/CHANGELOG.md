@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 0.4.2
+
+### Patch Changes
+
+- Fix popover rendering when target element cannot be found and no last position is known. Previously, the popover would render off-screen (cut off at bottom) while focus trap remained active, leaving users stuck. Now falls back to screen mode after delay, centering the popover so users can see and skip the flow.
+
 ## 0.4.1
 
 ### Patch Changes

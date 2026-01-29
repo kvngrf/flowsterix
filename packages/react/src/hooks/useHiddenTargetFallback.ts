@@ -7,10 +7,6 @@ import { isBrowser } from '../utils/dom'
 import type { TourTargetInfo } from './useTourTarget'
 
 const DEFAULT_DELAY_MS = 900
-const HIDDEN_VISIBILITIES: Array<TourTargetInfo['visibility']> = [
-  'hidden',
-  'detached',
-]
 
 type HiddenMode = NonNullable<Step<ReactNode>['targetBehavior']>['hidden']
 
@@ -61,10 +57,20 @@ export const useHiddenTargetFallback = ({
     if (!step) return undefined
     clearPendingTimeout()
 
-    const shouldHandleHiddenTarget =
-      HIDDEN_VISIBILITIES.includes(target.visibility) &&
-      !target.isScreen &&
+    // Handle hidden/detached (element found but not visible) - status is 'ready'
+    const isHiddenOrDetached =
+      (target.visibility === 'hidden' || target.visibility === 'detached') &&
       target.status === 'ready'
+
+    // Handle missing (element never found, no rect data) - status is 'resolving'
+    const isMissingWithNoRect =
+      target.visibility === 'missing' &&
+      target.status === 'resolving' &&
+      target.rect === null &&
+      target.lastResolvedRect === null
+
+    const shouldHandleHiddenTarget =
+      !target.isScreen && (isHiddenOrDetached || isMissingWithNoRect)
 
     if (!shouldHandleHiddenTarget) {
       setUsingScreenFallback(false)
@@ -92,6 +98,8 @@ export const useHiddenTargetFallback = ({
     target.visibility,
     target.isScreen,
     target.status,
+    target.rect,
+    target.lastResolvedRect,
     hiddenMode,
     hiddenDelayMs,
     onSkip,
