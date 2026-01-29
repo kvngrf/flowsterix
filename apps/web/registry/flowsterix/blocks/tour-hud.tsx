@@ -100,7 +100,7 @@ export interface TourHUDProps {
   /** Custom content to render inside the popover (overrides step content) */
   children?: React.ReactNode
   /** Custom step content renderer */
-  renderContent?: (step: Step) => React.ReactNode
+  renderContent?: (step: Step<React.ReactNode>) => React.ReactNode
 }
 
 // =============================================================================
