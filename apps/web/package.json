@@ -7,6 +7,7 @@
     "build": "pnpm exec shadcn build && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "registry:build": "pnpm exec shadcn build",
     "registry:dev": "pnpm exec shadcn build --watch"
   },

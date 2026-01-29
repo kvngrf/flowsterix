@@ -65,6 +65,7 @@
   "scripts": {
     "build": "tsup --config tsup.config.ts --format esm,cjs --clean && tsc --build tsconfig.json --force",
     "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
