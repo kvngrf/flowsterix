@@ -369,6 +369,7 @@ export interface FlowStore<TContent = unknown> {
   resume: () => MaybePromise<FlowState>
   cancel: (reason?: FlowCancelReason) => MaybePromise<FlowState>
   complete: () => MaybePromise<FlowState>
+  advanceStep: (stepId: string) => MaybePromise<FlowState>
   subscribe: (listener: (state: FlowState) => void) => () => void
   destroy: () => void
 }

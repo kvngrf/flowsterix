@@ -175,8 +175,29 @@ const {
   pause, // () => pause the flow
   cancel, // (reason?) => cancel the flow
   complete, // () => mark flow complete
+  advanceStep, // (stepId) => advance only if on that step
 } = useTour()
 ```
+
+### Conditional Advance with advanceStep
+
+Use `advanceStep(stepId)` when you want to advance the tour only if the user is currently on a specific step. This is useful for components that trigger tour progression as a side effect.
+
+```tsx
+const { advanceStep } = useTour()
+
+// In a logo upload component:
+const handleLogoUpload = async (file: File) => {
+  await uploadLogo(file)
+  advanceStep('change-logo') // Only advances if tour is on 'change-logo' step
+}
+```
+
+**Behavior:**
+- If currently on the specified step → advances to next (or completes if last step)
+- If on a different step → silent no-op (returns current state)
+- If stepId doesn't exist → silent no-op (not an error)
+- If flow is not running → silent no-op
 
 ### TourHUD Configuration
 

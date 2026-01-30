@@ -94,6 +94,7 @@ export interface TourContextValue {
   resume: () => MaybePromise<FlowState>
   cancel: (reason?: FlowCancelReason) => MaybePromise<FlowState>
   complete: () => MaybePromise<FlowState>
+  advanceStep: (stepId: string) => MaybePromise<FlowState>
   events: EventBus<FlowEvents<ReactNode>> | null
   debugEnabled: boolean
   setDebugEnabled: (value: boolean) => void
@@ -625,6 +626,10 @@ export const TourProvider = ({
     () => getActiveStore().complete(),
     [getActiveStore],
   )
+  const advanceStep = useCallback(
+    (stepId: string) => getActiveStore().advanceStep(stepId),
+    [getActiveStore],
+  )
 
   const toggleDebug = useCallback(() => {
     setDebugEnabled((previous) => !previous)
@@ -669,6 +674,7 @@ export const TourProvider = ({
       resume,
       cancel,
       complete,
+      advanceStep,
       events,
       debugEnabled,
       setDebugEnabled,
@@ -681,6 +687,7 @@ export const TourProvider = ({
     [
       activeFlowId,
       activeStep,
+      advanceStep,
       back,
       cancel,
       complete,

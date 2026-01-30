@@ -101,36 +101,28 @@ export const landingTourFlow = createFlow<ReactNode>({
       ),
     },
 
-    // Step 5: Code examples (predicate - wait for tab click)
+    // Step 5: Code examples (advanceStep - component triggers advance on tab click)
     {
       id: "code-examples",
       target: { selector: "[data-tour-target='code-tabs']" },
       placement: "bottom",
       targetBehavior: { scrollMargin: { top: 64 } },
-      advance: [
-        {
-          type: "predicate",
-          pollMs: 500,
-          timeoutMs: 30000,
-          check: (): boolean => {
-            // Check if user clicked a different tab
-            const activeTab = document.querySelector(
-              "[data-tour-target='code-tabs'] button[class*='gradient']"
-            );
-            return activeTab?.textContent !== "Basic Flow";
-          },
-        },
-        { type: "manual" },
-      ],
+      advance: [{ type: "manual" }],
+      controls: {
+        next: "hidden",
+      },
       content: (
         <StepContent>
           <StepTitle>Expressive API</StepTitle>
           <StepText>
-            Explore the different API examples. Click on any tab to see
-            advance rules, lifecycle hooks, or router integration.
+            Explore the different API examples. The tabs use{" "}
+            <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+              advanceStep()
+            </code>{" "}
+            to advance the tour when clicked.
           </StepText>
           <StepHint>
-            🎯 Click a different tab to continue (predicate rule), or use Next.
+            👆 Click a different tab to continue.
           </StepHint>
         </StepContent>
       ),

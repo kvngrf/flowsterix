@@ -1,5 +1,19 @@
 # @flowsterix/react
 
+## 0.7.0
+
+### Minor Changes
+
+- Add `advanceStep(stepId)` to `useTour()` hook
+  - Advances the flow only if currently on the specified step
+  - Enables components to trigger tour progression as a side effect
+  - Example: `advanceStep('upload-step')` after a file upload completes
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @flowsterix/core@0.5.0
+
 ## 0.6.0
 
 ### Minor Changes

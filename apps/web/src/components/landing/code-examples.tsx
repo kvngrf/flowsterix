@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useTour } from "@flowsterix/react";
 import { CodeBlock } from "./code-block";
 
 const examples = [
@@ -66,7 +67,11 @@ advance: [{
 advance: [{
   type: "route",
   to: "/dashboard",
-}]`,
+}]
+
+// Programmatic - component triggers advance
+const { advanceStep } = useTour()
+advanceStep("step-id") // only if on that step`,
   },
   {
     id: "lifecycle",
@@ -128,8 +133,17 @@ const routerAdapter = useReactRouterAdapter();`,
 
 export function CodeExamples() {
   const [activeTab, setActiveTab] = useState("basic");
+  const { advanceStep } = useTour();
 
   const activeExample = examples.find((e) => e.id === activeTab);
+
+  const handleTabClick = (tabId: string) => {
+    if (tabId !== activeTab) {
+      // Advance the tour if on the "code-examples" step
+      advanceStep("code-examples");
+    }
+    setActiveTab(tabId);
+  };
 
   return (
     <section className="relative py-28 lg:py-36 bg-[var(--bg-secondary)]">
@@ -178,7 +192,7 @@ export function CodeExamples() {
             {examples.map((example) => (
               <button
                 key={example.id}
-                onClick={() => setActiveTab(example.id)}
+                onClick={() => handleTabClick(example.id)}
                 className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
                   activeTab === example.id
                     ? "bg-[var(--gradient-primary)] text-white"

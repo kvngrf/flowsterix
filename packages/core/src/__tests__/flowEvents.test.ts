@@ -106,3 +106,50 @@ describe('flow analytics + errors', () => {
     )
   })
 })
+
+describe('advanceStep', () => {
+  it('advances when on matching step', () => {
+    const store = createFlowStore(demoFlow, { persistOnChange: false })
+    store.start()
+
+    expect(store.getState().stepIndex).toBe(0)
+    store.advanceStep('welcome')
+    expect(store.getState().stepIndex).toBe(1)
+  })
+
+  it('does not advance when on different step', () => {
+    const store = createFlowStore(demoFlow, { persistOnChange: false })
+    store.start()
+
+    expect(store.getState().stepIndex).toBe(0)
+    store.advanceStep('cta')
+    expect(store.getState().stepIndex).toBe(0)
+  })
+
+  it('does not advance when stepId does not exist', () => {
+    const store = createFlowStore(demoFlow, { persistOnChange: false })
+    store.start()
+
+    expect(store.getState().stepIndex).toBe(0)
+    store.advanceStep('nonexistent')
+    expect(store.getState().stepIndex).toBe(0)
+  })
+
+  it('does not advance when flow is not running', () => {
+    const store = createFlowStore(demoFlow, { persistOnChange: false })
+
+    expect(store.getState().status).toBe('idle')
+    store.advanceStep('welcome')
+    expect(store.getState().status).toBe('idle')
+  })
+
+  it('completes flow when on last step', () => {
+    const store = createFlowStore(demoFlow, { persistOnChange: false })
+    store.start()
+    store.next()
+
+    expect(store.getState().stepIndex).toBe(1)
+    store.advanceStep('cta')
+    expect(store.getState().status).toBe('completed')
+  })
+})

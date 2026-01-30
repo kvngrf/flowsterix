@@ -661,6 +661,17 @@ export const createFlowStore = <TContent>(
     })
   }
 
+  const advanceStep = (stepId: string) => {
+    if (state.status !== 'running') {
+      return state
+    }
+    const currentStep = getStep(definition, state.stepIndex)
+    if (currentStep?.id !== stepId) {
+      return state
+    }
+    return next()
+  }
+
   const subscribe: FlowStore<TContent>['subscribe'] = (listener) => {
     if (destroyed) {
       const error = new Error('Cannot subscribe to a destroyed flow store')
@@ -696,6 +707,7 @@ export const createFlowStore = <TContent>(
     resume: resumeFlow,
     cancel,
     complete,
+    advanceStep,
     subscribe,
     destroy,
   }

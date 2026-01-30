@@ -63,6 +63,7 @@ function MyComponent() {
     resume,          // () => FlowState
     cancel,          // (reason?: 'skipped' | 'keyboard') => FlowState
     complete,        // () => FlowState
+    advanceStep,     // (stepId: string) => FlowState - only if on that step
 
     // Events
     events,          // EventBus<FlowEvents>
@@ -81,6 +82,25 @@ function MyComponent() {
     </button>
   )
 }
+
+### Conditional Advance
+
+Use `advanceStep(stepId)` to advance only if on a specific step:
+
+```tsx
+const { advanceStep } = useTour()
+
+// In a component that triggers tour progression:
+const handleSave = async () => {
+  await saveData()
+  advanceStep('save-step')  // Only advances if tour is on 'save-step'
+}
+```
+
+Returns current state (no-op) if:
+- Flow is not running
+- Currently on a different step
+- stepId doesn't exist in the flow
 ```
 
 ### Start Options

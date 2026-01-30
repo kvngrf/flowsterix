@@ -1,5 +1,15 @@
 # @flowsterix/core
 
+## 0.5.0
+
+### Minor Changes
+
+- Add `advanceStep(stepId)` method to `FlowStore`
+  - Advances the flow only if currently on the specified step
+  - Returns current state (no-op) if on a different step, stepId doesn't exist, or flow is not running
+  - Useful for components that trigger tour progression as a side effect (e.g., form submissions, tab clicks)
+  - Calls `next()` internally, which completes the flow if on the last step
+
 ## 0.4.0
 
 ### Minor Changes
