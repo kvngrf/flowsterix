@@ -47,7 +47,7 @@ export interface TourHUDProps {
   }
   /** Popover configuration */
   popover?: {
-    /** Offset distance from the target (default: 16) */
+    /** Offset distance from the target (default: 32) */
     offset?: number
     /** Preferred placement relative to target */
     placement?: StepPlacement
@@ -83,6 +83,8 @@ export interface TourHUDProps {
     primaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
     /** Button variant for secondary actions */
     secondaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
+    /** Additional class names for the controls container */
+    className?: string
   }
   /** Progress indicator configuration */
   progress?: {
@@ -375,6 +377,7 @@ export function TourHUD({
                     labels={controls.labels}
                     primaryVariant={controls.primaryVariant}
                     secondaryVariant={controls.secondaryVariant}
+                    className={controls.className}
                   />
                 </motion.div>
               </Container>

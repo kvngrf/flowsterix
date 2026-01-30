@@ -47,7 +47,7 @@ export interface TourHUDProps {
   }
   /** Popover configuration */
   popover?: {
-    /** Offset distance from the target (default: 16) */
+    /** Offset distance from the target (default: 32) */
     offset?: number
     /** Preferred placement relative to target */
     placement?: StepPlacement
@@ -83,6 +83,8 @@ export interface TourHUDProps {
     primaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
     /** Button variant for secondary actions */
     secondaryVariant?: 'default' | 'secondary' | 'outline' | 'ghost'
+    /** Additional class names for the controls container */
+    className?: string
   }
   /** Progress indicator configuration */
   progress?: {
@@ -162,8 +164,14 @@ export function TourHUD({
     targetIssue,
     overlay: overlayConfig,
   } = hud
-  const { runningStep, shouldRender, hudTarget, hudRenderMode, activeFlowId } =
-    hudState
+  const {
+    runningStep,
+    shouldRender,
+    hudTarget,
+    hudRenderMode,
+    activeFlowId,
+    isInGracePeriod,
+  } = hudState
 
   // Enable HUD for headless flows (hud: { render: 'none' }) or default flows
   const isHeadlessFlow = hudRenderMode === 'none' && Boolean(activeFlowId)
@@ -198,10 +206,11 @@ export function TourHUD({
     padding: overlayPadding,
     radius: overlayRadius,
     interactionMode: overlayConfig.interactionMode,
+    isInGracePeriod,
   })
 
   // Popover configuration with defaults
-  const popoverOffset = popover.offset ?? popoverConfig.offset ?? 16
+  const popoverOffset = popover.offset ?? popoverConfig.offset
   const popoverPlacement =
     runningStep?.placement ??
     popover.placement ??
@@ -262,6 +271,7 @@ export function TourHUD({
           containerComponent={MotionSection}
           contentComponent={MotionDiv}
           layoutId="popover"
+          isInGracePeriod={isInGracePeriod}
           transitionsOverride={{
             popoverEntrance: popoverEntranceTransition,
             popoverExit: popoverExitTransition,
@@ -286,10 +296,7 @@ export function TourHUD({
               <Container
                 {...containerProps}
                 className={cn(
-                  'rounded-2xl bg-popover text-popover-foreground',
-                  'border border-primary-200/60 dark:border-primary-800/40',
-                  'shadow-[0_4px_24px_-4px_rgba(90,124,101,0.12),0_12px_40px_-8px_rgba(0,0,0,0.08)]',
-                  'dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4),0_12px_40px_-8px_rgba(0,0,0,0.3)]',
+                  'rounded-xl border bg-popover text-popover-foreground shadow-lg',
                   popover.className,
                   className,
                 )}
@@ -370,6 +377,7 @@ export function TourHUD({
                     labels={controls.labels}
                     primaryVariant={controls.primaryVariant}
                     secondaryVariant={controls.secondaryVariant}
+                    className={controls.className}
                   />
                 </motion.div>
               </Container>

@@ -22,10 +22,10 @@ const components = [
   'step-content',
   'tour-hud',
   'onboarding-flow',
-  'use-tour',
 ]
 
 const examples = [
+  'apps/web',
   'examples/react-vite',
   'examples/react-router-vite',
   'examples/next',
@@ -105,6 +105,7 @@ const rewriteRegistryImports = (content, aliases) => {
     content,
   )
 }
+
 
 const ensureFile = async (filePath, content) => {
   await fs.mkdir(path.dirname(filePath), { recursive: true })
@@ -195,10 +196,7 @@ const syncExamples = async () => {
 
       for (const file of item.files ?? []) {
         const targetPath = resolveTargetPath(file.path, baseDir)
-        const content = rewriteRegistryImports(
-          file.content,
-          aliases,
-        )
+        const content = rewriteRegistryImports(file.content, aliases)
         await ensureFile(targetPath, content)
       }
     }

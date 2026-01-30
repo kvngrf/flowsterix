@@ -27,8 +27,6 @@ const hasManualAdvance = (rules: Array<Rule>) =>
 const didPreviousAdvanceViaRoute = (rules: Array<Rule>) =>
   rules.some((rule) => rule.type === 'route')
 
-const didPreviousAdvanceViaTargetEvent = (rules: Array<Rule>) =>
-  rules.some((rule) => rule.type === 'event' && rule.on === 'target')
 
 export const useTourControls = (): TourControlsState => {
   const tour = useTour()
@@ -75,8 +73,7 @@ export const useTourControls = (): TourControlsState => {
     const showBackButton =
       backControlState !== 'hidden' &&
       !isFirst &&
-      !didPreviousAdvanceViaRoute(previousAdvanceRules) &&
-      !didPreviousAdvanceViaTargetEvent(previousAdvanceRules)
+      !didPreviousAdvanceViaRoute(previousAdvanceRules)
 
     const backDisabled = backControlState === 'disabled'
 

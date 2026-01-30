@@ -126,7 +126,7 @@ export interface TourPopoverPortalProps {
 export const TourPopoverPortal = ({
   target,
   children,
-  offset = 16,
+  offset = 32,
   width,
   maxWidth,
   zIndex = 1001,

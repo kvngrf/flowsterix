@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useTour } from '@/hooks/use-tour'
+import { useTour } from '@flowsterix/react'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)

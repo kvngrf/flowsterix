@@ -125,20 +125,6 @@
       "categories": ["tour", "content"]
     },
     {
-      "name": "use-tour",
-      "type": "registry:hook",
-      "title": "useTour Hook",
-      "description": "Core hook for accessing tour state, controls, and active step information.",
-      "dependencies": ["@flowsterix/react"],
-      "files": [
-        {
-          "path": "registry/flowsterix/hooks/use-tour.ts",
-          "type": "registry:hook"
-        }
-      ],
-      "categories": ["tour", "hook"]
-    },
-    {
       "name": "tour-hud",
       "type": "registry:block",
       "title": "Tour HUD",

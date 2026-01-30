@@ -1,6 +1,6 @@
 'use client'
 
-import { useTour } from '@/hooks/use-tour'
+import { useTour } from '@flowsterix/react'
 import { Button } from '@/components/ui/button'
 
 export const LaunchTourButton = () => {

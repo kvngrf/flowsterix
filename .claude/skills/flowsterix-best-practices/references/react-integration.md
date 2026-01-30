@@ -175,7 +175,7 @@ import { TourHUD } from '@flowsterix/react'
 
   // Popover configuration
   popover={{
-    offset: 16,               // Distance from target
+    offset: 32,               // Distance from target
     placement: 'bottom',      // Default placement
     width: 320,               // Fixed width
     maxWidth: 360,            // Max width

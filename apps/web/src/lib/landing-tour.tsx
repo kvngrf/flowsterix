@@ -1,21 +1,21 @@
-"use client";
+'use client'
 
-import { createFlow } from "@flowsterix/core";
-import type { ReactNode } from "react";
 import {
   StepContent,
-  StepTitle,
-  StepText,
   StepHint,
-} from "@/components/step-content";
+  StepText,
+  StepTitle,
+} from '@/components/step-content'
+import { createFlow } from '@flowsterix/core'
+import type { ReactNode } from 'react'
 
 export const landingTourFlow = createFlow<ReactNode>({
-  id: "landing-page-tour",
+  id: 'landing-page-tour',
   version: { major: 1, minor: 0 },
   autoStart: true,
   hud: {
     backdrop: {
-      interaction: "block",
+      interaction: 'block',
     },
     behavior: {
       lockBodyScroll: true,
@@ -24,9 +24,9 @@ export const landingTourFlow = createFlow<ReactNode>({
   steps: [
     // Step 1: Welcome (screen target, manual)
     {
-      id: "welcome",
-      target: "screen",
-      advance: [{ type: "manual" }],
+      id: 'welcome',
+      target: 'screen',
+      advance: [{ type: 'manual' }],
       content: (
         <StepContent>
           <StepTitle size="lg">Welcome to Flowsterix</StepTitle>
@@ -41,11 +41,11 @@ export const landingTourFlow = createFlow<ReactNode>({
 
     // Step 2: Hero code block (delay auto-advance)
     {
-      id: "hero-code",
+      id: 'hero-code',
       target: { selector: "[data-tour-target='hero-code']" },
-      placement: "left",
+      placement: 'left',
       targetBehavior: { scrollMargin: { top: 64 } },
-      advance: [{ type: "delay", ms: 6000 }, { type: "manual" }],
+      advance: [{ type: 'delay', ms: 6000 }, { type: 'manual' }],
       content: (
         <StepContent>
           <StepTitle>Declarative Flow Definition</StepTitle>
@@ -62,11 +62,11 @@ export const landingTourFlow = createFlow<ReactNode>({
 
     // Step 3: Features section (manual)
     {
-      id: "features",
+      id: 'features',
       target: { selector: "[data-tour-target='features']" },
-      placement: "top",
+      placement: 'top',
       targetBehavior: { scrollMargin: { top: 64 } },
-      advance: [{ type: "manual" }],
+      advance: [{ type: 'manual' }],
       content: (
         <StepContent>
           <StepTitle>Production-Ready Features</StepTitle>
@@ -80,11 +80,14 @@ export const landingTourFlow = createFlow<ReactNode>({
 
     // Step 4: Architecture bento (event - click anywhere on target)
     {
-      id: "architecture",
+      id: 'architecture',
       target: { selector: "[data-tour-target='architecture']" },
-      placement: "bottom",
+      placement: 'bottom',
       targetBehavior: { scrollMargin: { top: 64 } },
-      advance: [{ type: "event", event: "click", on: "target" }, { type: "manual" }],
+      advance: [
+        { type: 'event', event: 'click', on: 'target' },
+        { type: 'manual' },
+      ],
       content: (
         <StepContent>
           <StepTitle>State Machine Architecture</StepTitle>
@@ -103,38 +106,36 @@ export const landingTourFlow = createFlow<ReactNode>({
 
     // Step 5: Code examples (advanceStep - component triggers advance on tab click)
     {
-      id: "code-examples",
+      id: 'code-examples',
       target: { selector: "[data-tour-target='code-tabs']" },
-      placement: "bottom",
+      placement: 'bottom',
       targetBehavior: { scrollMargin: { top: 64 } },
-      advance: [{ type: "manual" }],
+      advance: [{ type: 'manual' }],
       controls: {
-        next: "hidden",
+        next: 'hidden',
       },
       content: (
         <StepContent>
           <StepTitle>Expressive API</StepTitle>
           <StepText>
-            Explore the different API examples. The tabs use{" "}
+            Explore the different API examples. The tabs use{' '}
             <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
               advanceStep()
-            </code>{" "}
+            </code>{' '}
             to advance the tour when clicked.
           </StepText>
-          <StepHint>
-            👆 Click a different tab to continue.
-          </StepHint>
+          <StepHint>👆 Click a different tab to continue.</StepHint>
         </StepContent>
       ),
     },
 
     // Step 6: Getting started (manual)
     {
-      id: "getting-started",
+      id: 'getting-started',
       target: { selector: "[data-tour-target='getting-started']" },
-      placement: "top",
+      placement: 'top',
       targetBehavior: { scrollMargin: { top: 64 } },
-      advance: [{ type: "manual" }],
+      advance: [{ type: 'manual' }],
       content: (
         <StepContent>
           <StepTitle>Quick Installation</StepTitle>
@@ -148,12 +149,9 @@ export const landingTourFlow = createFlow<ReactNode>({
 
     // Step 7: Finish (screen target)
     {
-      id: "finish",
-      target: "screen",
-      advance: [{ type: "manual" }],
-      controls: {
-        next: "hidden",
-      },
+      id: 'finish',
+      target: 'screen',
+      advance: [{ type: 'manual' }],
       content: (
         <StepContent>
           <StepTitle size="lg">That&apos;s Flowsterix!</StepTitle>
@@ -170,4 +168,4 @@ export const landingTourFlow = createFlow<ReactNode>({
       ),
     },
   ],
-});
+})

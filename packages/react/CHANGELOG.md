@@ -1,5 +1,12 @@
 # @flowsterix/react
 
+## 0.8.0
+
+### Minor Changes
+
+- - Back button now shows by default after target event advances (previously was hidden)
+  - Default popover offset changed from 16px to 32px
+
 ## 0.7.0
 
 ### Minor Changes

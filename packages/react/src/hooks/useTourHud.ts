@@ -127,7 +127,7 @@ export const useTourHud = (
 
   const popover: TourHudPopoverConfig = useMemo(() => {
     return {
-      offset: popoverOptions?.offset ?? 16,
+      offset: popoverOptions?.offset ?? 32,
       role: popoverOptions?.role ?? 'dialog',
       ariaLabel: popoverOptions?.ariaLabel,
       ariaDescribedBy: popoverOptions?.ariaDescribedBy,

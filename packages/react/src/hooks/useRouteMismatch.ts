@@ -2,7 +2,7 @@ import type { Step } from '@flowsterix/core'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 
-import { matchRoute, subscribeToRouteChanges, getCurrentRoutePath } from '../router'
+import { getCurrentRoutePath, matchRoute, subscribeToRouteChanges } from '../router'
 
 export interface UseRouteMismatchResult {
   isRouteMismatch: boolean

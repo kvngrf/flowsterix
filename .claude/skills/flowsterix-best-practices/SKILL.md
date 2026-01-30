@@ -211,7 +211,7 @@ const handleLogoUpload = async (file: File) => {
   }}
   popover={{
     maxWidth: 360,
-    offset: 16, // Distance from target
+    offset: 32, // Distance from target
   }}
   controls={{
     showSkip: true,

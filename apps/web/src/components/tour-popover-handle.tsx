@@ -23,7 +23,7 @@ export function TourPopoverHandle({
       className={cn(
         'group absolute z-10 right-0 top-0 flex h-8 w-8 select-none items-center justify-center rounded-full bg-transparent transition-colors',
         isDragging ? 'cursor-grabbing' : 'cursor-grab',
-        'hover:bg-primary-100/50 dark:hover:bg-primary-900/30',
+        'hover:bg-slate-100/40',
         className,
       )}
       style={style}
@@ -37,7 +37,7 @@ export function TourPopoverHandle({
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-4 w-4 text-primary-400 dark:text-primary-600 transition-colors group-hover:text-primary-500 dark:group-hover:text-primary-500"
+        className="h-4 w-4 text-slate-400 transition-colors group-hover:text-slate-400/90"
       >
         <path d="M12 2v20" />
         <path d="m15 19-3 3-3-3" />

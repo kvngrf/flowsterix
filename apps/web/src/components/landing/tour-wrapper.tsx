@@ -47,7 +47,9 @@ export function TourWrapper({ children }: { children: React.ReactNode }) {
         }}
         popover={{
           maxWidth: 380,
-          offset: 20,
+          offset: 32,
+          className:
+            'rounded-2xl border-primary-200/60 dark:border-primary-800/40 shadow-[0_4px_24px_-4px_rgba(90,124,101,0.12),0_12px_40px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4),0_12px_40px_-8px_rgba(0,0,0,0.3)]',
         }}
         progress={{
           show: true,
@@ -63,6 +65,8 @@ export function TourWrapper({ children }: { children: React.ReactNode }) {
             finish: 'Finish Tour',
             skip: 'Skip Tour',
           },
+          className:
+            'border-t border-primary-100/60 dark:border-primary-900/40 bg-gradient-to-b from-transparent to-primary-50/30 dark:to-primary-950/20',
         }}
       />
     </TourProvider>

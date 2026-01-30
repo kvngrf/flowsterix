@@ -68,12 +68,7 @@ export function TourControls({
   return (
     <motion.div
       layout="position"
-      className={cn(
-        'flex items-center justify-between gap-2 p-4',
-        'border-t border-primary-100/60 dark:border-primary-900/40',
-        'bg-gradient-to-b from-transparent to-primary-50/30 dark:to-primary-950/20',
-        className,
-      )}
+      className={cn('flex items-center justify-between gap-2 p-4', className)}
       data-tour-controls=""
       transition={{ layout: { duration: 0.2, ease: 'easeOut', type: 'tween' } }}
     >
