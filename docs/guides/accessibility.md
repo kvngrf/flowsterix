@@ -94,6 +94,55 @@ const flow = createFlow({
 
 Add matching IDs inside your content when you need a custom description, or rely on `target.description` for a quick annotation.
 
+## Internationalization (i18n)
+
+All user-facing text in the tour UI can be customized via the `labels` prop on `TourProvider`. This includes button text, screen reader labels, and error messages.
+
+```tsx
+<TourProvider
+  flows={flows}
+  labels={{
+    // Button labels
+    back: 'Zurück',
+    next: 'Weiter',
+    finish: 'Fertig',
+    skip: 'Tour überspringen',
+    holdToConfirm: 'Gedrückt halten zum Bestätigen',
+
+    // Screen reader labels
+    ariaStepProgress: ({ current, total }) => `Schritt ${current} von ${total}`,
+    ariaTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)} Sekunden verbleibend`,
+    ariaDelayProgress: 'Automatischer Fortschritt',
+
+    // Visible formatters
+    formatTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)}s verbleibend`,
+
+    // Target issue messages
+    targetIssue: {
+      missingTitle: 'Ziel nicht sichtbar',
+      missingBody: 'Das Zielelement ist derzeit nicht sichtbar.',
+      missingHint: 'Die letzte bekannte Position wird angezeigt.',
+      hiddenTitle: 'Ziel nicht sichtbar',
+      hiddenBody: 'Das Zielelement ist derzeit nicht sichtbar.',
+      hiddenHint: 'Die letzte bekannte Position wird angezeigt.',
+      detachedTitle: 'Ziel hat die Seite verlassen',
+      detachedBody: 'Navigieren Sie zurück zur Seite mit diesem Element.',
+    },
+  }}
+>
+```
+
+### Label Categories
+
+| Category | Purpose |
+|----------|---------|
+| Button labels | Text on Back, Next, Skip buttons |
+| Aria labels | Screen reader announcements |
+| Formatters | Dynamic text (time remaining, progress) |
+| Target issues | Error messages when target is missing/hidden |
+
+Only override the labels you need—defaults are provided for all keys.
+
 ## Backdrop Interaction Modes
 
 Not every tour should freeze the UI behind it. Flowsterix now treats backdrop interaction as a first-class setting so you can decide whether the dimmed scrim absorbs pointer events or lets them pass through.

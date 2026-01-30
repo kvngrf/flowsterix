@@ -162,8 +162,14 @@ export function TourHUD({
     targetIssue,
     overlay: overlayConfig,
   } = hud
-  const { runningStep, shouldRender, hudTarget, hudRenderMode, activeFlowId } =
-    hudState
+  const {
+    runningStep,
+    shouldRender,
+    hudTarget,
+    hudRenderMode,
+    activeFlowId,
+    isInGracePeriod,
+  } = hudState
 
   // Enable HUD for headless flows (hud: { render: 'none' }) or default flows
   const isHeadlessFlow = hudRenderMode === 'none' && Boolean(activeFlowId)
@@ -198,6 +204,7 @@ export function TourHUD({
     padding: overlayPadding,
     radius: overlayRadius,
     interactionMode: overlayConfig.interactionMode,
+    isInGracePeriod,
   })
 
   // Popover configuration with defaults
@@ -262,6 +269,7 @@ export function TourHUD({
           containerComponent={MotionSection}
           contentComponent={MotionDiv}
           layoutId="popover"
+          isInGracePeriod={isInGracePeriod}
           transitionsOverride={{
             popoverEntrance: popoverEntranceTransition,
             popoverExit: popoverExitTransition,

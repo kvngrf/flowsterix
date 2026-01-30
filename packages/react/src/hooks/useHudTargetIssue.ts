@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import type { TourLabels } from '../labels'
+import { useTourLabels } from '../labels'
 import { isBrowser } from '../utils/dom'
 import type { TourTargetInfo } from './useTourTarget'
 
@@ -25,26 +27,39 @@ export interface UseHudTargetIssueResult {
   rawIssue: HudTargetIssue | null
 }
 
-const deriveTargetIssue = (target: TourTargetInfo): HudTargetIssue | null => {
+const deriveTargetIssue = (params: {
+  target: TourTargetInfo
+  labels: TourLabels
+}): HudTargetIssue | null => {
+  const { target, labels } = params
   if (target.isScreen) return null
   if (target.status === 'idle') return null
   switch (target.visibility) {
     case 'missing':
-    case 'hidden':
       return {
-        type: target.visibility,
-        title: 'Target not visible',
-        body: 'The target element is not currently visible. Make sure the UI piece is mounted and displayed.',
+        type: 'missing',
+        title: labels.targetIssue.missingTitle,
+        body: labels.targetIssue.missingBody,
         hint:
           target.rectSource === 'stored'
-            ? 'Showing the last known position until the element returns.'
+            ? labels.targetIssue.missingHint
+            : undefined,
+      }
+    case 'hidden':
+      return {
+        type: 'hidden',
+        title: labels.targetIssue.hiddenTitle,
+        body: labels.targetIssue.hiddenBody,
+        hint:
+          target.rectSource === 'stored'
+            ? labels.targetIssue.hiddenHint
             : undefined,
       }
     case 'detached':
       return {
         type: 'detached',
-        title: 'Target left the page',
-        body: 'Navigate back to the screen that contains this element or reopen it before continuing the tour.',
+        title: labels.targetIssue.detachedTitle,
+        body: labels.targetIssue.detachedBody,
       }
     default:
       return null
@@ -55,12 +70,13 @@ export const useHudTargetIssue = (
   target: TourTargetInfo,
   options?: UseHudTargetIssueOptions,
 ): UseHudTargetIssueResult => {
+  const labels = useTourLabels()
   const delayMs = Math.max(0, options?.delayMs ?? 500)
   const [armed, setArmed] = useState(false)
 
   const rawIssue = useMemo(
-    () => deriveTargetIssue(target),
-    [target.isScreen, target.rectSource, target.status, target.visibility],
+    () => deriveTargetIssue({ target, labels }),
+    [target.isScreen, target.rectSource, target.status, target.visibility, labels],
   )
 
   useEffect(() => {

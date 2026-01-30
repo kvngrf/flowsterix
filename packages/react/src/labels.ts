@@ -15,6 +15,18 @@ export interface TourLabels {
 
   // Visible formatters
   formatTimeRemaining: (params: { ms: number }) => string
+
+  // Target issue labels (shown when target element is problematic)
+  targetIssue: {
+    missingTitle: string
+    missingBody: string
+    missingHint: string
+    hiddenTitle: string
+    hiddenBody: string
+    hiddenHint: string
+    detachedTitle: string
+    detachedBody: string
+  }
 }
 
 export const defaultLabels: TourLabels = {
@@ -30,6 +42,20 @@ export const defaultLabels: TourLabels = {
   ariaDelayProgress: 'Auto-advance progress',
 
   formatTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)}s remaining`,
+
+  targetIssue: {
+    missingTitle: 'Target not visible',
+    missingBody:
+      'The target element is not currently visible. Make sure the UI piece is mounted and displayed.',
+    missingHint: 'Showing the last known position until the element returns.',
+    hiddenTitle: 'Target not visible',
+    hiddenBody:
+      'The target element is not currently visible. Make sure the UI piece is mounted and displayed.',
+    hiddenHint: 'Showing the last known position until the element returns.',
+    detachedTitle: 'Target left the page',
+    detachedBody:
+      'Navigate back to the screen that contains this element or reopen it before continuing the tour.',
+  },
 }
 
 const LabelsContext = createContext<TourLabels>(defaultLabels)

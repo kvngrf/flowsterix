@@ -90,8 +90,18 @@ export const useHiddenTargetFallback = ({
       target.rect === null &&
       target.lastResolvedRect === null
 
+    // Handle missing after navigation (target was found before but now gone)
+    // lastResolvedRect may still have old position - that's expected after navigation
+    const isMissingAfterNavigation =
+      target.visibility === 'missing' &&
+      target.status === 'resolving' &&
+      target.rect === null
+
     const shouldHandleHiddenTarget =
-      !target.isScreen && (isHiddenOrDetached || isMissingWithNoRect)
+      !target.isScreen &&
+      (isHiddenOrDetached ||
+        isMissingWithNoRect ||
+        isMissingAfterNavigation)
 
     if (!shouldHandleHiddenTarget) {
       setUsingScreenFallback(false)

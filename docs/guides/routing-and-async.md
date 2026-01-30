@@ -97,6 +97,41 @@ const flow = createFlow({
 
 `resumeStrategy: 'current'` runs only the current step's `onResume`, so that step must handle any required UI setup itself. You can also override the strategy per call with `startFlow({ resume: true, resumeStrategy: 'current' })`.
 
+## Automatic Pause on Route Mismatch
+
+When a step specifies a `route` property, the flow automatically pauses if the user navigates away and resumes when they return.
+
+```ts
+{
+  id: 'dashboard-widget',
+  route: '/dashboard',  // Flow pauses when user leaves /dashboard
+  target: { selector: '[data-tour-target="stats-widget"]' },
+  content: <p>View your statistics here</p>,
+}
+```
+
+**Behavior:**
+1. User is on `/dashboard`, step is active
+2. User navigates to `/settings`
+3. Flow **pauses** immediately - overlay and popover disappear
+4. User browses freely
+5. User navigates back to `/dashboard`
+6. Flow **auto-resumes** - overlay and popover reappear
+
+This prevents showing broken UI when the target element doesn't exist on the current page.
+
+### Steps Without Route Constraint
+
+When a step has **no `route` property** and the target element goes missing:
+
+1. **Grace period** (400ms) allows async elements to mount
+2. If still missing → Flow **pauses**
+3. When user navigates anywhere → Flow **resumes** and re-checks
+4. If target found → Flow continues
+5. If still missing → Grace period → Pause again
+
+This provides a safety net for steps that should have a `route` but don't, while still allowing the tour to recover when the user finds the right page.
+
 ## Route-Based Advance Rules
 
 Use an advance rule with `type: 'route'` when a step should complete after navigation.

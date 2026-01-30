@@ -142,7 +142,6 @@ export const TourPopoverPortal = ({
   containerComponent,
   contentComponent,
   transitionsOverride,
-  isInGracePeriod = false,
 }: TourPopoverPortalProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -197,8 +196,9 @@ export const TourPopoverPortal = ({
       ? target.isScreen
       : (cachedTarget?.isScreen ?? target.isScreen)
 
-  // During grace period, hide popover only if there's no fallback rect
-  const shouldHideForGracePeriod = isInGracePeriod && !resolvedRect
+  // Hide popover when there's no valid rect to position against
+  // (screen fallback sets target.isScreen=true and provides viewport rect)
+  const shouldHidePopover = !resolvedRect && !target.isScreen
 
   const fallbackRect = resolvedRect ?? viewport
   const fallbackIsScreen = resolvedIsScreen
@@ -852,8 +852,8 @@ export const TourPopoverPortal = ({
     descriptionProps,
   }
 
-  // During grace period with no fallback rect, don't render popover
-  if (shouldHideForGracePeriod) return null
+  // Don't render popover when there's no valid positioning rect
+  if (shouldHidePopover) return null
 
   return createPortal(children(context), host)
 }

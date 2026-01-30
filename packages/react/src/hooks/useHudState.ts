@@ -5,11 +5,12 @@ import type {
   Step,
 } from '@flowsterix/core'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useTour } from '../context'
 import { useAdvanceRules } from './useAdvanceRules'
 import { useHiddenTargetFallback } from './useHiddenTargetFallback'
+import { useRouteMismatch } from './useRouteMismatch'
 import type { TourTargetInfo } from './useTourTarget'
 import { useTourTarget } from './useTourTarget'
 import { useViewportRect } from './useViewportRect'
@@ -55,7 +56,7 @@ export const useHudState = (
 ): UseHudStateResult => {
   const { flowId } = options
   const flowFilter = useMemo(() => normalizeFlowFilter(flowId), [flowId])
-  const { state, activeStep, activeFlowId, flows, next, complete } = useTour()
+  const { state, activeStep, activeFlowId, flows, next, complete, pause, resume } = useTour()
   const target = useTourTarget()
   const viewportRect = useViewportRect()
 
@@ -94,6 +95,26 @@ export const useHudState = (
     }
   }, [runningStep, shouldRender, target.status])
 
+  const { isRouteMismatch, currentPath } = useRouteMismatch(activeStep)
+
+  // Track if we paused due to missing target (not route mismatch)
+  const pausedForMissingTargetRef = useRef<string | null>(null)
+
+  // Pause flow when route doesn't match
+  useEffect(() => {
+    if (!isRouteMismatch) return
+    if (!runningState || runningState.status !== 'running') return
+    pause()
+  }, [isRouteMismatch, runningState, pause])
+
+  // Auto-resume when route matches again (but not if paused for missing target)
+  useEffect(() => {
+    if (isRouteMismatch) return
+    if (pausedForMissingTargetRef.current !== null) return
+    if (!state || state.status !== 'paused') return
+    resume()
+  }, [isRouteMismatch, state, resume])
+
   const skipHiddenStep = useCallback(() => {
     if (!runningState || runningState.status !== 'running') return
     if (!activeFlowId) return
@@ -114,6 +135,41 @@ export const useHudState = (
     viewportRect,
     onSkip: skipHiddenStep,
   })
+
+  // Pause flow when target is missing (for steps without route constraint)
+  useEffect(() => {
+    if (isRouteMismatch) return
+    if (activeStep?.route !== undefined) return
+    if (isInGracePeriod) return
+    if (target.visibility !== 'missing') return
+    if (target.isScreen) return
+    if (!runningState || runningState.status !== 'running') return
+    pausedForMissingTargetRef.current = currentPath
+    pause()
+  }, [
+    isRouteMismatch,
+    activeStep?.route,
+    isInGracePeriod,
+    target.visibility,
+    target.isScreen,
+    runningState,
+    currentPath,
+    pause,
+  ])
+
+  // Auto-resume when path changes (after pausing for missing target)
+  useEffect(() => {
+    if (pausedForMissingTargetRef.current === null) return
+    if (!state || state.status !== 'paused') return
+    if (currentPath === pausedForMissingTargetRef.current) return
+    pausedForMissingTargetRef.current = null
+    resume()
+  }, [currentPath, state, resume])
+
+  // Clear missing target pause state when step changes
+  useEffect(() => {
+    pausedForMissingTargetRef.current = null
+  }, [activeStep?.id])
 
   const canRenderStep = Boolean(runningStep && runningState)
   const focusTrapActive = canRenderStep

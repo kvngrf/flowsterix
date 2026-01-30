@@ -146,6 +146,14 @@ advance: [
   persistOnChange={true} // Auto-save state changes
   backdropInteraction="block" // 'block' | 'passthrough'
   lockBodyScroll={false} // Prevent page scroll
+  labels={{
+    // Customize UI text for internationalization
+    back: 'Zurück',
+    next: 'Weiter',
+    finish: 'Fertig',
+    skip: 'Tour überspringen',
+    // See Internationalization section for full list
+  }}
   analytics={{
     // Event handlers
     onFlowStart: (p) => track('tour_start', p),
@@ -391,6 +399,113 @@ const ensureAccordionExpanded = () => {
 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end' |
 'left-start' | 'left-end' | 'right-start' | 'right-end' |
 'auto-start' | 'auto-end'
+```
+
+## Route Gating
+
+Steps can be constrained to specific routes using the `route` property. The flow automatically pauses when the user navigates away and resumes when they return.
+
+### Route Mismatch Behavior
+
+```tsx
+{
+  id: 'dashboard-feature',
+  target: { selector: '[data-tour-target="widget"]' },
+  route: '/dashboard',  // Step only active on /dashboard
+  content: <p>This widget shows your stats</p>,
+}
+```
+
+**Behavior when user navigates away from `/dashboard`:**
+1. Flow **pauses** immediately (overlay disappears)
+2. User can browse other pages freely
+3. When user returns to `/dashboard`, flow **auto-resumes**
+
+### Missing Target Behavior (No Route Defined)
+
+When a step has **no `route` property** and the target element is missing:
+
+1. **Grace period** (400ms) - Allows async elements to mount
+2. If still missing → Flow **pauses**
+3. When user navigates to a different page → Flow **resumes** and re-checks
+4. If target found → Flow continues
+5. If still missing → Grace period → Pause again
+
+This prevents showing broken UI when users accidentally navigate away.
+
+### Route Patterns
+
+```tsx
+// Exact match
+route: '/dashboard'
+
+// Regex pattern
+route: /^\/users\/\d+$/
+
+// With path parameters (use regex)
+route: /^\/products\/[^/]+$/
+```
+
+## Internationalization (i18n)
+
+All user-facing text can be customized via the `labels` prop on `TourProvider`.
+
+### Available Labels
+
+```tsx
+<TourProvider
+  flows={[...]}
+  labels={{
+    // Button labels
+    back: 'Back',
+    next: 'Next',
+    finish: 'Finish',
+    skip: 'Skip tour',
+    holdToConfirm: 'Hold to confirm',
+
+    // Aria labels for screen readers
+    ariaStepProgress: ({ current, total }) => `Step ${current} of ${total}`,
+    ariaTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)} seconds remaining`,
+    ariaDelayProgress: 'Auto-advance progress',
+
+    // Visible formatters
+    formatTimeRemaining: ({ ms }) => `${Math.ceil(ms / 1000)}s remaining`,
+
+    // Target issue messages (shown when target element is problematic)
+    targetIssue: {
+      missingTitle: 'Target not visible',
+      missingBody: 'The target element is not currently visible...',
+      missingHint: 'Showing the last known position until the element returns.',
+      hiddenTitle: 'Target not visible',
+      hiddenBody: 'The target element is not currently visible...',
+      hiddenHint: 'Showing the last known position until the element returns.',
+      detachedTitle: 'Target left the page',
+      detachedBody: 'Navigate back to the screen that contains this element...',
+    },
+  }}
+>
+```
+
+### German Example
+
+```tsx
+const germanLabels = {
+  back: 'Zurück',
+  next: 'Weiter',
+  finish: 'Fertig',
+  skip: 'Tour überspringen',
+  holdToConfirm: 'Gedrückt halten zum Bestätigen',
+  ariaStepProgress: ({ current, total }) => `Schritt ${current} von ${total}`,
+  targetIssue: {
+    missingTitle: 'Ziel nicht sichtbar',
+    missingBody: 'Das Zielelement ist derzeit nicht sichtbar.',
+    detachedTitle: 'Ziel hat die Seite verlassen',
+    detachedBody: 'Navigieren Sie zurück zur Seite mit diesem Element.',
+    // ... other labels
+  },
+}
+
+<TourProvider flows={[...]} labels={germanLabels}>
 ```
 
 ## Additional Resources
