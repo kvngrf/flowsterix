@@ -1,5 +1,20 @@
 # @flowsterix/react
 
+## 0.6.0
+
+### Minor Changes
+
+- Add route mismatch pause/resume behavior and internationalization for target issue labels
+
+  **Route Mismatch Handling:**
+  - Flow automatically pauses when user navigates away from a step's `route`
+  - Flow auto-resumes when user returns to the correct route
+  - For steps without `route`: flow pauses after grace period if target is missing, resumes when user navigates elsewhere
+
+  **Internationalization:**
+  - Added `labels.targetIssue` to `TourProvider` for customizing target issue messages
+  - All target issue text (missing, hidden, detached) now uses the labels system
+
 ## 0.5.0
 
 ### Minor Changes
