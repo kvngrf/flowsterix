@@ -81,7 +81,7 @@ That's it. The `target` selector matches any element in your DOM.
 Install the Flowsterix skill to help AI agents implement tours in your codebase:
 
 ```bash
-npx add-skill kvngrf/flowsterix
+npx skills kvngrf/flowsterix
 ```
 
 The skill provides patterns for step definitions, advance rules, lifecycle hooks, router integration, and more. Works with Claude Code, Cursor, and other AI coding assistants.
@@ -101,12 +101,12 @@ The skill provides patterns for step definitions, advance rules, lifecycle hooks
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
+| Guide                                               | Description                                            |
+| --------------------------------------------------- | ------------------------------------------------------ |
 | [Storage Adapters](docs/guides/storage-adapters.md) | Persist state to localStorage, API, or custom backends |
-| [Versioning](docs/guides/versioning.md) | Handle flow updates and migrations |
-| [Accessibility](docs/guides/accessibility.md) | Focus management, ARIA, reduced motion |
-| [Routing & Async](docs/guides/routing-and-async.md) | Router adapters, route-based steps, async targeting |
+| [Versioning](docs/guides/versioning.md)             | Handle flow updates and migrations                     |
+| [Accessibility](docs/guides/accessibility.md)       | Focus management, ARIA, reduced motion                 |
+| [Routing & Async](docs/guides/routing-and-async.md) | Router adapters, route-based steps, async targeting    |
 
 ## Shadcn Components
 

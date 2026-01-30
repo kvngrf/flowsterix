@@ -1,27 +1,45 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { motion } from "motion/react";
-import { Check, Copy, Terminal, Sparkles, Palette, Bot } from "lucide-react";
+import { Bot, Check, Copy, Palette, Sparkles, Terminal } from 'lucide-react'
+import { motion } from 'motion/react'
+import { useState } from 'react'
 
 const installCommands = [
-  { id: "pnpm", label: "pnpm", command: "pnpm add @flowsterix/core @flowsterix/react motion" },
-  { id: "npm", label: "npm", command: "npm install @flowsterix/core @flowsterix/react motion" },
-  { id: "yarn", label: "yarn", command: "yarn add @flowsterix/core @flowsterix/react motion" },
-];
+  {
+    id: 'pnpm',
+    label: 'pnpm',
+    command: 'pnpm add @flowsterix/core @flowsterix/react motion',
+  },
+  {
+    id: 'npm',
+    label: 'npm',
+    command: 'npm install @flowsterix/core @flowsterix/react motion',
+  },
+  {
+    id: 'yarn',
+    label: 'yarn',
+    command: 'yarn add @flowsterix/core @flowsterix/react motion',
+  },
+]
 
 export function GettingStarted() {
-  const [activeManager, setActiveManager] = useState("pnpm");
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [activeManager, setActiveManager] = useState('pnpm')
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
   const currentCommand =
-    installCommands.find((pm) => pm.id === activeManager)?.command || "";
+    installCommands.find((pm) => pm.id === activeManager)?.command || ''
 
-  const copyToClipboard = async ({ text, index }: { text: string; index: number }) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  };
+  const copyToClipboard = async ({
+    text,
+    index,
+  }: {
+    text: string
+    index: number
+  }) => {
+    await navigator.clipboard.writeText(text)
+    setCopiedIndex(index)
+    setTimeout(() => setCopiedIndex(null), 2000)
+  }
 
   return (
     <section id="getting-started" className="relative py-28 lg:py-36">
@@ -49,12 +67,16 @@ export function GettingStarted() {
             Get started in minutes
           </h2>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-            Install the packages, add UI components via shadcn, and start building tours.
+            Install the packages, add UI components via shadcn, and start
+            building tours.
           </p>
         </motion.div>
 
         {/* Installation Steps */}
-        <div className="max-w-3xl mx-auto space-y-6" data-tour-target="getting-started">
+        <div
+          className="max-w-3xl mx-auto space-y-6"
+          data-tour-target="getting-started"
+        >
           {/* Step 1: Install packages */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -67,7 +89,9 @@ export function GettingStarted() {
                 <Terminal className="w-4 h-4 text-white" />
               </div>
               <div>
-                <span className="text-xs font-medium text-primary-600 dark:text-primary-400">Step 1</span>
+                <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
+                  Step 1
+                </span>
                 <h3 className="font-semibold">Install the packages</h3>
               </div>
             </div>
@@ -81,8 +105,8 @@ export function GettingStarted() {
                     onClick={() => setActiveManager(pm.id)}
                     className={`px-5 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
                       activeManager === pm.id
-                        ? "text-white bg-zinc-800"
-                        : "text-zinc-500 hover:text-zinc-300"
+                        ? 'text-white bg-zinc-800'
+                        : 'text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
                     {pm.label}
@@ -96,7 +120,9 @@ export function GettingStarted() {
                   <span className="text-zinc-500">$</span> {currentCommand}
                 </code>
                 <button
-                  onClick={() => copyToClipboard({ text: currentCommand, index: 0 })}
+                  onClick={() =>
+                    copyToClipboard({ text: currentCommand, index: 0 })
+                  }
                   className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
                   aria-label="Copy command"
                 >
@@ -122,7 +148,9 @@ export function GettingStarted() {
                 <Palette className="w-4 h-4 text-white" />
               </div>
               <div>
-                <span className="text-xs font-medium text-secondary-600 dark:text-secondary-400">Step 2</span>
+                <span className="text-xs font-medium text-secondary-600 dark:text-secondary-400">
+                  Step 2
+                </span>
                 <h3 className="font-semibold">Add UI components via shadcn</h3>
               </div>
             </div>
@@ -130,10 +158,16 @@ export function GettingStarted() {
             <div className="rounded-2xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-code)]">
               <div className="flex items-center justify-between p-4">
                 <code className="text-sm text-zinc-100 font-mono">
-                  <span className="text-zinc-500">$</span> npx shadcn@latest add https://flowsterix.com/r/tour-hud.json
+                  <span className="text-zinc-500">$</span> npx shadcn@latest add
+                  https://flowsterix.com/r/tour-hud.json
                 </code>
                 <button
-                  onClick={() => copyToClipboard({ text: "npx shadcn@latest add https://flowsterix.com/r/tour-hud.json", index: 1 })}
+                  onClick={() =>
+                    copyToClipboard({
+                      text: 'npx shadcn@latest add https://flowsterix.com/r/tour-hud.json',
+                      index: 1,
+                    })
+                  }
                   className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
                   aria-label="Copy command"
                 >
@@ -146,7 +180,8 @@ export function GettingStarted() {
               </div>
               <div className="px-4 pb-4">
                 <p className="text-xs text-zinc-500">
-                  Installs overlay, popover, controls, progress, and step content primitives.
+                  Installs overlay, popover, controls, progress, and step
+                  content primitives.
                 </p>
               </div>
             </div>
@@ -164,7 +199,9 @@ export function GettingStarted() {
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div>
-                <span className="text-xs font-medium text-tertiary-600 dark:text-tertiary-400">Step 3 (Optional)</span>
+                <span className="text-xs font-medium text-tertiary-600 dark:text-tertiary-400">
+                  Step 3 (Optional)
+                </span>
                 <h3 className="font-semibold">Add the AI skill</h3>
               </div>
             </div>
@@ -172,10 +209,16 @@ export function GettingStarted() {
             <div className="rounded-2xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-code)]">
               <div className="flex items-center justify-between p-4">
                 <code className="text-sm text-zinc-100 font-mono">
-                  <span className="text-zinc-500">$</span> npx add-skill kvngrf/flowsterix
+                  <span className="text-zinc-500">$</span> npx skills
+                  kvngrf/flowsterix
                 </code>
                 <button
-                  onClick={() => copyToClipboard({ text: "npx add-skill kvngrf/flowsterix", index: 2 })}
+                  onClick={() =>
+                    copyToClipboard({
+                      text: 'npx skills kvngrf/flowsterix',
+                      index: 2,
+                    })
+                  }
                   className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
                   aria-label="Copy command"
                 >
@@ -188,7 +231,9 @@ export function GettingStarted() {
               </div>
               <div className="px-4 pb-4">
                 <p className="text-xs text-zinc-500">
-                  Works with Claude Code, Cursor, and other AI coding assistants. Provides patterns for step definitions, advance rules, lifecycle hooks, and more.
+                  Works with Claude Code, Cursor, and other AI coding
+                  assistants. Provides patterns for step definitions, advance
+                  rules, lifecycle hooks, and more.
                 </p>
               </div>
             </div>
@@ -204,10 +249,24 @@ export function GettingStarted() {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           {[
-            { label: "TypeScript-first", color: "bg-primary-500/10 text-primary-700 dark:text-primary-400" },
-            { label: "Tree-shakeable", color: "bg-tertiary-400/10 text-tertiary-600 dark:text-tertiary-400" },
-            { label: "shadcn compatible", color: "bg-secondary-400/10 text-secondary-700 dark:text-secondary-400" },
-            { label: "AI-ready", color: "bg-accent-500/10 text-accent-700 dark:text-accent-400" },
+            {
+              label: 'TypeScript-first',
+              color: 'bg-primary-500/10 text-primary-700 dark:text-primary-400',
+            },
+            {
+              label: 'Tree-shakeable',
+              color:
+                'bg-tertiary-400/10 text-tertiary-600 dark:text-tertiary-400',
+            },
+            {
+              label: 'shadcn compatible',
+              color:
+                'bg-secondary-400/10 text-secondary-700 dark:text-secondary-400',
+            },
+            {
+              label: 'AI-ready',
+              color: 'bg-accent-500/10 text-accent-700 dark:text-accent-400',
+            },
           ].map((badge) => (
             <span
               key={badge.label}
@@ -243,5 +302,5 @@ export function GettingStarted() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }
