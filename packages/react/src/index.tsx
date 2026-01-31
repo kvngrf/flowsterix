@@ -54,11 +54,23 @@ export type {
   UseRadixDialogAdapterOptions,
 } from './adapters/radixDialog'
 
-export { createRadixDialogHelpers, waitForDom } from './adapters/radixDialogHelpers'
+export { waitForDom } from './adapters/radixDialogHelpers'
+
+export { useRadixTourDialog } from './hooks/useRadixTourDialog'
 export type {
-  CreateRadixDialogHelpersParams,
-  RadixDialogHelpers,
-} from './adapters/radixDialogHelpers'
+  UseRadixTourDialogParams,
+  UseRadixTourDialogResult,
+} from './hooks/useRadixTourDialog'
+
+export {
+  DialogRegistryProvider,
+  useDialogRegistry,
+  useDialogRegistryOptional,
+} from './dialog/DialogRegistryContext'
+export type {
+  DialogController,
+  DialogRegistryContextValue,
+} from './dialog/DialogRegistryContext'
 
 export { useTourFocusDominance } from './hooks/useTourFocusDominance'
 export type {

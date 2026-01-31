@@ -208,26 +208,36 @@ Hooks are awaited. Errors are caught and logged, don't crash the flow.
 
 ### UI Sync Pattern
 
-For Radix dialogs, use the built-in helpers:
+**For Radix dialogs, use the declarative `useRadixTourDialog` hook:**
 
 ```tsx
-import { createRadixDialogHelpers } from '@flowsterix/react'
+import { useRadixTourDialog } from '@flowsterix/react'
 
-const settingsDialog = createRadixDialogHelpers({
-  contentSelector: '[data-tour-target="settings-dialog"]',
-  triggerSelector: '[data-tour-target="settings-trigger"]',
-})
-
-{
-  id: 'dialog-content',
-  target: { selector: '[data-tour-target="settings-dialog"]' },
-  onEnter: settingsDialog.open,
-  onResume: settingsDialog.open,  // Also needed for page reload!
-  onExit: settingsDialog.close,
+// In your dialog component:
+function SettingsDialog({ children }) {
+  const { dialogProps, contentProps } = useRadixTourDialog({ dialogId: 'settings' })
+  return (
+    <Dialog.Root {...dialogProps}>
+      <Dialog.Content {...contentProps}>{children}</Dialog.Content>
+    </Dialog.Root>
+  )
 }
+
+// In your flow definition:
+const flow = createFlow({
+  dialogs: {
+    settings: {
+      onDismissGoToStepId: 'settings-trigger',
+    },
+  },
+  steps: [
+    { id: 'settings-trigger', target: '#btn', content: '...' },
+    { id: 'dialog-step', dialogId: 'settings', target: '#tab', content: '...' },
+  ],
+})
 ```
 
-For other UI elements, use `waitForDom()` to ensure DOM updates complete:
+**For other UI elements (menus, accordions), use `waitForDom()` with lifecycle hooks:**
 
 ```tsx
 import { waitForDom } from '@flowsterix/react'
@@ -238,6 +248,15 @@ const ensureMenuOpen = async () => {
 
   document.querySelector('[data-tour-target="menu-trigger"]')?.click()
   await waitForDom()
+}
+
+// In step definition:
+{
+  id: 'menu-item',
+  target: { selector: '[data-tour-target="menu-item"]' },
+  onEnter: ensureMenuOpen,
+  onResume: ensureMenuOpen,
+  onExit: ensureMenuClosed,
 }
 ```
 
@@ -334,6 +353,7 @@ useTourEvents('flowError', (payload) => {
 | `flow.step_not_found` | goToStep with invalid ID |
 | `flow.migration_failed` | migrate() threw error |
 | `async.schedule_failed` | Async operation failed |
+| `dialog.not_mounted` | Step references dialogId but no dialog mounted with that ID |
 
 ## FlowState Reference
 

@@ -1,5 +1,6 @@
 import type {
   BackdropInteractionMode,
+  DialogConfig,
   EventBus,
   FlowAnalyticsHandlers,
   FlowCancelReason,
@@ -42,6 +43,11 @@ import {
 import type { TourLabels } from './labels'
 import { LabelsProvider, defaultLabels } from './labels'
 import type { AnimationAdapter } from './motion/animationAdapter'
+import {
+  DialogRegistryProvider,
+  useDialogRegistryOptional,
+} from './dialog/DialogRegistryContext'
+import { useDialogAutomation } from './hooks/useDialogAutomation'
 import {
   AnimationAdapterProvider,
   defaultAnimationAdapter,
@@ -86,6 +92,7 @@ export interface TourContextValue {
   activeFlowId: string | null
   state: FlowState | null
   activeStep: Step<ReactNode> | null
+  activeDialogConfig: DialogConfig | undefined
   startFlow: (flowId: string, options?: StartFlowOptions) => MaybePromise<FlowState>
   next: () => MaybePromise<FlowState>
   back: () => MaybePromise<FlowState>
@@ -641,6 +648,11 @@ export const TourProvider = ({
     return storeRef.current.definition.steps[state.stepIndex] ?? null
   }, [state])
 
+  const activeDialogConfig = useMemo(() => {
+    if (!activeStep?.dialogId || !storeRef.current) return undefined
+    return storeRef.current.definition.dialogs?.[activeStep.dialogId]
+  }, [activeStep])
+
   useEffect(() => {
     if (!activeFlowId) return
     if (!pendingResumeRef.current.has(activeFlowId)) return
@@ -666,6 +678,7 @@ export const TourProvider = ({
       activeFlowId,
       state,
       activeStep,
+      activeDialogConfig,
       startFlow,
       next,
       back,
@@ -687,6 +700,7 @@ export const TourProvider = ({
     [
       activeFlowId,
       activeStep,
+      activeDialogConfig,
       advanceStep,
       back,
       cancel,
@@ -718,12 +732,50 @@ export const TourProvider = ({
   return (
     <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
       <LabelsProvider value={mergedLabels}>
-        <TourContext.Provider value={contextValue}>
-          {children}
-        </TourContext.Provider>
+        <DialogRegistryProvider>
+          <TourContext.Provider value={contextValue}>
+            <DialogAutomationBridge
+              flow={activeFlowId ? flowMap.get(activeFlowId) : undefined}
+              state={state}
+              events={events}
+            />
+            {children}
+          </TourContext.Provider>
+        </DialogRegistryProvider>
       </LabelsProvider>
     </AnimationAdapterProvider>
   )
+}
+
+interface DialogAutomationBridgeProps {
+  flow: FlowDefinition<ReactNode> | undefined
+  state: FlowState | null
+  events: EventBus<FlowEvents<ReactNode>> | null
+}
+
+const DialogAutomationBridge = ({
+  flow,
+  state,
+  events,
+}: DialogAutomationBridgeProps) => {
+  const registry = useDialogRegistryOptional()
+
+  useDialogAutomation({
+    flow,
+    state,
+    events,
+    registry,
+    onDialogNotMounted: (dialogId, stepId) => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `[tour] Step "${stepId}" references dialogId "${dialogId}" but no dialog is mounted with that ID. ` +
+            `Ensure your dialog uses useTourDialog({ dialogId: "${dialogId}" }).`,
+        )
+      }
+    },
+  })
+
+  return null
 }
 
 export const useTour = (): TourContextValue => {

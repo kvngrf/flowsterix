@@ -70,6 +70,7 @@ createFlow({
   id: string,                          // Unique identifier
   version: { major: number, minor: number },  // For storage migrations
   steps: Step[],                       // Array of tour steps
+  dialogs?: Record<string, DialogConfig>, // Dialog configurations (see Radix Dialog Integration)
   autoStart?: boolean,                 // Start on mount (default: false)
   resumeStrategy?: 'chain' | 'current', // How to run onResume hooks
   hud?: FlowHudOptions,                // UI configuration
@@ -84,6 +85,7 @@ createFlow({
   id: string,                    // Unique within flow
   target: StepTarget,            // What to highlight
   content: ReactNode,            // Popover content
+  dialogId?: string,             // Reference to flow.dialogs entry (auto-opens dialog)
   advance?: AdvanceRule[],       // When to move to next step
   placement?: StepPlacement,     // Popover position
   route?: string | RegExp,       // Only show on matching routes
@@ -320,29 +322,43 @@ content: (
 
 ## Radix Dialog Integration
 
-When targeting elements inside Radix dialogs, you need two things:
+Use `useRadixTourDialog` for declarative dialog control during tours.
 
-1. **`useRadixDialogAdapter`** - Hook for the dialog component (prevents closing during tour)
-2. **`createRadixDialogHelpers`** - Factory for lifecycle hooks (open/close programmatically)
-
-### Making Dialogs Tour-Aware
-
-Use `useRadixDialogAdapter` in your dialog component to prevent it from closing when the tour is active:
+### Setup
 
 ```tsx
-import { useRadixDialogAdapter } from '@flowsterix/react'
+import { createFlow } from '@flowsterix/core'
+import { useRadixTourDialog } from '@flowsterix/react'
 import * as Dialog from '@radix-ui/react-dialog'
 
+// 1. Configure dialogs in flow definition
+const flow = createFlow({
+  id: 'onboarding',
+  version: { major: 1, minor: 0 },
+  dialogs: {
+    settings: {
+      autoOpen: true,                    // Open when entering dialog steps
+      autoClose: 'differentDialog',      // Close when moving to non-dialog step
+      onDismissGoToStepId: 'settings-trigger', // Where to go if user closes dialog
+    },
+  },
+  steps: [
+    { id: 'settings-trigger', target: '#settings-btn', content: 'Click here' },
+    { id: 'settings-tab1', dialogId: 'settings', target: '#tab1', content: 'First tab' },
+    { id: 'settings-tab2', dialogId: 'settings', target: '#tab2', content: 'Second tab' },
+    // Dialog stays open for consecutive steps with same dialogId
+    { id: 'done', target: 'screen', content: 'All done' },
+    // Dialog auto-closes when entering 'done' (no dialogId)
+  ],
+})
+
+// 2. Use hook in your dialog component
 function SettingsDialog({ children }) {
-  const { dialogProps, contentProps } = useRadixDialogAdapter({
-    disableEscapeClose: true, // Prevent Escape from closing during tour
-  })
+  const { dialogProps, contentProps } = useRadixTourDialog({ dialogId: 'settings' })
 
   return (
     <Dialog.Root {...dialogProps}>
-      <Dialog.Trigger data-tour-target="settings-trigger">
-        Settings
-      </Dialog.Trigger>
+      <Dialog.Trigger data-tour-target="settings-trigger">Settings</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay />
         <Dialog.Content {...contentProps} data-tour-target="settings-dialog">
@@ -354,30 +370,49 @@ function SettingsDialog({ children }) {
 }
 ```
 
-### Programmatic Dialog Control in Lifecycle Hooks
-
-Use `createRadixDialogHelpers` for steps that target elements inside dialogs:
+### Dialog Configuration Options
 
 ```tsx
-import { createRadixDialogHelpers } from '@flowsterix/react'
+dialogs: {
+  myDialog: {
+    // Auto-open behavior (default: true for both)
+    autoOpen: {
+      onEnter: true,   // Open when entering a step with this dialogId
+      onResume: true,  // Open when resuming to a step with this dialogId
+    },
+    // Or disable all auto-open:
+    autoOpen: false,
 
-const settingsDialog = createRadixDialogHelpers({
-  contentSelector: '[data-tour-target="settings-dialog"]',
-  triggerSelector: '[data-tour-target="settings-trigger"]',
-})
+    // Auto-close behavior (default: 'differentDialog')
+    autoClose: 'differentDialog', // Close when next step has different/no dialogId
+    autoClose: 'always',          // Always close on step exit
+    autoClose: 'never',           // Manual close only
 
-// In your flow definition:
-{
-  id: 'settings-panel',
-  target: { selector: '[data-tour-target="settings-dialog"]' },
-  onEnter: settingsDialog.open,
-  onResume: settingsDialog.open,
-  onExit: settingsDialog.close,
-  content: <p>Configure your settings here</p>,
+    // Required: where to navigate when user dismisses dialog
+    onDismissGoToStepId: 'some-step-id',
+  },
 }
 ```
 
-The helpers use `waitForDom()` internally to ensure DOM updates complete after interactions.
+### Focus Management: useRadixDialogAdapter
+
+For dialogs without tour integration that still need focus handling during tours:
+
+```tsx
+import { useRadixDialogAdapter } from '@flowsterix/react'
+
+function SimpleDialog({ children }) {
+  const { dialogProps, contentProps } = useRadixDialogAdapter({
+    disableEscapeClose: true,
+  })
+
+  return (
+    <Dialog.Root {...dialogProps}>
+      <Dialog.Content {...contentProps}>{children}</Dialog.Content>
+    </Dialog.Root>
+  )
+}
+```
 
 ## Lifecycle Hooks
 

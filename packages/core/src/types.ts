@@ -189,6 +189,8 @@ export interface Step<TContent = unknown> {
   mask?: StepMask
   targetBehavior?: StepTargetBehavior
   content: TContent
+  /** Reference to a dialog defined in flow.dialogs. Enables auto-open/close. */
+  dialogId?: string
   advance?: Array<AdvanceRule<TContent>>
   waitFor?: StepWaitFor<TContent>
   onEnter?: StepHook<TContent>
@@ -285,10 +287,49 @@ export interface VersionMismatchInfo {
   resolvedStepIndex?: number
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Dialog Integration Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Configure when a dialog should auto-open during tour steps.
+ */
+export interface DialogAutoOpen {
+  /** Open when entering a step with this dialogId. Default: true */
+  onEnter?: boolean
+  /** Open when resuming to a step with this dialogId. Default: true */
+  onResume?: boolean
+}
+
+/**
+ * When to auto-close a dialog during tour navigation.
+ * - 'differentDialog': Close when next step has different/no dialogId (default)
+ * - 'always': Always close on step exit
+ * - 'never': Manual close only
+ */
+export type DialogAutoClose = 'differentDialog' | 'always' | 'never'
+
+/**
+ * Configuration for a tour-integrated dialog.
+ */
+export interface DialogConfig {
+  /**
+   * Auto-open rules. Set false to disable all auto-open.
+   * Default: { onEnter: true, onResume: true }
+   */
+  autoOpen?: DialogAutoOpen | boolean
+  /** When to auto-close. Default: 'differentDialog' */
+  autoClose?: DialogAutoClose
+  /** Step to navigate to when user dismisses (ESC/X/backdrop). Required. */
+  onDismissGoToStepId: string
+}
+
 export interface FlowDefinition<TContent = unknown> {
   id: string
   version: FlowVersion
   steps: Array<Step<TContent>>
+  /** Dialog configurations for tour-integrated dialogs */
+  dialogs?: Record<string, DialogConfig>
   hud?: FlowHudOptions
   resumeStrategy?: ResumeStrategy
   autoStart?: boolean
@@ -305,6 +346,7 @@ export type FlowErrorCode =
   | 'flow.step_not_found'
   | 'flow.store_destroyed'
   | 'flow.migration_failed'
+  | 'dialog.not_mounted'
 
 export interface FlowErrorEvent<TContent = unknown> {
   flow: FlowDefinition<TContent>

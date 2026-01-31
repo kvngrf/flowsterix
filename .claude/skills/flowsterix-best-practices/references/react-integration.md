@@ -53,6 +53,7 @@ function MyComponent() {
     activeFlowId,    // string | null
     state,           // FlowState | null
     activeStep,      // Step | null
+    activeDialogConfig, // DialogConfig | undefined (if step has dialogId)
 
     // Controls
     startFlow,       // (flowId: string, options?) => FlowState
@@ -287,6 +288,55 @@ function CustomControls() {
     </div>
   )
 }
+```
+
+## useRadixTourDialog Hook
+
+Declarative dialog integration for Radix UI dialogs.
+
+```tsx
+import { useRadixTourDialog } from '@flowsterix/react'
+import * as Dialog from '@radix-ui/react-dialog'
+
+function SettingsDialog({ children }) {
+  const {
+    isStepActive,    // true when current step has this dialogId
+    shouldBeOpen,    // computed open state based on tour + autoOpen rules
+    onOpenChange,    // call when dialog open state changes
+    dialogProps,     // { open, onOpenChange, modal }
+    contentProps,    // { trapFocus, onInteractOutside, onFocusOutside, onEscapeKeyDown }
+  } = useRadixTourDialog({ dialogId: 'settings' })
+
+  return (
+    <Dialog.Root {...dialogProps}>
+      <Dialog.Trigger>Open</Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content {...contentProps}>
+          {children}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+Requires `dialogs` config in flow definition:
+
+```tsx
+createFlow({
+  dialogs: {
+    settings: {
+      autoOpen: true,                    // { onEnter?: bool, onResume?: bool } | bool
+      autoClose: 'differentDialog',      // 'differentDialog' | 'always' | 'never'
+      onDismissGoToStepId: 'prev-step',  // Required: where to go on ESC/backdrop click
+    },
+  },
+  steps: [
+    { id: 'prev-step', target: '#btn', content: '...' },
+    { id: 'dialog-step', dialogId: 'settings', target: '#tab', content: '...' },
+  ],
+})
 ```
 
 ## useHudState Hook

@@ -135,6 +135,26 @@ const resumeStrategySchema = z.union([
   z.literal('current'),
 ])
 
+const dialogAutoOpenSchema = z.union([
+  z.boolean(),
+  z.object({
+    onEnter: z.boolean().optional(),
+    onResume: z.boolean().optional(),
+  }),
+])
+
+const dialogAutoCloseSchema = z.union([
+  z.literal('differentDialog'),
+  z.literal('always'),
+  z.literal('never'),
+])
+
+const dialogConfigSchema = z.object({
+  autoOpen: dialogAutoOpenSchema.optional(),
+  autoClose: dialogAutoCloseSchema.optional(),
+  onDismissGoToStepId: z.string().min(1),
+})
+
 /**
  * Flow version schema: { major: number, minor: number }
  */
@@ -185,6 +205,7 @@ const stepSchema = z.object({
     })
     .optional(),
   content: z.any(),
+  dialogId: z.string().min(1).optional(),
   advance: z.array(advanceRuleSchema).optional(),
   waitFor: waitForSchema.optional(),
   onResume: z
@@ -210,16 +231,49 @@ const stepSchema = z.object({
     .optional(),
 })
 
-export const flowDefinitionSchema = z.object({
+const baseFlowDefinitionSchema = z.object({
   id: z.string().min(1),
   version: flowVersionSchema,
   steps: z.array(stepSchema).min(1),
+  dialogs: z.record(z.string(), dialogConfigSchema).optional(),
   hud: hudSchema.optional(),
   resumeStrategy: resumeStrategySchema.optional(),
   autoStart: z.boolean().optional(),
   metadata: z.record(z.string(), z.any()).optional(),
   migrate: migrateFnSchema,
 })
+
+export const flowDefinitionSchema = baseFlowDefinitionSchema.superRefine(
+  (data, ctx) => {
+    const stepIds = new Set(data.steps.map((s) => s.id))
+    const dialogIds = new Set(Object.keys(data.dialogs ?? {}))
+
+    // Validate step.dialogId references exist in flow.dialogs
+    for (let i = 0; i < data.steps.length; i++) {
+      const step = data.steps[i]
+      if (step.dialogId && !dialogIds.has(step.dialogId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Step "${step.id}" references dialogId "${step.dialogId}" which is not defined in flow.dialogs`,
+          path: ['steps', i, 'dialogId'],
+        })
+      }
+    }
+
+    // Validate dialog.onDismissGoToStepId references exist in flow.steps
+    if (data.dialogs) {
+      for (const [dialogId, config] of Object.entries(data.dialogs)) {
+        if (!stepIds.has(config.onDismissGoToStepId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Dialog "${dialogId}" references onDismissGoToStepId "${config.onDismissGoToStepId}" which is not defined in flow.steps`,
+            path: ['dialogs', dialogId, 'onDismissGoToStepId'],
+          })
+        }
+      }
+    }
+  },
+)
 
 export const validateFlowDefinition = <TContent>(
   definition: FlowDefinition<TContent>,

@@ -1,5 +1,20 @@
 # @flowsterix/core
 
+## 0.10.0
+
+### Minor Changes
+
+- feat: Add declarative Radix Dialog integration
+  - Add `dialogs` configuration to `FlowDefinition` for declarative dialog control
+  - Add `dialogId` property to `Step` to link steps with dialogs
+  - Add `useRadixTourDialog` hook for automatic dialog open/close during tours
+  - Add `DialogRegistryProvider` for tracking mounted dialog controllers
+  - Dialog stays open when navigating between steps with same `dialogId`
+  - Auto-close when moving to step with different/no `dialogId`
+  - Configurable `autoOpen` (onEnter/onResume) and `autoClose` behavior
+  - `onDismissGoToStepId` handles user-initiated dialog close (ESC/backdrop)
+  - Remove `createRadixDialogHelpers` (replaced by `useRadixTourDialog`)
+
 ## 0.5.0
 
 ### Minor Changes
