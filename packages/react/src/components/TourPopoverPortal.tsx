@@ -501,7 +501,14 @@ export const TourPopoverPortal = ({
               alignment: autoAlignment,
             }),
           ]
-        : [flip({ padding: FLOATING_OFFSET, fallbackStrategy: 'bestFit' })]),
+        : [
+            flip({
+              padding: FLOATING_OFFSET,
+              fallbackStrategy: 'bestFit',
+              crossAxis: true,
+              fallbackPlacements: ['bottom', 'top', 'right', 'left'],
+            }),
+          ]),
       shift({ padding: FLOATING_OFFSET }),
     ]
 
@@ -565,15 +572,18 @@ export const TourPopoverPortal = ({
       const spaceLeft = targetRect.left - viewportLeft
       const spaceRight = viewportRight - targetRect.right
 
-      // Minimum space needed to place the popover (popover height/width estimate + offset)
-      const minSpaceNeeded = floatingBox.height + FLOATING_OFFSET * 2
+      // Minimum space needed to place the popover on each axis
+      const minVerticalSpaceNeeded = floatingBox.height + FLOATING_OFFSET * 2
+      const minHorizontalSpaceNeeded = floatingBox.width + FLOATING_OFFSET * 2
 
       // Target nearly fills viewport only when there's insufficient space in ALL directions
       // This allows full-width elements to still have floating popovers above/below them
       const hasVerticalSpace =
-        spaceAbove >= minSpaceNeeded || spaceBelow >= minSpaceNeeded
+        spaceAbove >= minVerticalSpaceNeeded ||
+        spaceBelow >= minVerticalSpaceNeeded
       const hasHorizontalSpace =
-        spaceLeft >= minSpaceNeeded || spaceRight >= minSpaceNeeded
+        spaceLeft >= minHorizontalSpaceNeeded ||
+        spaceRight >= minHorizontalSpaceNeeded
 
       const targetNearlyFillsViewport =
         !target.isScreen && !hasVerticalSpace && !hasHorizontalSpace

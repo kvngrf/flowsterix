@@ -1,5 +1,13 @@
 # @flowsterix/react
 
+## 0.10.1
+
+### Patch Changes
+
+- Fix popover incorrectly entering dock mode when cross-axis placements have space
+  - Enable cross-axis flipping in flip middleware so popover tries left/right when top/bottom don't fit
+  - Use correct dimensions for space checks (width for horizontal, height for vertical)
+
 ## 0.10.0
 
 ### Minor Changes
