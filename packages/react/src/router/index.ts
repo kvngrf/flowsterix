@@ -8,12 +8,8 @@ export {
 
 export { createPathString } from './utils'
 
-export { useTanStackRouterTourAdapter } from './tanstackRouterAdapter'
-
-export {
-  getTanStackRouter,
-  getTourRouter,
-  setTanStackRouter,
-  setTourRouter,
-  TanStackRouterSync,
-} from './tanstackRouterSync'
+// Router-specific adapters are available via separate entry points:
+// - TanStack Router: import from '@flowsterix/react/router/tanstack'
+// - React Router: import from '@flowsterix/react/router/react-router'
+// - Next.js App Router: import from '@flowsterix/react/router/next-app'
+// - Next.js Pages Router: import from '@flowsterix/react/router/next-pages'

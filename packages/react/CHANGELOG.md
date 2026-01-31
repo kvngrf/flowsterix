@@ -1,5 +1,13 @@
 # @flowsterix/react
 
+## 0.8.1
+
+### Patch Changes
+
+- Fix: remove @tanstack/react-router dependency from main entry point
+
+  The router/index.ts barrel file was incorrectly exporting TanStack-specific adapters, causing build errors for users who don't have @tanstack/react-router installed. Router-specific adapters are now only available via their dedicated entry points (e.g., @flowsterix/react/router/tanstack).
+
 ## 0.8.0
 
 ### Minor Changes
