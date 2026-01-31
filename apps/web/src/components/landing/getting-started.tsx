@@ -209,13 +209,13 @@ export function GettingStarted() {
             <div className="rounded-2xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-code)]">
               <div className="flex items-center justify-between p-4">
                 <code className="text-sm text-zinc-100 font-mono">
-                  <span className="text-zinc-500">$</span> npx skills
+                  <span className="text-zinc-500">$</span> npx skills add
                   kvngrf/flowsterix
                 </code>
                 <button
                   onClick={() =>
                     copyToClipboard({
-                      text: 'npx skills kvngrf/flowsterix',
+                      text: 'npx skills add kvngrf/flowsterix',
                       index: 2,
                     })
                   }
