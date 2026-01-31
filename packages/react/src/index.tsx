@@ -54,6 +54,12 @@ export type {
   UseRadixDialogAdapterOptions,
 } from './adapters/radixDialog'
 
+export { createRadixDialogHelpers, waitForDom } from './adapters/radixDialogHelpers'
+export type {
+  CreateRadixDialogHelpersParams,
+  RadixDialogHelpers,
+} from './adapters/radixDialogHelpers'
+
 export { useTourFocusDominance } from './hooks/useTourFocusDominance'
 export type {
   UseTourFocusDominanceOptions,

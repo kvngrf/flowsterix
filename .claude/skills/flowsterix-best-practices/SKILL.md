@@ -318,6 +318,67 @@ content: (
 - `StepText` - Muted paragraph text
 - `StepHint` - Italic hint text for user instructions
 
+## Radix Dialog Integration
+
+When targeting elements inside Radix dialogs, you need two things:
+
+1. **`useRadixDialogAdapter`** - Hook for the dialog component (prevents closing during tour)
+2. **`createRadixDialogHelpers`** - Factory for lifecycle hooks (open/close programmatically)
+
+### Making Dialogs Tour-Aware
+
+Use `useRadixDialogAdapter` in your dialog component to prevent it from closing when the tour is active:
+
+```tsx
+import { useRadixDialogAdapter } from '@flowsterix/react'
+import * as Dialog from '@radix-ui/react-dialog'
+
+function SettingsDialog({ children }) {
+  const { dialogProps, contentProps } = useRadixDialogAdapter({
+    disableEscapeClose: true, // Prevent Escape from closing during tour
+  })
+
+  return (
+    <Dialog.Root {...dialogProps}>
+      <Dialog.Trigger data-tour-target="settings-trigger">
+        Settings
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content {...contentProps} data-tour-target="settings-dialog">
+          {children}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+### Programmatic Dialog Control in Lifecycle Hooks
+
+Use `createRadixDialogHelpers` for steps that target elements inside dialogs:
+
+```tsx
+import { createRadixDialogHelpers } from '@flowsterix/react'
+
+const settingsDialog = createRadixDialogHelpers({
+  contentSelector: '[data-tour-target="settings-dialog"]',
+  triggerSelector: '[data-tour-target="settings-trigger"]',
+})
+
+// In your flow definition:
+{
+  id: 'settings-panel',
+  target: { selector: '[data-tour-target="settings-dialog"]' },
+  onEnter: settingsDialog.open,
+  onResume: settingsDialog.open,
+  onExit: settingsDialog.close,
+  content: <p>Configure your settings here</p>,
+}
+```
+
+The helpers use `waitForDom()` internally to ensure DOM updates complete after interactions.
+
 ## Lifecycle Hooks
 
 Lifecycle hooks synchronize UI state with tour progression. **Use them when steps target elements inside collapsible panels, modals, drawers, or other dynamic UI.**

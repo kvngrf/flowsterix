@@ -208,26 +208,36 @@ Hooks are awaited. Errors are caught and logged, don't crash the flow.
 
 ### UI Sync Pattern
 
+For Radix dialogs, use the built-in helpers:
+
 ```tsx
-const ensureDialogOpen = () => {
-  const dialog = document.querySelector('[data-state="open"]')
-  if (dialog) return // Already open
+import { createRadixDialogHelpers } from '@flowsterix/react'
 
-  const trigger = document.querySelector('[data-tour-target="dialog-trigger"]')
-  trigger?.click()
-}
-
-const ensureDialogClosed = () => {
-  const closeBtn = document.querySelector('[data-tour-target="dialog-close"]')
-  closeBtn?.click()
-}
+const settingsDialog = createRadixDialogHelpers({
+  contentSelector: '[data-tour-target="settings-dialog"]',
+  triggerSelector: '[data-tour-target="settings-trigger"]',
+})
 
 {
   id: 'dialog-content',
-  target: { selector: '[data-tour-target="dialog-panel"]' },
-  onEnter: ensureDialogOpen,
-  onResume: ensureDialogOpen,  // Also needed for page reload!
-  onExit: ensureDialogClosed,
+  target: { selector: '[data-tour-target="settings-dialog"]' },
+  onEnter: settingsDialog.open,
+  onResume: settingsDialog.open,  // Also needed for page reload!
+  onExit: settingsDialog.close,
+}
+```
+
+For other UI elements, use `waitForDom()` to ensure DOM updates complete:
+
+```tsx
+import { waitForDom } from '@flowsterix/react'
+
+const ensureMenuOpen = async () => {
+  const panel = document.querySelector('[data-tour-target="menu-panel"]')
+  if (panel?.getAttribute('data-state') === 'open') return
+
+  document.querySelector('[data-tour-target="menu-trigger"]')?.click()
+  await waitForDom()
 }
 ```
 

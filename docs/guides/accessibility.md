@@ -41,7 +41,7 @@ The `boxShadow` value is applied to both the target ring and popover ring when t
 
 ## Dominating Other Focus Traps
 
-When a modal library traps focus, it can prevent keyboard access to the tour popover. If you want Flowsterix to be the only focus trap, disable the modal’s trap while the tour is running.
+When a modal library traps focus, it can prevent keyboard access to the tour popover. If you want Flowsterix to be the only focus trap, disable the modal's trap while the tour is running.
 
 ```tsx
 import { useRadixDialogAdapter } from '@flowsterix/react'
@@ -53,7 +53,10 @@ function SettingsDialog() {
 
   return (
     <Dialog {...dialogProps}>
-      <DialogContent {...contentProps}>
+      <DialogTrigger data-tour-target="settings-trigger">
+        Settings
+      </DialogTrigger>
+      <DialogContent {...contentProps} data-tour-target="settings-dialog">
         {/* ... */}
       </DialogContent>
     </Dialog>
@@ -69,6 +72,31 @@ Escape-to-close while the tour is running.
 For other UI libraries, call `useTourFocusDominance()` and map
 `suspendExternalFocusTrap` to the equivalent props (e.g. `inert`,
 `disableEnforceFocus`, `trapFocus`, etc.).
+
+### Programmatic Dialog Control
+
+When tour steps target elements inside a Radix dialog, use `createRadixDialogHelpers` in lifecycle hooks:
+
+```tsx
+import { createRadixDialogHelpers } from '@flowsterix/react'
+
+const settingsDialog = createRadixDialogHelpers({
+  contentSelector: '[data-tour-target="settings-dialog"]',
+  triggerSelector: '[data-tour-target="settings-trigger"]',
+})
+
+// In your flow step:
+{
+  id: 'settings-panel',
+  target: { selector: '[data-tour-target="settings-dialog"]' },
+  onEnter: settingsDialog.open,
+  onResume: settingsDialog.open,
+  onExit: settingsDialog.close,
+  content: <p>Configure your settings here</p>,
+}
+```
+
+The helpers handle DOM timing automatically using `waitForDom()` and close dialogs via Escape key dispatch for clean Radix integration.
 
 ## Popover Roles and Labels
 

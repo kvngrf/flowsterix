@@ -1,5 +1,17 @@
 # @flowsterix/react
 
+## 0.9.0
+
+### Minor Changes
+
+- Add createRadixDialogHelpers and waitForDom utilities for programmatic dialog control
+
+  New exports for controlling Radix dialogs in tour lifecycle hooks:
+  - `createRadixDialogHelpers({ contentSelector, triggerSelector })` - Factory that returns `isOpen()`, `open()`, and `close()` helpers
+  - `waitForDom()` - Utility to wait for animation frame + microtask flush
+
+  These complement `useRadixDialogAdapter` for complete Radix dialog integration in tours.
+
 ## 0.8.1
 
 ### Patch Changes

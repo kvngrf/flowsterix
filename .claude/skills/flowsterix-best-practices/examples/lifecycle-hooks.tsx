@@ -5,10 +5,14 @@
  */
 
 import { createFlow, type FlowDefinition } from '@flowsterix/core'
+import {
+  createRadixDialogHelpers,
+  waitForDom,
+} from '@flowsterix/react'
 import type { ReactNode } from 'react'
 
-// Helper functions to control UI state
-const ensureMenuOpen = () => {
+// Helper functions to control menu state
+const ensureMenuOpen = async () => {
   if (typeof document === 'undefined') return
 
   const panel = document.querySelector('[data-tour-target="menu-panel"]')
@@ -20,10 +24,11 @@ const ensureMenuOpen = () => {
   const trigger = document.querySelector('[data-tour-target="menu-trigger"]')
   if (trigger instanceof HTMLElement) {
     trigger.click()
+    await waitForDom()
   }
 }
 
-const ensureMenuClosed = () => {
+const ensureMenuClosed = async () => {
   if (typeof document === 'undefined') return
 
   const panel = document.querySelector('[data-tour-target="menu-panel"]')
@@ -35,40 +40,24 @@ const ensureMenuClosed = () => {
   const closeBtn = panel.querySelector('[data-tour-target="menu-close"]')
   if (closeBtn instanceof HTMLElement) {
     closeBtn.click()
+    await waitForDom()
   }
 }
 
-const ensureDialogOpen = async () => {
-  if (typeof document === 'undefined') return
+// Use createRadixDialogHelpers for Radix dialogs
+const settingsDialog = createRadixDialogHelpers({
+  contentSelector: '[data-tour-target="dialog-content"]',
+  triggerSelector: '[data-tour-target="dialog-trigger"]',
+})
 
-  // Wait for DOM to settle
-  await new Promise((r) => requestAnimationFrame(r))
-
-  const dialog = document.querySelector('[data-tour-target="dialog-content"]')
-  if (dialog) return // Already open
-
-  const trigger = document.querySelector('[data-tour-target="dialog-trigger"]')
-  if (trigger instanceof HTMLElement) {
-    trigger.click()
-    // Wait for dialog animation
-    await new Promise((r) => setTimeout(r, 200))
-  }
-}
-
-const ensureDialogClosed = () => {
-  const closeBtn = document.querySelector('[data-tour-target="dialog-close"]')
-  if (closeBtn instanceof HTMLElement) {
-    closeBtn.click()
-  }
-}
-
-const ensureAccordionExpanded = () => {
+const ensureAccordionExpanded = async () => {
   const content = document.querySelector('[data-tour-target="accordion-content"]')
   if (content?.getAttribute('data-state') === 'open') return
 
   const trigger = document.querySelector('[data-tour-target="accordion-trigger"]')
   if (trigger instanceof HTMLElement) {
     trigger.click()
+    await waitForDom()
   }
 }
 
@@ -98,7 +87,7 @@ export const lifecycleFlow: FlowDefinition<ReactNode> = createFlow({
       content: <p>Here's where you access settings.</p>,
     },
 
-    // Dialog interaction
+    // Dialog interaction - use createRadixDialogHelpers for clean async handling
     {
       id: 'dialog-trigger',
       target: { selector: '[data-tour-target="dialog-trigger"]' },
@@ -109,12 +98,12 @@ export const lifecycleFlow: FlowDefinition<ReactNode> = createFlow({
 
     {
       id: 'dialog-content',
-      target: { selector: '[data-tour-target="dialog-panel"]' },
+      target: { selector: '[data-tour-target="dialog-content"]' },
       placement: 'right',
       advance: [{ type: 'manual' }],
-      onEnter: ensureDialogOpen,
-      onResume: ensureDialogOpen,
-      onExit: ensureDialogClosed,
+      onEnter: settingsDialog.open,
+      onResume: settingsDialog.open,
+      onExit: settingsDialog.close,
       content: <p>Configure your preferences here.</p>,
     },
 
@@ -139,14 +128,14 @@ export const lifecycleFlow: FlowDefinition<ReactNode> = createFlow({
         scrollMode: 'start',
       },
       advance: [{ type: 'manual' }],
-      onEnter: () => {
+      onEnter: async () => {
         // Close any open overlays before scrolling
-        ensureMenuClosed()
-        ensureDialogClosed()
+        await ensureMenuClosed()
+        await settingsDialog.close()
       },
-      onResume: () => {
-        ensureMenuClosed()
-        ensureDialogClosed()
+      onResume: async () => {
+        await ensureMenuClosed()
+        await settingsDialog.close()
       },
       content: <p>Notice the scroll respects the sticky header.</p>,
     },
