@@ -1,6 +1,6 @@
 {
   "name": "@flowsterix/devtools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Developer tools for Flowsterix - visual element grabber for building tour steps",
   "license": "MIT",
   "repository": {
