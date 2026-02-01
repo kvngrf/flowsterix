@@ -1,9 +1,9 @@
 ---
 name: flowsterix-best-practices
-description: Use when user asks to "create a tour", "add onboarding flow", "implement guided walkthrough", "set up Flowsterix", "add tour steps", "configure step targeting", "handle async content in tour", or needs help with tour overlays, popovers, step advance rules, or TourHUD configuration.
+description: Use when user asks to "create a tour", "add onboarding flow", "implement guided walkthrough", "set up Flowsterix", "add tour steps", "configure step targeting", "handle async content in tour", "use devtools to capture elements", "grab elements for tour", or needs help with tour overlays, popovers, step advance rules, TourHUD configuration, or DevTools element grabber.
 version: 0.1.0
 metadata:
-  tags: flowsterix, tour, onboarding, walkthrough, guide, react
+  tags: flowsterix, tour, onboarding, walkthrough, guide, react, devtools
 ---
 
 # Flowsterix Best Practices
@@ -624,6 +624,63 @@ const germanLabels = {
 
 <TourProvider flows={[...]} labels={germanLabels}>
 ```
+
+## DevTools - Element Grabber
+
+The `@flowsterix/devtools` package provides a visual element picker for building tour steps. Use it to capture elements and export JSON for AI-assisted flow generation.
+
+### Setup
+
+```tsx
+import { DevToolsProvider } from '@flowsterix/devtools'
+
+function App() {
+  return (
+    <DevToolsProvider enabled={process.env.NODE_ENV === 'development'}>
+      <TourProvider flows={[...]}>
+        <YourApp />
+      </TourProvider>
+    </DevToolsProvider>
+  )
+}
+```
+
+### Usage
+
+1. Press `Ctrl+Shift+G` to toggle grab mode
+2. Click elements to capture as tour steps
+3. Drag to reorder steps in the panel
+4. Click "Copy" to export JSON for AI
+
+### Export Format
+
+```json
+{
+  "version": "1.0",
+  "steps": [
+    {
+      "order": 0,
+      "element": "<button class=\"btn-primary\">Get Started</button>",
+      "componentTree": ["button", "Button", "Header", "App"]
+    }
+  ]
+}
+```
+
+### AI Workflow
+
+1. Capture elements with devtools
+2. Copy the JSON export
+3. Paste into AI with prompt: "Create a Flowsterix tour flow for these elements"
+4. AI generates flow definition with proper `data-tour-target` selectors
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+G` | Toggle grab mode |
+| `Esc` | Cancel grab mode |
+| `Ctrl+Shift+M` | Collapse/expand panel |
 
 ## Additional Resources
 
