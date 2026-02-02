@@ -1,4 +1,3 @@
-
 import type { FlowDefinition } from '@flowsterix/core'
 import { createFlow } from '@flowsterix/core'
 import type { ReactNode } from 'react'
@@ -146,7 +145,6 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       advance: [{ type: 'event', event: 'click', on: 'target' }],
       onResume: () => {
         ensureMenuOpen()
-        ensureSsrGroupExpanded()
       },
       content: (
         <StepContent>

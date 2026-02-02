@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -158,7 +158,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [position, setPosition] = useState({ x: 16, y: 16 })
   const [isPanelDragging, setIsPanelDragging] = useState(false)
-  const dragStartRef = { current: null as { x: number; y: number; posX: number; posY: number } | null }
+  const dragStartRef = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
 
   // Handle click to select element
   const handleClick = useCallback(

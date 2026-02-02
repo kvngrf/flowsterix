@@ -27,6 +27,8 @@ import {
 } from '@flowsterix/core'
 import type { DevToolsContextValue } from './devtools/DevToolsContext'
 import { DevToolsContext } from './devtools/DevToolsContext'
+// Use window directly to avoid module bundling issues with Vite
+const DEVTOOLS_BRIDGE_KEY = '__FLOWSTERIX_DEVTOOLS_BRIDGE__'
 import type {
   Dispatch,
   PropsWithChildren,
@@ -113,6 +115,12 @@ export interface TourContextValue {
   setDelayInfo: Dispatch<SetStateAction<DelayAdvanceInfo | null>>
   backdropInteraction: BackdropInteractionMode
   lockBodyScroll: boolean
+  /** @internal - DevTools: get flow state from storage */
+  getFlowState: (flowId: string) => Promise<FlowState | null>
+  /** @internal - DevTools: delete flow storage entry */
+  deleteFlowStorage: (flowId: string) => Promise<void>
+  /** @internal - DevTools: update flow storage entry */
+  updateFlowStorage: (flowId: string, state: FlowState) => Promise<void>
 }
 
 const TourContext = createContext<TourContextValue | undefined>(undefined)
@@ -674,6 +682,59 @@ export const TourProvider = ({
     void runResumeHooks(definition, state, resumeStrategy)
   }, [activeFlowId, flowMap, resolveResumeStrategy, runResumeHooks, state])
 
+  // Resolve storage adapter (needed for devtools methods)
+  const resolvedStorageAdapter = useMemo(() => {
+    if (storageAdapter) return storageAdapter
+    return fallbackStorageRef.current ?? null
+  }, [storageAdapter])
+
+  // Storage key helper
+  const getStorageKey = useCallback(
+    (flowId: string) =>
+      storageNamespace
+        ? `${storageNamespace}:${flowId}`
+        : `${DEFAULT_STORAGE_PREFIX}:${flowId}`,
+    [storageNamespace],
+  )
+
+  // DevTools storage methods (exposed on main context for cross-entry-point access)
+  const getFlowState = useCallback(
+    async (flowId: string): Promise<FlowState | null> => {
+      if (!resolvedStorageAdapter) return null
+      const key = getStorageKey(flowId)
+      const snapshot = await resolveMaybePromise(resolvedStorageAdapter.get(key))
+      if (!snapshot) return null
+      return snapshot.value as FlowState
+    },
+    [resolvedStorageAdapter, getStorageKey],
+  )
+
+  const deleteFlowStorage = useCallback(
+    async (flowId: string): Promise<void> => {
+      if (!resolvedStorageAdapter) return
+      const key = getStorageKey(flowId)
+      await resolveMaybePromise(resolvedStorageAdapter.remove(key))
+    },
+    [resolvedStorageAdapter, getStorageKey],
+  )
+
+  const updateFlowStorage = useCallback(
+    async (flowId: string, newState: FlowState): Promise<void> => {
+      if (!resolvedStorageAdapter) return
+      const key = getStorageKey(flowId)
+      const definition = flowMap.get(flowId)
+      if (!definition) return
+      await resolveMaybePromise(
+        resolvedStorageAdapter.set(key, {
+          version: newState.version,
+          value: newState,
+          updatedAt: Date.now(),
+        }),
+      )
+    },
+    [resolvedStorageAdapter, getStorageKey, flowMap],
+  )
+
   const contextValue: TourContextValue = useMemo(
     () => ({
       flows: flowMap,
@@ -698,6 +759,9 @@ export const TourProvider = ({
       setDelayInfo,
       backdropInteraction: backdropInteractionProp,
       lockBodyScroll: lockBodyScrollProp,
+      getFlowState,
+      deleteFlowStorage,
+      updateFlowStorage,
     }),
     [
       activeFlowId,
@@ -722,6 +786,9 @@ export const TourProvider = ({
       toggleDebug,
       backdropInteractionProp,
       lockBodyScrollProp,
+      getFlowState,
+      deleteFlowStorage,
+      updateFlowStorage,
     ],
   )
 
@@ -731,19 +798,8 @@ export const TourProvider = ({
     enabled: autoDetectReducedMotion,
   })
 
-  // Resolve storage adapter for devtools
-  const resolvedStorageAdapter = useMemo(() => {
-    if (storageAdapter) return storageAdapter
-    return fallbackStorageRef.current ?? null
-  }, [storageAdapter])
-
-  // DevTools context for exposing internal state
+  // DevTools context for exposing internal state (kept for backwards compat)
   const devToolsContextValue = useMemo((): DevToolsContextValue => {
-    const getStorageKey = (flowId: string) =>
-      storageNamespace
-        ? `${storageNamespace}:${flowId}`
-        : `${DEFAULT_STORAGE_PREFIX}:${flowId}`
-
     return {
       flows: flowMap,
       activeFlowId,
@@ -755,33 +811,9 @@ export const TourProvider = ({
           storeRef.current.cancel()
         }
       },
-      deleteFlowStorage: async (flowId: string) => {
-        if (!resolvedStorageAdapter) return
-        const key = getStorageKey(flowId)
-        await resolveMaybePromise(resolvedStorageAdapter.remove(key))
-      },
-      updateFlowStorage: async (flowId: string, newState: FlowState) => {
-        if (!resolvedStorageAdapter) return
-        const key = getStorageKey(flowId)
-        const definition = flowMap.get(flowId)
-        if (!definition) return
-        await resolveMaybePromise(
-          resolvedStorageAdapter.set(key, {
-            version: newState.version,
-            value: newState,
-            updatedAt: Date.now(),
-          }),
-        )
-      },
-      getFlowState: async (flowId: string) => {
-        if (!resolvedStorageAdapter) return null
-        const key = getStorageKey(flowId)
-        const snapshot = await resolveMaybePromise(
-          resolvedStorageAdapter.get(key),
-        )
-        if (!snapshot) return null
-        return snapshot.value as FlowState
-      },
+      deleteFlowStorage,
+      updateFlowStorage,
+      getFlowState,
     }
   }, [
     flowMap,
@@ -789,7 +821,60 @@ export const TourProvider = ({
     state,
     resolvedStorageAdapter,
     storageNamespace,
+    deleteFlowStorage,
+    updateFlowStorage,
+    getFlowState,
   ])
+
+  // Update global bridge for DevTools (works across Vite entry points)
+  // Use window directly to avoid module bundling issues
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const bridgeValue = {
+      flows: flowMap,
+      activeFlowId,
+      state,
+      cancel: () => {
+        if (storeRef.current) {
+          storeRef.current.cancel()
+        }
+      },
+      getFlowState,
+      deleteFlowStorage,
+      updateFlowStorage,
+    }
+
+    // Get or create bridge object on window
+    const w = window as unknown as Record<string, { value: unknown; listeners: Set<(v: unknown) => void> } | undefined>
+    if (!w[DEVTOOLS_BRIDGE_KEY]) {
+      w[DEVTOOLS_BRIDGE_KEY] = { value: null, listeners: new Set() }
+    }
+    const bridge = w[DEVTOOLS_BRIDGE_KEY]
+    bridge.value = bridgeValue
+
+    // Notify listeners
+    for (const listener of bridge.listeners) {
+      listener(bridgeValue)
+    }
+
+    // Only clear bridge on actual unmount, not on dependency changes
+    // This prevents brief null states during re-renders
+  }, [flowMap, activeFlowId, state, getFlowState, deleteFlowStorage, updateFlowStorage])
+
+  // Separate cleanup effect that only runs on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window === 'undefined') return
+      const w = window as unknown as Record<string, { value: unknown; listeners: Set<(v: unknown) => void> } | undefined>
+      if (w[DEVTOOLS_BRIDGE_KEY]) {
+        w[DEVTOOLS_BRIDGE_KEY].value = null
+        for (const listener of w[DEVTOOLS_BRIDGE_KEY].listeners) {
+          listener(null)
+        }
+      }
+    }
+  }, []) // Empty deps = only runs on unmount
 
   return (
     <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>

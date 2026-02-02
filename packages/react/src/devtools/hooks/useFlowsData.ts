@@ -1,7 +1,11 @@
 import type { FlowDefinition, FlowState } from '@flowsterix/core'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useState } from 'react'
-import { useDevToolsContext } from '../DevToolsContext'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import {
+  getDevToolsBridge,
+  subscribeDevToolsBridge,
+  type DevToolsBridgeValue,
+} from '../globalBridge'
 
 export interface FlowData {
   flowId: string
@@ -17,17 +21,26 @@ export interface UseFlowsDataResult {
   updateFlow: (flowId: string, state: FlowState) => Promise<void>
 }
 
+// Use useSyncExternalStore to subscribe to the global bridge
+function useBridge(): DevToolsBridgeValue | null {
+  return useSyncExternalStore(
+    subscribeDevToolsBridge,
+    getDevToolsBridge,
+    () => null, // Server snapshot
+  )
+}
+
 export function useFlowsData(): UseFlowsDataResult {
-  const devtools = useDevToolsContext()
+  const bridge = useBridge()
   const [flowsData, setFlowsData] = useState<FlowData[]>([])
 
   const loadFlowStates = useCallback(async () => {
-    if (!devtools) {
+    if (!bridge) {
       setFlowsData([])
       return
     }
 
-    const { flows, activeFlowId, state: activeState, getFlowState } = devtools
+    const { flows, activeFlowId, state: activeState, getFlowState } = bridge
     const flowDataPromises: Promise<FlowData>[] = []
 
     for (const [flowId, definition] of flows) {
@@ -36,9 +49,7 @@ export function useFlowsData(): UseFlowsDataResult {
       flowDataPromises.push(
         (async () => {
           // For active flow, use live state; otherwise fetch from storage
-          const flowState = isActive
-            ? activeState
-            : await getFlowState(flowId)
+          const flowState = isActive ? activeState : await getFlowState(flowId)
 
           return {
             flowId,
@@ -46,51 +57,47 @@ export function useFlowsData(): UseFlowsDataResult {
             state: flowState,
             isActive,
           }
-        })()
+        })(),
       )
     }
 
     const results = await Promise.all(flowDataPromises)
     setFlowsData(results)
-  }, [devtools])
+  }, [bridge])
 
-  // Load flows on mount and when devtools context changes
+  // Load flows on mount and when bridge changes
   useEffect(() => {
     void loadFlowStates()
   }, [loadFlowStates])
 
-  // Refresh when active flow state changes
-  useEffect(() => {
-    if (!devtools?.activeFlowId || !devtools?.state) return
-    void loadFlowStates()
-  }, [devtools?.activeFlowId, devtools?.state, loadFlowStates])
-
   const deleteFlow = useCallback(
     async (flowId: string) => {
-      if (!devtools) return
+      if (!bridge) return
 
       // Cancel if active
-      devtools.cancelFlow(flowId)
+      if (bridge.activeFlowId === flowId) {
+        bridge.cancel()
+      }
 
       // Delete from storage
-      await devtools.deleteFlowStorage(flowId)
+      await bridge.deleteFlowStorage(flowId)
 
       // Refresh list
       await loadFlowStates()
     },
-    [devtools, loadFlowStates]
+    [bridge, loadFlowStates],
   )
 
   const updateFlow = useCallback(
-    async (flowId: string, state: FlowState) => {
-      if (!devtools) return
+    async (flowId: string, newState: FlowState) => {
+      if (!bridge) return
 
-      await devtools.updateFlowStorage(flowId, state)
+      await bridge.updateFlowStorage(flowId, newState)
 
       // Refresh list
       await loadFlowStates()
     },
-    [devtools, loadFlowStates]
+    [bridge, loadFlowStates],
   )
 
   return {

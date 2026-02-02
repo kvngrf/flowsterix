@@ -1,5 +1,16 @@
 # @flowsterix/react
 
+## 0.11.1
+
+### Patch Changes
+
+- Fix DevTools state sharing across Vite entry points
+  - Add global bridge for sharing TourProvider state with DevTools, bypassing Vite's separate context bundling
+  - Expose storage methods (getFlowState, deleteFlowStorage, updateFlowStorage) on main TourContext
+  - Update useFlowsData hook to use useSyncExternalStore with global bridge
+  - Fix DevToolsProvider dragStartRef to use useRef properly
+  - Enable bundle splitting in tsup config for shared code
+
 ## 0.11.0
 
 ### Minor Changes

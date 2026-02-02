@@ -60,10 +60,17 @@ export const useHiddenTargetFallback = ({
     }
   }
 
+  // Track when step changed to enforce minimum grace period
+  const stepChangeTimeRef = useRef<number>(0)
+
   useEffect(() => {
+    stepChangeTimeRef.current = Date.now()
     skipTriggeredRef.current = false
     setUsingScreenFallback(false)
-    setIsInGracePeriod(false)
+    // Start with grace period true on step change to prevent race condition
+    // with pause effect in useHudState. The visibility effect below will
+    // manage the actual grace period timing.
+    setIsInGracePeriod(true)
     clearPendingTimeout()
     clearGraceTimeout()
     return () => {
@@ -103,9 +110,28 @@ export const useHiddenTargetFallback = ({
         isMissingWithNoRect ||
         isMissingAfterNavigation)
 
-    if (!shouldHandleHiddenTarget) {
+    // Keep grace period active for 'unknown' visibility (transitional state)
+    // Also enforce minimum grace period after step change to prevent premature clearing
+    // when target is briefly visible then disappears (e.g., menu that closes)
+    const timeSinceStepChange = Date.now() - stepChangeTimeRef.current
+    const MIN_GRACE_AFTER_STEP_CHANGE = 300 // ms
+
+    if (!shouldHandleHiddenTarget && target.visibility !== 'unknown') {
+      if (timeSinceStepChange < MIN_GRACE_AFTER_STEP_CHANGE) {
+        // Schedule check after min grace period
+        graceTimeoutRef.current = globalThis.setTimeout(() => {
+          setIsInGracePeriod(false)
+        }, MIN_GRACE_AFTER_STEP_CHANGE - timeSinceStepChange)
+        return undefined
+      }
+
       setUsingScreenFallback(false)
       setIsInGracePeriod(false)
+      return undefined
+    }
+
+    // For 'unknown' visibility, keep grace period but don't start timers
+    if (target.visibility === 'unknown') {
       return undefined
     }
 

@@ -11,6 +11,7 @@ export default defineConfig({
     'src/devtools/index.tsx',
   ],
   format: ['esm', 'cjs'],
+  splitting: true, // Share DevToolsContext between main and devtools bundles
   clean: true,
   external: [
     'react',

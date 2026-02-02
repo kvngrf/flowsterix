@@ -142,6 +142,7 @@ export const TourPopoverPortal = ({
   containerComponent,
   contentComponent,
   transitionsOverride,
+  isInGracePeriod = false,
 }: TourPopoverPortalProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -183,10 +184,12 @@ export const TourPopoverPortal = ({
         rect: { ...target.rect },
         isScreen: target.isScreen,
       }
-    } else if (target.status === 'idle') {
+    } else if (target.status === 'idle' && !isInGracePeriod) {
+      // Only clear when truly idle, not during step transitions
+      // This preserves position for smooth animations between steps
       lastReadyTargetRef.current = null
     }
-  }, [target.isScreen, target.rect, target.status])
+  }, [target.isScreen, target.rect, target.status, isInGracePeriod])
 
   const cachedTarget = lastReadyTargetRef.current
   const resolvedRect =

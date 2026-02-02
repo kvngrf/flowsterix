@@ -114,11 +114,13 @@ export const useTourOverlay = (
       return
     }
 
-    if (target.status === 'idle') {
+    // Only clear when truly idle (no step), not during step transitions
+    // During transitions (resolving), keep the cached position for smooth animation
+    if (target.status === 'idle' && !isInGracePeriod) {
       hasShownRef.current = false
       lastReadyTargetRef.current = null
     }
-  }, [target])
+  }, [target, isInGracePeriod])
 
   const viewport = getViewportRect()
   const cachedTarget = lastReadyTargetRef.current
