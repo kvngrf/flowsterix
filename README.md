@@ -88,6 +88,32 @@ The skill provides patterns for step definitions, advance rules, lifecycle hooks
 
 ---
 
+## DevTools
+
+Debug and manage your flows during development:
+
+```tsx
+import { DevToolsProvider } from '@flowsterix/react/devtools'
+
+export function App({ children }) {
+  return (
+    <TourProvider flows={[onboardingFlow]} storageNamespace="my-app">
+      <DevToolsProvider enabled={process.env.NODE_ENV === 'development'}>
+        <TourHUD />
+        {children}
+      </DevToolsProvider>
+    </TourProvider>
+  )
+}
+```
+
+**Features:**
+- **Steps Tab** - Drag-and-drop reorder, jump to any step, track active state
+- **Flows Tab** - View all registered flows, edit JSON state, delete flow storage
+- **Element Grabber** - Click any element to copy its selector for step targets
+
+---
+
 ## Features
 
 - **Declarative flows** - Define steps with targets, content, and progression rules
@@ -103,6 +129,7 @@ The skill provides patterns for step definitions, advance rules, lifecycle hooks
 
 | Guide                                               | Description                                            |
 | --------------------------------------------------- | ------------------------------------------------------ |
+| [DevTools](docs/guides/devtools.md)                 | Debug flows, manage state, capture element selectors   |
 | [Storage Adapters](docs/guides/storage-adapters.md) | Persist state to localStorage, API, or custom backends |
 | [Versioning](docs/guides/versioning.md)             | Handle flow updates and migrations                     |
 | [Accessibility](docs/guides/accessibility.md)       | Focus management, ARIA, reduced motion                 |
