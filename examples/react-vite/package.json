@@ -16,7 +16,6 @@
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
     "@flowsterix/core": "workspace:*",
-    "@flowsterix/devtools": "workspace:*",
     "@flowsterix/react": "workspace:*",
     "@radix-ui/react-slot": "^1.2.4",
     "@t3-oss/env-core": "^0.13.8",

@@ -25,6 +25,8 @@ import {
   resolveMaybePromise,
   serializeVersion,
 } from '@flowsterix/core'
+import type { DevToolsContextValue } from './devtools/DevToolsContext'
+import { DevToolsContext } from './devtools/DevToolsContext'
 import type {
   Dispatch,
   PropsWithChildren,
@@ -729,17 +731,79 @@ export const TourProvider = ({
     enabled: autoDetectReducedMotion,
   })
 
+  // Resolve storage adapter for devtools
+  const resolvedStorageAdapter = useMemo(() => {
+    if (storageAdapter) return storageAdapter
+    return fallbackStorageRef.current ?? null
+  }, [storageAdapter])
+
+  // DevTools context for exposing internal state
+  const devToolsContextValue = useMemo((): DevToolsContextValue => {
+    const getStorageKey = (flowId: string) =>
+      storageNamespace
+        ? `${storageNamespace}:${flowId}`
+        : `${DEFAULT_STORAGE_PREFIX}:${flowId}`
+
+    return {
+      flows: flowMap,
+      activeFlowId,
+      state,
+      storageAdapter: resolvedStorageAdapter,
+      storageNamespace: storageNamespace ?? DEFAULT_STORAGE_PREFIX,
+      cancelFlow: (flowId: string) => {
+        if (activeFlowId === flowId && storeRef.current) {
+          storeRef.current.cancel()
+        }
+      },
+      deleteFlowStorage: async (flowId: string) => {
+        if (!resolvedStorageAdapter) return
+        const key = getStorageKey(flowId)
+        await resolveMaybePromise(resolvedStorageAdapter.remove(key))
+      },
+      updateFlowStorage: async (flowId: string, newState: FlowState) => {
+        if (!resolvedStorageAdapter) return
+        const key = getStorageKey(flowId)
+        const definition = flowMap.get(flowId)
+        if (!definition) return
+        await resolveMaybePromise(
+          resolvedStorageAdapter.set(key, {
+            version: newState.version,
+            value: newState,
+            updatedAt: Date.now(),
+          }),
+        )
+      },
+      getFlowState: async (flowId: string) => {
+        if (!resolvedStorageAdapter) return null
+        const key = getStorageKey(flowId)
+        const snapshot = await resolveMaybePromise(
+          resolvedStorageAdapter.get(key),
+        )
+        if (!snapshot) return null
+        return snapshot.value as FlowState
+      },
+    }
+  }, [
+    flowMap,
+    activeFlowId,
+    state,
+    resolvedStorageAdapter,
+    storageNamespace,
+  ])
+
   return (
     <AnimationAdapterProvider adapter={resolvedAnimationAdapter}>
       <LabelsProvider value={mergedLabels}>
         <DialogRegistryProvider>
           <TourContext.Provider value={contextValue}>
-            <DialogAutomationBridge
-              flow={activeFlowId ? flowMap.get(activeFlowId) : undefined}
-              state={state}
-              events={events}
-            />
-            {children}
+            <DevToolsContext.Provider value={devToolsContextValue}>
+              <DialogAutomationBridge
+                flow={activeFlowId ? flowMap.get(activeFlowId) : undefined}
+                state={state}
+                events={events}
+              />
+              {children}
+            </DevToolsContext.Provider>
           </TourContext.Provider>
         </DialogRegistryProvider>
       </LabelsProvider>

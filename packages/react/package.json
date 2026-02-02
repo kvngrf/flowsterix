@@ -1,6 +1,6 @@
 {
   "name": "@flowsterix/react",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "React bindings for Flowsterix - guided tours and onboarding flows",
   "license": "MIT",
   "repository": {
@@ -57,6 +57,12 @@
       "import": "./dist/router/nextPagesRouterAdapter.mjs",
       "require": "./dist/router/nextPagesRouterAdapter.cjs",
       "default": "./dist/router/nextPagesRouterAdapter.mjs"
+    },
+    "./devtools": {
+      "types": "./dist/devtools/index.d.ts",
+      "import": "./dist/devtools/index.mjs",
+      "require": "./dist/devtools/index.cjs",
+      "default": "./dist/devtools/index.mjs"
     }
   },
   "files": [
@@ -69,6 +75,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@floating-ui/dom": "^1.7.4",
     "@flowsterix/core": "workspace:*"
   },

@@ -64,3 +64,5 @@ export interface ElementInfo {
   rect: DOMRect
   source?: ElementSource
 }
+
+export type DevToolsTab = 'steps' | 'flows'

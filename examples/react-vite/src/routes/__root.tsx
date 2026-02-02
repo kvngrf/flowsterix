@@ -1,4 +1,4 @@
-import { DevToolsProvider } from '@flowsterix/devtools'
+import { DevToolsProvider } from '@flowsterix/react/devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
@@ -45,7 +45,6 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body className="bg-slate-900">
-        <DevToolsProvider enabled={process.env.NODE_ENV === 'development'}>
         <TourProvider
           flows={demoFlows}
           storageNamespace="flowsterix-demo"
@@ -55,23 +54,24 @@ function RootDocument({ children }: { children: ReactNode }) {
           backdropInteraction="block"
           lockBodyScroll
         >
-          <TanStackRouterSync />
-          <Header />
-          {children}
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-          <TourHUD controls={{ skipMode: 'hold' }} />
+          <DevToolsProvider enabled={process.env.NODE_ENV === 'development'}>
+            <TanStackRouterSync />
+            <Header />
+            {children}
+            <TanStackDevtools
+              config={{
+                position: 'bottom-right',
+              }}
+              plugins={[
+                {
+                  name: 'Tanstack Router',
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+              ]}
+            />
+            <TourHUD controls={{ skipMode: 'hold' }} />
+          </DevToolsProvider>
         </TourProvider>
-        </DevToolsProvider>
         <Scripts />
       </body>
     </html>

@@ -627,20 +627,20 @@ const germanLabels = {
 
 ## DevTools - Element Grabber
 
-The `@flowsterix/devtools` package provides a visual element picker for building tour steps. Use it to capture elements and export JSON for AI-assisted flow generation.
+The `@flowsterix/react/devtools` subpath provides a visual element picker for building tour steps. Use it to capture elements and export JSON for AI-assisted flow generation. It also includes a Flows tab to view and edit stored flow states.
 
 ### Setup
 
 ```tsx
-import { DevToolsProvider } from '@flowsterix/devtools'
+import { DevToolsProvider } from '@flowsterix/react/devtools'
 
 function App() {
   return (
-    <DevToolsProvider enabled={process.env.NODE_ENV === 'development'}>
-      <TourProvider flows={[...]}>
+    <TourProvider flows={[...]}>
+      <DevToolsProvider enabled={process.env.NODE_ENV === 'development'}>
         <YourApp />
-      </TourProvider>
-    </DevToolsProvider>
+      </DevToolsProvider>
+    </TourProvider>
   )
 }
 ```

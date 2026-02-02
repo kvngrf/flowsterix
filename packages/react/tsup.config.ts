@@ -8,6 +8,7 @@ export default defineConfig({
     'src/router/reactRouterAdapter.tsx',
     'src/router/nextAppRouterAdapter.tsx',
     'src/router/nextPagesRouterAdapter.tsx',
+    'src/devtools/index.tsx',
   ],
   format: ['esm', 'cjs'],
   clean: true,

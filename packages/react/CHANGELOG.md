@@ -1,5 +1,24 @@
 # @flowsterix/react
 
+## 0.11.0
+
+### Minor Changes
+
+- Add `@flowsterix/react/devtools` subpath export
+  - Migrated devtools from separate `@flowsterix/devtools` package
+  - Added Flows tab for viewing and editing flow storage entries
+  - DevToolsProvider now integrates with TourProvider context
+  - Tree-shakeable when not used
+
+  Migration from `@flowsterix/devtools`:
+
+  ```diff
+  - import { DevToolsProvider } from '@flowsterix/devtools'
+  + import { DevToolsProvider } from '@flowsterix/react/devtools'
+  ```
+
+  Note: DevToolsProvider must now be placed inside TourProvider.
+
 ## 0.10.1
 
 ### Patch Changes
