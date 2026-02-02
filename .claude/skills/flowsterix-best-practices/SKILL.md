@@ -625,9 +625,12 @@ const germanLabels = {
 <TourProvider flows={[...]} labels={germanLabels}>
 ```
 
-## DevTools - Element Grabber
+## DevTools
 
-The `@flowsterix/react/devtools` subpath provides a visual element picker for building tour steps. Use it to capture elements and export JSON for AI-assisted flow generation. It also includes a Flows tab to view and edit stored flow states.
+The `@flowsterix/react/devtools` subpath provides development tools for building and debugging tours:
+
+- **Steps tab** - Visual element picker to capture tour steps and export JSON for AI
+- **Flows tab** - View and edit stored flow states for debugging
 
 ### Setup
 
@@ -645,7 +648,7 @@ function App() {
 }
 ```
 
-### Usage
+### Steps Tab (Element Grabber)
 
 1. Press `Ctrl+Shift+G` to toggle grab mode
 2. Click elements to capture as tour steps
@@ -681,6 +684,26 @@ function App() {
 | `Ctrl+Shift+G` | Toggle grab mode |
 | `Esc` | Cancel grab mode |
 | `Ctrl+Shift+M` | Collapse/expand panel |
+
+### Flows Tab
+
+The Flows tab shows all registered flows and their stored state. Use it to:
+
+- **View flow status** - See which flows are idle, running, paused, completed, or cancelled
+- **Inspect state** - Check current step index, version, and step ID
+- **Edit flow state** - Modify stored JSON directly (useful for debugging)
+- **Delete flow state** - Clear stored state to reset a flow (cancels if running)
+
+**Features:**
+- Live updates when active flow state changes
+- Shows "Active" badge for currently running flow
+- Confirmation required before deleting
+
+**Use cases:**
+- Reset a flow to test from beginning
+- Debug unexpected flow behavior by inspecting stored state
+- Manually advance a stuck flow by editing `stepIndex`
+- Clear completed flows to re-trigger `autoStart`
 
 ## Additional Resources
 
