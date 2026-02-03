@@ -1,5 +1,25 @@
 # @flowsterix/react
 
+## 0.12.0
+
+### Minor Changes
+
+- Add motion system and polished DevTools animations
+  - New `motion.ts` module with spring configs, tweens, stagger presets, and `useReducedMotion` hook
+  - TabNav: sliding indicator, badge pop animation on count change
+  - StepList: staggered entrance animations, AnimatePresence for item add/remove
+  - StepItem: hover glow effect, order badge animation, delete button interaction
+  - FlowItem: status badge transitions, hover shadow
+  - FlowEditModal: spring entrance, backdrop blur, error shake animation
+  - GrabberOverlay: selection confirmation pulse
+  - Toolbar: spring copied badge, grab button pulsing glow
+  - DevToolsProvider: improved accordion animation with spring physics
+
+- Performance improvements
+  - Replace `layoutId` with CSS transitions to prevent drag sluggishness
+  - Remove unnecessary `layout` props from FlowItem and StepList items
+  - All animations respect `prefers-reduced-motion`
+
 ## 0.11.1
 
 ### Patch Changes
