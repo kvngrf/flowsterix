@@ -80,7 +80,6 @@ const styles = {
     position: 'fixed' as const,
     bottom: 20,
     left: '50%',
-    transform: 'translateX(-50%)',
     display: 'flex',
     alignItems: 'center',
     gap: 12,
@@ -225,9 +224,9 @@ export function GrabberOverlay(props: GrabberOverlayProps) {
           <motion.div
             key="grabber-hint"
             style={styles.hint}
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+            exit={{ opacity: 0, y: 10, scale: 0.95, x: '-50%' }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <div style={styles.hintItem}>
