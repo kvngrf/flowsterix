@@ -5,12 +5,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import type { FlowState } from '@flowsterix/core'
+import { springs, useReducedMotion } from '../motion'
 
 const styles = {
   overlay: {
     position: 'fixed' as const,
     inset: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -74,6 +77,7 @@ const styles = {
     resize: 'vertical' as const,
     outline: 'none',
     lineHeight: 1.5,
+    transition: 'border-color 0.15s ease',
   },
   textareaError: {
     borderColor: 'hsl(0 70% 50%)',
@@ -138,6 +142,8 @@ export function FlowEditModal(props: FlowEditModalProps) {
 
   const [jsonValue, setJsonValue] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [shake, setShake] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     if (isOpen && initialState) {
@@ -145,6 +151,12 @@ export function FlowEditModal(props: FlowEditModalProps) {
       setError(null)
     }
   }, [isOpen, initialState])
+
+  const triggerShake = useCallback(() => {
+    if (reducedMotion) return
+    setShake(true)
+    setTimeout(() => setShake(false), 400)
+  }, [reducedMotion])
 
   const handleSave = useCallback(() => {
     try {
@@ -163,8 +175,9 @@ export function FlowEditModal(props: FlowEditModalProps) {
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid JSON')
+      triggerShake()
     }
-  }, [jsonValue, onSave, onClose])
+  }, [jsonValue, onSave, onClose, triggerShake])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -199,10 +212,10 @@ export function FlowEditModal(props: FlowEditModalProps) {
       {isOpen && (
         <motion.div
           style={styles.overlay}
-          initial={{ opacity: 0 }}
+          initial={reducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          exit={reducedMotion ? {} : { opacity: 0 }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.15 }}
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose()
           }}
@@ -210,24 +223,31 @@ export function FlowEditModal(props: FlowEditModalProps) {
         >
           <motion.div
             style={styles.modal}
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            initial={reducedMotion ? {} : { opacity: 0, scale: 0.95, y: 10 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              x: shake ? [0, -8, 8, -6, 6, -4, 4, 0] : 0,
+            }}
+            exit={reducedMotion ? {} : { opacity: 0, scale: 0.95, y: 10 }}
+            transition={reducedMotion ? { duration: 0 } : springs.smooth}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={styles.header}>
               <span style={styles.title}>Edit Flow: {flowId}</span>
-              <button
+              <motion.button
                 type="button"
                 style={styles.closeButton}
                 onClick={onClose}
                 title="Close"
+                whileHover={reducedMotion ? {} : { scale: 1.1 }}
+                whileTap={reducedMotion ? {} : { scale: 0.9 }}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
                 </svg>
-              </button>
+              </motion.button>
             </div>
 
             <div style={styles.body}>
@@ -241,24 +261,38 @@ export function FlowEditModal(props: FlowEditModalProps) {
                 spellCheck={false}
                 autoFocus
               />
-              {error && <div style={styles.error}>{error}</div>}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    style={styles.error}
+                    initial={reducedMotion ? {} : { opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reducedMotion ? {} : { opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div style={styles.footer}>
-              <button
+              <motion.button
                 type="button"
                 style={styles.button}
                 onClick={onClose}
+                whileHover={reducedMotion ? {} : { scale: 1.02 }}
+                whileTap={reducedMotion ? {} : { scale: 0.98 }}
               >
                 Cancel
-              </button>
+              </motion.button>
               <motion.button
                 type="button"
                 style={saveButtonStyle}
                 onClick={handleSave}
                 disabled={!!error}
-                whileHover={!error ? { scale: 1.02 } : {}}
-                whileTap={!error ? { scale: 0.98 } : {}}
+                whileHover={!error && !reducedMotion ? { scale: 1.02 } : {}}
+                whileTap={!error && !reducedMotion ? { scale: 0.98 } : {}}
               >
                 Save
               </motion.button>

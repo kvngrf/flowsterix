@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import {
   DndContext,
   DragOverlay,
@@ -19,6 +20,11 @@ import {
 import type { DevToolsExport, GrabbedStep, GrabMode } from '../types'
 import { SortableStepItem, StepItemDragPreview } from './StepItem'
 import { Toolbar } from './Toolbar'
+import {
+  listContainerVariants,
+  listItemVariants,
+  useReducedMotion,
+} from '../motion'
 
 const styles = {
   scrollArea: {
@@ -91,6 +97,7 @@ export function StepList(props: StepListProps) {
   } = props
 
   const [activeId, setActiveId] = useState<string | null>(null)
+  const reducedMotion = useReducedMotion()
 
   const activeStep = activeId ? steps.find((s) => s.id === activeId) : null
   const activeIndex = activeId ? steps.findIndex((s) => s.id === activeId) : -1
@@ -169,57 +176,81 @@ export function StepList(props: StepListProps) {
       />
 
       <div style={styles.scrollArea}>
-        {steps.length === 0 ? (
-          <div style={styles.empty}>
-            <div style={styles.emptyIcon}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 16 16"
-                fill="hsl(215 20% 45%)"
-              >
-                <path d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM5.904 10.803L10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z" />
-              </svg>
-            </div>
-            <div style={styles.emptyText}>
-              <div>No steps captured yet.</div>
-              <div style={{ marginTop: 6 }}>
-                Press <span style={styles.kbd}>Ctrl+Shift+G</span> to grab
-              </div>
-            </div>
-          </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDragCancel={handleDragCancel}
-          >
-            <SortableContext
-              items={steps.map((s) => s.id)}
-              strategy={verticalListSortingStrategy}
+        <AnimatePresence mode="wait">
+          {steps.length === 0 ? (
+            <motion.div
+              key="empty-state"
+              style={styles.empty}
+              initial={reducedMotion ? {} : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reducedMotion ? {} : { opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <div style={styles.stepList}>
-                {steps.map((step, index) => (
-                  <SortableStepItem
-                    key={step.id}
-                    step={step}
-                    index={index}
-                    onDelete={() => onDeleteStep({ id: step.id })}
-                    isDragActive={activeId !== null}
-                    isBeingDragged={step.id === activeId}
-                  />
-                ))}
+              <div style={styles.emptyIcon}>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 16 16"
+                  fill="hsl(215 20% 45%)"
+                >
+                  <path d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM5.904 10.803L10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z" />
+                </svg>
               </div>
-            </SortableContext>
-            <DragOverlay dropAnimation={null}>
-              {activeStep && (
-                <StepItemDragPreview step={activeStep} index={activeIndex} />
-              )}
-            </DragOverlay>
-          </DndContext>
-        )}
+              <div style={styles.emptyText}>
+                <div>No steps captured yet.</div>
+                <div style={{ marginTop: 6 }}>
+                  Press <span style={styles.kbd}>Ctrl+Shift+G</span> to grab
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragCancel={handleDragCancel}
+            >
+              <SortableContext
+                items={steps.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <motion.div
+                  key="step-list"
+                  style={styles.stepList}
+                  variants={reducedMotion ? undefined : listContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {steps.map((step, index) => (
+                      <motion.div
+                        key={step.id}
+                        variants={reducedMotion ? undefined : listItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                      >
+                        <SortableStepItem
+                          step={step}
+                          index={index}
+                          onDelete={() => onDeleteStep({ id: step.id })}
+                          isDragActive={activeId !== null}
+                          isBeingDragged={step.id === activeId}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              </SortableContext>
+              <DragOverlay dropAnimation={null}>
+                {activeStep && (
+                  <StepItemDragPreview step={activeStep} index={activeIndex} />
+                )}
+              </DragOverlay>
+            </DndContext>
+          )}
+        </AnimatePresence>
       </div>
     </>
   )

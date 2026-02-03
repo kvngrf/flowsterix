@@ -2,8 +2,9 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import type { FlowData } from '../hooks/useFlowsData'
+import { springs, useReducedMotion } from '../motion'
 
 const styles = {
   card: {
@@ -16,6 +17,11 @@ const styles = {
     border: '1px solid hsl(215 20% 22%)',
     fontSize: 12,
     fontFamily: 'inherit',
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+  },
+  cardHover: {
+    borderColor: 'hsl(215 20% 28%)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
   },
   cardActive: {
     borderColor: 'hsl(217 91% 55% / 0.5)',
@@ -145,6 +151,8 @@ export function FlowItem(props: FlowItemProps) {
   const { flowId, definition, state, isActive } = flow
 
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   const handleDelete = () => {
     if (confirmDelete) {
@@ -159,6 +167,7 @@ export function FlowItem(props: FlowItemProps) {
 
   const cardStyle: CSSProperties = {
     ...styles.card,
+    ...(isHovered && styles.cardHover),
     ...(isActive && styles.cardActive),
   }
 
@@ -176,18 +185,44 @@ export function FlowItem(props: FlowItemProps) {
     ? `Step ${state.stepIndex + 1}/${definition.steps.length}`
     : null
 
+  const currentStatus = state?.status ?? 'no state'
+
   return (
-    <div style={cardStyle}>
+    <div
+      style={cardStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div style={styles.header}>
         <div style={styles.titleGroup}>
           <span style={styles.flowId}>{flowId}</span>
-          {isActive && (
-            <span style={{ ...styles.statusBadge, ...styles.activeBadge }}>
-              Active
-            </span>
-          )}
+          <AnimatePresence mode="wait">
+            {isActive && (
+              <motion.span
+                key="active-badge"
+                style={{ ...styles.statusBadge, ...styles.activeBadge }}
+                initial={reducedMotion ? {} : { scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={reducedMotion ? {} : { scale: 0.8, opacity: 0 }}
+                transition={reducedMotion ? { duration: 0 } : springs.bouncy}
+              >
+                Active
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
-        <span style={statusBadgeStyle}>{state?.status ?? 'no state'}</span>
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={currentStatus}
+            style={statusBadgeStyle}
+            initial={reducedMotion ? {} : { scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={reducedMotion ? {} : { scale: 0.9, opacity: 0 }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.15 }}
+          >
+            {currentStatus}
+          </motion.span>
+        </AnimatePresence>
       </div>
 
       {state ? (
@@ -219,8 +254,8 @@ export function FlowItem(props: FlowItemProps) {
           style={styles.actionButton}
           onClick={onEdit}
           disabled={!state}
-          whileHover={state ? { scale: 1.02 } : {}}
-          whileTap={state ? { scale: 0.98 } : {}}
+          whileHover={state && !reducedMotion ? { scale: 1.02 } : {}}
+          whileTap={state && !reducedMotion ? { scale: 0.98 } : {}}
           title={state ? 'Edit flow state' : 'No state to edit'}
         >
           <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
@@ -234,8 +269,8 @@ export function FlowItem(props: FlowItemProps) {
           style={deleteButtonStyle}
           onClick={handleDelete}
           disabled={!state}
-          whileHover={state ? { scale: 1.02 } : {}}
-          whileTap={state ? { scale: 0.98 } : {}}
+          whileHover={state && !reducedMotion ? { scale: 1.02 } : {}}
+          whileTap={state && !reducedMotion ? { scale: 0.98 } : {}}
           title={
             confirmDelete
               ? 'Click again to confirm deletion'

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
+import { springs } from './motion'
 
 import { GrabberOverlay } from './components/GrabberOverlay'
 import { StepList } from './components/StepList'
@@ -346,11 +347,11 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
           <AnimatePresence initial={false}>
             {!collapsed && (
               <motion.div
-                style={styles.body}
+                style={{ ...styles.body, overflow: 'hidden' }}
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={springs.smooth}
               >
                 <TabNav
                   activeTab={activeTab}

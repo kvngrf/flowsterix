@@ -2,8 +2,9 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import type { GrabMode } from '../types'
+import { springs, useReducedMotion } from '../motion'
 
 const styles = {
   toolbar: {
@@ -38,7 +39,8 @@ const styles = {
     backgroundColor: 'rgba(59, 130, 246, 0.15)',
     borderColor: 'rgba(59, 130, 246, 0.4)',
     color: '#60a5fa',
-    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
+    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1), 0 0 12px rgba(59, 130, 246, 0.2)',
+    animation: 'grabPulse 2s ease-in-out infinite',
   },
   actionRow: {
     display: 'flex',
@@ -96,6 +98,12 @@ const styles = {
     borderRadius: 4,
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
   },
+  pulseKeyframes: `
+    @keyframes grabPulse {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1), 0 0 12px rgba(59, 130, 246, 0.2); }
+      50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.3); }
+    }
+  `,
 } as const
 
 export interface ToolbarProps {
@@ -111,6 +119,7 @@ export function Toolbar(props: ToolbarProps) {
   const { mode, stepCount, onToggleGrab, onExport, onCopyForAI, onReset } =
     props
   const [copied, setCopied] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   const isGrabbing = mode === 'grabbing'
   const hasSteps = stepCount > 0
@@ -144,13 +153,16 @@ export function Toolbar(props: ToolbarProps) {
 
   return (
     <div style={styles.toolbar}>
+      {/* Inject keyframes for pulse animation */}
+      <style>{styles.pulseKeyframes}</style>
+
       <div style={styles.grabRow}>
         <motion.button
           type="button"
           style={grabButtonStyle}
           onClick={onToggleGrab}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={reducedMotion ? {} : { scale: 1.01 }}
+          whileTap={reducedMotion ? {} : { scale: 0.98 }}
         >
           {isGrabbing ? (
             <>
@@ -222,8 +234,8 @@ export function Toolbar(props: ToolbarProps) {
           style={exportButtonStyle}
           onClick={onExport}
           disabled={!hasSteps}
-          whileHover={hasSteps ? { scale: 1.02 } : {}}
-          whileTap={hasSteps ? { scale: 0.98 } : {}}
+          whileHover={hasSteps && !reducedMotion ? { scale: 1.02 } : {}}
+          whileTap={hasSteps && !reducedMotion ? { scale: 0.98 } : {}}
           title="Download JSON file"
         >
           <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
@@ -238,8 +250,8 @@ export function Toolbar(props: ToolbarProps) {
           style={copyButtonStyle}
           onClick={handleCopy}
           disabled={!hasSteps}
-          whileHover={hasSteps ? { scale: 1.02 } : {}}
-          whileTap={hasSteps ? { scale: 0.98 } : {}}
+          whileHover={hasSteps && !reducedMotion ? { scale: 1.02 } : {}}
+          whileTap={hasSteps && !reducedMotion ? { scale: 0.98 } : {}}
           title="Copy JSON to clipboard"
         >
           <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
@@ -247,16 +259,19 @@ export function Toolbar(props: ToolbarProps) {
             <path d="M14 5a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2H6a1 1 0 0 1 0-2h7V6a1 1 0 0 1 1-1z" />
           </svg>
           Copy
-          {copied && (
-            <motion.span
-              style={styles.copiedBadge}
-              initial={{ opacity: 0, scale: 0.8, y: 4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-            >
-              Copied!
-            </motion.span>
-          )}
+          <AnimatePresence>
+            {copied && (
+              <motion.span
+                style={styles.copiedBadge}
+                initial={reducedMotion ? {} : { opacity: 0, scale: 0.5, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={reducedMotion ? {} : { opacity: 0, scale: 0.5, y: 4 }}
+                transition={reducedMotion ? { duration: 0 } : springs.bouncy}
+              >
+                Copied!
+              </motion.span>
+            )}
+          </AnimatePresence>
         </motion.button>
 
         <motion.button
@@ -264,8 +279,8 @@ export function Toolbar(props: ToolbarProps) {
           style={resetButtonStyle}
           onClick={onReset}
           disabled={!hasSteps}
-          whileHover={hasSteps ? { scale: 1.02 } : {}}
-          whileTap={hasSteps ? { scale: 0.98 } : {}}
+          whileHover={hasSteps && !reducedMotion ? { scale: 1.02 } : {}}
+          whileTap={hasSteps && !reducedMotion ? { scale: 0.98 } : {}}
           title="Clear all steps"
         >
           <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">

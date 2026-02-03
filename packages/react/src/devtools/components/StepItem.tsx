@@ -1,10 +1,13 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { motion } from 'motion/react'
 import type { GrabbedStep } from '../types'
 import { formatSourcePath, getVSCodeLink } from '../utils/sourceExtractor'
+import { springs, useReducedMotion } from '../motion'
 
 const styles = {
   card: {
@@ -17,6 +20,11 @@ const styles = {
     fontSize: 12,
     fontFamily: 'inherit',
     overflow: 'hidden' as const,
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+  },
+  cardHover: {
+    borderColor: 'hsl(217 91% 55% / 0.4)',
+    boxShadow: '0 0 0 2px hsl(217 91% 55% / 0.1), 0 4px 12px rgba(0, 0, 0, 0.2)',
   },
   cardGhost: {
     opacity: 0.4,
@@ -164,6 +172,8 @@ export interface StepItemProps {
 
 export function SortableStepItem(props: StepItemProps) {
   const { step, index, onDelete, isBeingDragged = false } = props
+  const [isHovered, setIsHovered] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   const {
     attributes,
@@ -191,6 +201,7 @@ export function SortableStepItem(props: StepItemProps) {
 
   const cardStyle: CSSProperties = {
     ...styles.card,
+    ...(isHovered && !isGhost && styles.cardHover),
     ...(isGhost && styles.cardGhost),
   }
 
@@ -199,7 +210,12 @@ export function SortableStepItem(props: StepItemProps) {
   }
 
   return (
-    <div ref={setNodeRef} style={wrapperStyle}>
+    <div
+      ref={setNodeRef}
+      style={wrapperStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div style={cardStyle}>
         <div style={handleStyle} {...attributes} {...listeners}>
           <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
@@ -214,7 +230,15 @@ export function SortableStepItem(props: StepItemProps) {
 
         <div style={styles.content}>
           <div style={styles.header}>
-            <span style={styles.order}>{index + 1}</span>
+            <motion.span
+              key={`order-${index}`}
+              style={styles.order}
+              initial={reducedMotion ? {} : { scale: 1.2 }}
+              animate={{ scale: 1 }}
+              transition={reducedMotion ? { duration: 0 } : springs.bouncy}
+            >
+              {index + 1}
+            </motion.span>
             <span style={styles.tagBadge}>&lt;{step.elementTag}&gt;</span>
             {step.elementText && (
               <span style={styles.text}>{step.elementText}</span>
@@ -260,16 +284,18 @@ export function SortableStepItem(props: StepItemProps) {
           )}
         </div>
 
-        <button
+        <motion.button
           type="button"
           style={styles.deleteButton}
           onClick={onDelete}
           title="Delete step"
+          whileHover={reducedMotion ? {} : { scale: 1.1, color: 'hsl(0 70% 60%)' }}
+          whileTap={reducedMotion ? {} : { scale: 0.9 }}
         >
           <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
             <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
           </svg>
-        </button>
+        </motion.button>
       </div>
     </div>
   )

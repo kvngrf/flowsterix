@@ -1,7 +1,13 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import type { DevToolsTab } from '../types'
+import { springs, useReducedMotion } from '../motion'
+
+// Note: Using CSS transitions for indicator instead of layoutId to avoid
+// expensive layout recalculations when parent panel is dragged
 
 const styles = {
   container: {
@@ -9,6 +15,7 @@ const styles = {
     gap: 2,
     padding: '8px 10px 0',
     borderBottom: '1px solid hsl(215 20% 20%)',
+    position: 'relative' as const,
   },
   tab: {
     flex: 1,
@@ -25,13 +32,21 @@ const styles = {
     fontWeight: 500,
     fontFamily: 'inherit',
     cursor: 'pointer',
-    transition: 'all 0.15s ease',
+    transition: 'color 0.15s ease',
     outline: 'none',
     marginBottom: -1,
+    position: 'relative' as const,
+    zIndex: 1,
   },
   tabActive: {
     color: 'hsl(217 91% 70%)',
-    borderBottomColor: 'hsl(217 91% 60%)',
+  },
+  indicator: {
+    position: 'absolute' as const,
+    bottom: -1,
+    height: 2,
+    backgroundColor: 'hsl(217 91% 60%)',
+    borderRadius: 1,
   },
   badge: {
     display: 'inline-flex',
@@ -61,6 +76,22 @@ export interface TabNavProps {
 
 export function TabNav(props: TabNavProps) {
   const { activeTab, onTabChange, stepCount, flowCount } = props
+  const reducedMotion = useReducedMotion()
+
+  const prevStepCount = useRef(stepCount)
+  const prevFlowCount = useRef(flowCount)
+
+  // Track badge value changes for pop animation
+  const stepCountChanged = stepCount !== prevStepCount.current
+  const flowCountChanged = flowCount !== prevFlowCount.current
+
+  useEffect(() => {
+    prevStepCount.current = stepCount
+  }, [stepCount])
+
+  useEffect(() => {
+    prevFlowCount.current = flowCount
+  }, [flowCount])
 
   const stepsTabStyle: CSSProperties = {
     ...styles.tab,
@@ -93,7 +124,20 @@ export function TabNav(props: TabNavProps) {
           <path d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM5.904 10.803L10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z" />
         </svg>
         Steps
-        {stepCount > 0 && <span style={stepsBadgeStyle}>{stepCount}</span>}
+        <AnimatePresence mode="popLayout">
+          {stepCount > 0 && (
+            <motion.span
+              key={`step-badge-${stepCount}`}
+              style={stepsBadgeStyle}
+              initial={stepCountChanged && !reducedMotion ? { scale: 1.3 } : { scale: 1 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={reducedMotion ? { duration: 0 } : springs.bouncy}
+            >
+              {stepCount}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
       <button
         type="button"
@@ -104,8 +148,31 @@ export function TabNav(props: TabNavProps) {
           <path d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-3 8A1.5 1.5 0 0 1 4.5 10h1A1.5 1.5 0 0 1 7 11.5v1A1.5 1.5 0 0 1 5.5 14h-1A1.5 1.5 0 0 1 3 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 9 12.5v-1z" />
         </svg>
         Flows
-        {flowCount > 0 && <span style={flowsBadgeStyle}>{flowCount}</span>}
+        <AnimatePresence mode="popLayout">
+          {flowCount > 0 && (
+            <motion.span
+              key={`flow-badge-${flowCount}`}
+              style={flowsBadgeStyle}
+              initial={flowCountChanged && !reducedMotion ? { scale: 1.3 } : { scale: 1 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={reducedMotion ? { duration: 0 } : springs.bouncy}
+            >
+              {flowCount}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </button>
+
+      {/* Sliding indicator - using CSS transition instead of layoutId for performance */}
+      <div
+        style={{
+          ...styles.indicator,
+          left: activeTab === 'steps' ? 10 : '50%',
+          width: 'calc(50% - 11px)',
+          transition: reducedMotion ? 'none' : 'left 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      />
     </div>
   )
 }

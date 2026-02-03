@@ -1,11 +1,13 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Transition } from 'motion/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ElementInfo } from '../types'
 import { formatSourcePath } from '../utils/sourceExtractor'
+import { springs, useReducedMotion } from '../motion'
 
 const styles = {
   root: {
@@ -21,6 +23,10 @@ const styles = {
     borderRadius: 6,
     pointerEvents: 'none' as const,
     boxShadow: '0 0 0 4px hsl(217 91% 60% / 0.15), 0 4px 20px hsl(217 91% 60% / 0.2)',
+  },
+  highlightPulse: {
+    boxShadow: '0 0 0 8px hsl(142 71% 55% / 0.3), 0 4px 20px hsl(142 71% 55% / 0.4)',
+    borderColor: 'hsl(142 71% 55%)',
   },
   label: {
     position: 'absolute' as const,
@@ -128,10 +134,36 @@ export interface GrabberOverlayProps {
   isGrabbing: boolean
   hoveredInfo: ElementInfo | null
   container?: Element | DocumentFragment | null
+  onElementSelected?: () => void
 }
 
 export function GrabberOverlay(props: GrabberOverlayProps) {
-  const { isGrabbing, hoveredInfo, container } = props
+  const { isGrabbing, hoveredInfo, container, onElementSelected } = props
+  const reducedMotion = useReducedMotion()
+  const [showPulse, setShowPulse] = useState(false)
+
+  // Trigger pulse animation when element is selected
+  useEffect(() => {
+    if (onElementSelected) {
+      // This effect doesn't directly trigger, but the parent can call it
+    }
+  }, [onElementSelected])
+
+  // Listen for selection pulse trigger
+  useEffect(() => {
+    const handlePulse = () => {
+      if (reducedMotion) return
+      setShowPulse(true)
+      setTimeout(() => setShowPulse(false), 300)
+    }
+
+    // Expose pulse trigger on window for parent to call
+    ;(window as unknown as { __devtools_pulse?: () => void }).__devtools_pulse = handlePulse
+
+    return () => {
+      delete (window as unknown as { __devtools_pulse?: () => void }).__devtools_pulse
+    }
+  }, [reducedMotion])
 
   if (typeof window === 'undefined') return null
 
@@ -155,13 +187,18 @@ export function GrabberOverlay(props: GrabberOverlayProps) {
     labelStyle.right = 0
   }
 
+  const highlightStyle: CSSProperties = {
+    ...styles.highlight,
+    ...(showPulse && styles.highlightPulse),
+  }
+
   return createPortal(
     <div style={styles.root} data-devtools-panel="">
       <AnimatePresence>
         {isGrabbing && hoveredInfo && (
           <motion.div
             key="grabber-highlight"
-            style={styles.highlight}
+            style={highlightStyle}
             initial={{
               top: hoveredInfo.rect.top,
               left: hoveredInfo.rect.left,
@@ -175,17 +212,18 @@ export function GrabberOverlay(props: GrabberOverlayProps) {
               width: hoveredInfo.rect.width,
               height: hoveredInfo.rect.height,
               opacity: 1,
+              scale: showPulse ? 1.02 : 1,
             }}
             exit={{
               opacity: 0,
             }}
-            transition={springTransition}
+            transition={reducedMotion ? { duration: 0 } : springTransition}
           >
             <motion.div
               style={labelStyle}
-              initial={{ opacity: 0, y: 4 }}
+              initial={reducedMotion ? {} : { opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.03, duration: 0.12 }}
+              transition={reducedMotion ? { duration: 0 } : { delay: 0.03, duration: 0.12 }}
             >
               <div style={styles.labelTop}>
                 <span style={styles.tagBadge}>
@@ -224,10 +262,10 @@ export function GrabberOverlay(props: GrabberOverlayProps) {
           <motion.div
             key="grabber-hint"
             style={styles.hint}
-            initial={{ opacity: 0, y: 10, scale: 0.95, x: '-50%' }}
+            initial={reducedMotion ? {} : { opacity: 0, y: 10, scale: 0.95, x: '-50%' }}
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
-            exit={{ opacity: 0, y: 10, scale: 0.95, x: '-50%' }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            exit={reducedMotion ? {} : { opacity: 0, y: 10, scale: 0.95, x: '-50%' }}
+            transition={reducedMotion ? { duration: 0 } : springs.smooth}
           >
             <div style={styles.hintItem}>
               <span style={styles.kbd}>Click</span>
