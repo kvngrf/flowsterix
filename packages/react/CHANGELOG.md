@@ -1,5 +1,12 @@
 # @flowsterix/react
 
+## 0.12.1
+
+### Patch Changes
+
+- Add stagger animation to flows tab (matching steps tab behavior)
+- Fix header border visible when devtools panel is collapsed
+
 ## 0.12.0
 
 ### Minor Changes

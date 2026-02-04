@@ -2,10 +2,15 @@
 
 import type { FlowState } from '@flowsterix/core'
 import { useCallback, useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { useFlowsData } from '../hooks/useFlowsData'
 import { FlowItem } from './FlowItem'
 import { FlowEditModal } from './FlowEditModal'
+import {
+  listContainerVariants,
+  listItemVariants,
+  useReducedMotion,
+} from '../motion'
 
 const styles = {
   container: {
@@ -90,6 +95,7 @@ export interface FlowsTabProps {
 export function FlowsTab(props: FlowsTabProps) {
   const { container } = props
   const { flows, refreshFlows, deleteFlow, updateFlow } = useFlowsData()
+  const reducedMotion = useReducedMotion()
   const [editModal, setEditModal] = useState<EditModalState>({
     isOpen: false,
     flowId: '',
@@ -173,16 +179,30 @@ export function FlowsTab(props: FlowsTabProps) {
         </motion.button>
       </div>
 
-      <div style={styles.flowList}>
-        {flows.map((flow) => (
-          <FlowItem
-            key={flow.flowId}
-            flow={flow}
-            onEdit={() => handleEdit(flow.flowId, flow.state)}
-            onDelete={() => void handleDelete(flow.flowId)}
-          />
-        ))}
-      </div>
+      <motion.div
+        style={styles.flowList}
+        variants={reducedMotion ? undefined : listContainerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <AnimatePresence mode="popLayout">
+          {flows.map((flow) => (
+            <motion.div
+              key={flow.flowId}
+              variants={reducedMotion ? undefined : listItemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <FlowItem
+                flow={flow}
+                onEdit={() => handleEdit(flow.flowId, flow.state)}
+                onDelete={() => void handleDelete(flow.flowId)}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
       {editModal.state && (
         <FlowEditModal

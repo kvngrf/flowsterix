@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { springs } from './motion'
 
 import { GrabberOverlay } from './components/GrabberOverlay'
@@ -283,6 +283,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
   const headerStyle = {
     ...styles.header,
     ...(isPanelDragging && styles.headerDragging),
+    ...(collapsed && { borderBottom: 'none' }),
   }
 
   const portalContainer = shadowContainer ?? document.body
@@ -298,6 +299,8 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
       {createPortal(
         <motion.div
           style={panelStyle}
+          layoutRoot
+          layout="size"
           initial={{ opacity: 0, x: 20, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -344,38 +347,43 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
             </div>
           </div>
 
-          <AnimatePresence initial={false}>
-            {!collapsed && (
-              <motion.div
-                style={{ ...styles.body, overflow: 'hidden' }}
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={springs.smooth}
-              >
-                <TabNav
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                  stepCount={steps.length}
-                  flowCount={flows.length}
-                />
+          <motion.div
+            style={{
+              ...styles.body,
+              overflow: 'hidden',
+              flex: collapsed ? '0 0 auto' : '1 1 auto',
+            }}
+            initial={false}
+            animate={{ height: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
+            transition={{
+              height: springs.smooth,
+              opacity: { duration: 0.12 },
+            }}
+            aria-hidden={collapsed}
+          >
+            <div style={{ pointerEvents: collapsed ? 'none' : 'auto' }}>
+              <TabNav
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                stepCount={steps.length}
+                flowCount={flows.length}
+              />
 
-                {activeTab === 'steps' ? (
-                  <StepList
-                    steps={steps}
-                    mode={mode}
-                    onToggleGrab={toggleGrabbing}
-                    onDeleteStep={removeStep}
-                    onReorderSteps={reorderSteps}
-                    onClearAll={clearAllSteps}
-                    onExport={exportSteps}
-                  />
-                ) : (
-                  <FlowsTab container={shadowContainer} />
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {activeTab === 'steps' ? (
+                <StepList
+                  steps={steps}
+                  mode={mode}
+                  onToggleGrab={toggleGrabbing}
+                  onDeleteStep={removeStep}
+                  onReorderSteps={reorderSteps}
+                  onClearAll={clearAllSteps}
+                  onExport={exportSteps}
+                />
+              ) : (
+                <FlowsTab container={shadowContainer} />
+              )}
+            </div>
+          </motion.div>
         </motion.div>,
         portalContainer
       )}

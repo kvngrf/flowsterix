@@ -1,10 +1,10 @@
 'use client'
 
+import { AnimatePresence, motion } from 'motion/react'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import type { DevToolsTab } from '../types'
 import { springs, useReducedMotion } from '../motion'
+import type { DevToolsTab } from '../types'
 
 // Note: Using CSS transitions for indicator instead of layoutId to avoid
 // expensive layout recalculations when parent panel is dragged
@@ -127,10 +127,17 @@ export function TabNav(props: TabNavProps) {
         <AnimatePresence mode="popLayout">
           {stepCount > 0 && (
             <motion.span
-              key={`step-badge-${stepCount}`}
+              key="step-badge"
               style={stepsBadgeStyle}
-              initial={stepCountChanged && !reducedMotion ? { scale: 1.3 } : { scale: 1 }}
-              animate={{ scale: 1 }}
+              initial={
+                stepCountChanged && !reducedMotion
+                  ? { scale: 1.3 }
+                  : { scale: 1 }
+              }
+              animate={{
+                scale: stepCountChanged && !reducedMotion ? [1.3, 1] : 1,
+                opacity: 1,
+              }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={reducedMotion ? { duration: 0 } : springs.bouncy}
             >
@@ -151,10 +158,13 @@ export function TabNav(props: TabNavProps) {
         <AnimatePresence mode="popLayout">
           {flowCount > 0 && (
             <motion.span
-              key={`flow-badge-${flowCount}`}
+              key="flow-badge"
               style={flowsBadgeStyle}
-              initial={flowCountChanged && !reducedMotion ? { scale: 1.3 } : { scale: 1 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{
+                scale: flowCountChanged && !reducedMotion ? [1.3, 1] : 1,
+                opacity: 1,
+              }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={reducedMotion ? { duration: 0 } : springs.bouncy}
             >
@@ -170,7 +180,9 @@ export function TabNav(props: TabNavProps) {
           ...styles.indicator,
           left: activeTab === 'steps' ? 10 : '50%',
           width: 'calc(50% - 11px)',
-          transition: reducedMotion ? 'none' : 'left 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: reducedMotion
+            ? 'none'
+            : 'left 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       />
     </div>
