@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "mobile-drawer-handle",
+  "type": "registry:component",
+  "title": "Mobile Drawer Handle",
+  "description": "Horizontal pill handle for mobile drawer swipe affordance.",
+  "files": [
+    {
+      "path": "registry/flowsterix/mobile-drawer-handle.tsx",
+      "content": "'use client'\n\nimport { cn } from '@/lib/utils'\n\nexport interface MobileDrawerHandleProps {\n  className?: string\n  isDragging?: boolean\n}\n\n/**\n * Horizontal pill handle for mobile drawer swipe affordance.\n * Centered at top of drawer, provides visual indication that drawer is draggable.\n */\nexport function MobileDrawerHandle({\n  className,\n  isDragging,\n}: MobileDrawerHandleProps) {\n  return (\n    <div\n      className={cn(\n        'flex w-full items-center justify-center py-3',\n        'touch-none select-none',\n        className,\n      )}\n      data-mobile-drawer-handle=\"\"\n    >\n      <div\n        className={cn(\n          'h-1 w-10 rounded-full transition-colors duration-150',\n          'bg-muted-foreground/30',\n          isDragging && 'bg-muted-foreground/50',\n        )}\n      />\n    </div>\n  )\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "categories": [
+    "tour",
+    "mobile"
+  ]
+}

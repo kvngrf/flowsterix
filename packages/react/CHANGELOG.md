@@ -1,5 +1,16 @@
 # @flowsterix/react
 
+## 0.13.0
+
+### Minor Changes
+
+- Add constrained scroll lock for large highlighted targets
+  - When target exceeds viewport height, allows scrolling within target bounds only
+  - Target fits in viewport: normal scroll lock (`overflow: hidden`)
+  - Target exceeds viewport: constrained to target bounds (minY/maxY)
+  - New `useConstrainedScrollLock` hook exported from main entry
+  - Integrated into `useTourHud` - no configuration needed
+
 ## 0.12.1
 
 ### Patch Changes

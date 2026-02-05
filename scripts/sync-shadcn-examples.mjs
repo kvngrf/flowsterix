@@ -20,6 +20,8 @@ const components = [
   'delay-progress-bar',
   'tour-tooltip',
   'step-content',
+  'mobile-drawer-handle',
+  'mobile-drawer',
   'tour-hud',
   'onboarding-flow',
 ]

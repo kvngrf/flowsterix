@@ -125,6 +125,39 @@
       "categories": ["tour", "content"]
     },
     {
+      "name": "mobile-drawer-handle",
+      "type": "registry:component",
+      "title": "Mobile Drawer Handle",
+      "description": "Horizontal pill handle for mobile drawer swipe affordance.",
+      "files": [
+        {
+          "path": "registry/flowsterix/mobile-drawer-handle.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "mobile"]
+    },
+    {
+      "name": "mobile-drawer",
+      "type": "registry:component",
+      "title": "Mobile Drawer",
+      "description": "Mobile-optimized bottom sheet drawer for tour content with swipe gestures, snap points, and safe area support.",
+      "dependencies": ["@flowsterix/react", "motion"],
+      "registryDependencies": [
+        "https://flowsterix.com/r/tour-provider.json",
+        "https://flowsterix.com/r/mobile-drawer-handle.json",
+        "https://flowsterix.com/r/tour-controls.json",
+        "https://flowsterix.com/r/tour-progress.json"
+      ],
+      "files": [
+        {
+          "path": "registry/flowsterix/mobile-drawer.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "categories": ["tour", "mobile"]
+    },
+    {
       "name": "tour-hud",
       "type": "registry:block",
       "title": "Tour HUD",

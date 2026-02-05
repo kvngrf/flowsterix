@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 
 import { useTour } from '../context'
-import { useBodyScrollLock } from './useBodyScrollLock'
+import { useConstrainedScrollLock } from './useConstrainedScrollLock'
+import { useViewportRect } from './useViewportRect'
 import type { UseHudDescriptionResult } from './useHudDescription'
 import { useHudDescription } from './useHudDescription'
 import type { UseHudShortcutsOptions } from './useHudShortcuts'
@@ -100,12 +101,18 @@ export const useTourHud = (
 
   const targetIssue = useHudTargetIssue(hudState.hudTarget)
 
+  const viewport = useViewportRect()
   const shouldLockBodyScroll = Boolean(
     bodyScrollLock &&
       (hudState.flowHudOptions?.behavior?.lockBodyScroll ?? lockBodyScroll) &&
       hudState.focusTrapActive,
   )
-  useBodyScrollLock(shouldLockBodyScroll)
+  useConstrainedScrollLock({
+    enabled: shouldLockBodyScroll,
+    targetRect: hudState.hudTarget.rect,
+    viewportHeight: viewport.height,
+    padding: overlayPadding ?? 12,
+  })
 
   const shortcutOptions: UseHudShortcutsOptions =
     typeof shortcuts === 'object' ? shortcuts : {}

@@ -223,6 +223,58 @@ const handleLogoUpload = async (file: File) => {
     show: true,
     variant: 'dots', // 'dots' | 'bar' | 'fraction'
   }}
+  mobile={{
+    enabled: true, // Enable mobile drawer (default: true)
+    breakpoint: 640, // Width threshold for mobile (default: 640)
+    defaultSnapPoint: 'expanded', // Initial state (default: 'expanded')
+    snapPoints: ['minimized', 'expanded'], // Available states
+    allowMinimize: true, // Allow swipe down to minimize
+  }}
+/>
+```
+
+### Mobile Drawer
+
+On viewports ≤640px, `TourHUD` automatically renders a bottom sheet drawer instead of a floating popover. Users can swipe to minimize (see highlighted target) or expand (read content).
+
+**Snap Points:**
+- `minimized` (~100px) - Shows step indicator + nav buttons only
+- `peek` (~40% of expanded) - Optional middle state for summaries
+- `expanded` (auto) - Sized to content, capped at `maxHeightRatio`
+
+**Gestures:**
+- Swipe down → minimize
+- Swipe up → expand
+- Tap handle → toggle between states
+
+**Behavior:**
+- **Auto-sizes to content** - Drawer height matches content + chrome (handle, header, controls)
+- **Capped at max** - Won't exceed `maxHeightRatio` of viewport (default 85%)
+- **No flicker** - Starts small, animates up once content is measured
+- Resets to `expanded` on step transitions
+- Content crossfades between steps
+- Safe area insets for notched phones
+- `aria-live` announcement when minimized
+
+**Constrained Scroll Lock:**
+When body scroll lock is enabled and the highlighted target exceeds viewport height, constrained scroll lock allows scrolling within target bounds only:
+- Target fits in viewport → normal scroll lock (`overflow: hidden`)
+- Target exceeds viewport → scroll constrained to target bounds (user can see entire element)
+
+```tsx
+// Auto-size with custom max height
+<TourHUD
+  mobile={{
+    maxHeightRatio: 0.7, // Cap at 70% viewport
+  }}
+/>
+
+// Enable three-state drawer with peek
+<TourHUD
+  mobile={{
+    snapPoints: ['minimized', 'peek', 'expanded'],
+    defaultSnapPoint: 'expanded',
+  }}
 />
 ```
 
@@ -287,10 +339,12 @@ The shadcn registry provides preconfigured, polished components. **Always prefer
 
 ### Available Components
 
-| Component           | Install Command                                                  | Usage                            |
-| ------------------- | ---------------------------------------------------------------- | -------------------------------- |
-| `tour-hud`          | `npx shadcn@latest add https://flowsterix.com/r/tour-hud.json`   | Full HUD with overlay & popover  |
-| `step-content`      | `npx shadcn@latest add https://flowsterix.com/r/step-content.json` | Step layout primitives           |
+| Component              | Install Command                                                       | Usage                            |
+| ---------------------- | --------------------------------------------------------------------- | -------------------------------- |
+| `tour-hud`             | `npx shadcn@latest add https://flowsterix.com/r/tour-hud.json`        | Full HUD with overlay & popover  |
+| `step-content`         | `npx shadcn@latest add https://flowsterix.com/r/step-content.json`    | Step layout primitives           |
+| `mobile-drawer`        | `npx shadcn@latest add https://flowsterix.com/r/mobile-drawer.json`   | Bottom sheet for mobile          |
+| `mobile-drawer-handle` | `npx shadcn@latest add https://flowsterix.com/r/mobile-drawer-handle.json` | Swipe handle for drawer     |
 
 ### Step Content Primitives
 
@@ -712,6 +766,7 @@ The Flows tab shows all registered flows and their stored state. Use it to:
 - [React Integration](references/react-integration.md) - Hooks, events, step content
 - [Router Adapters](references/router-adapters.md) - TanStack, React Router, Next.js
 - [Advanced Patterns](references/advanced-patterns.md) - Versions, storage, migrations
+- [Mobile Support](docs/guides/mobile.md) - Mobile drawer, snap points, gestures
 
 ## Examples
 

@@ -15,9 +15,19 @@ import * as React from 'react'
 import { createPortal } from 'react-dom'
 
 import { cn } from '@/lib/utils'
+import {
+  MobileDrawer,
+  type MobileDrawerSnapPoint,
+} from '@/components/mobile-drawer'
 import { TourControls } from '@/components/tour-controls'
 import { TourPopoverHandle } from '@/components/tour-popover-handle'
 import { TourProgress } from '@/components/tour-progress'
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+const MOBILE_BREAKPOINT = 640
 
 // =============================================================================
 // Types
@@ -99,10 +109,47 @@ export interface TourHUDProps {
   }
   /** Keyboard shortcut configuration */
   shortcuts?: boolean | UseHudShortcutsOptions
+  /** Mobile drawer configuration */
+  mobile?: {
+    /** Enable mobile drawer (default: true) */
+    enabled?: boolean
+    /** Breakpoint in pixels for mobile detection (default: 640) */
+    breakpoint?: number
+    /** Default snap point when drawer opens (default: 'expanded') */
+    defaultSnapPoint?: MobileDrawerSnapPoint
+    /** Available snap points (default: ['minimized', 'expanded']) */
+    snapPoints?: MobileDrawerSnapPoint[]
+    /** Whether user can minimize the drawer (default: true) */
+    allowMinimize?: boolean
+    /** Maximum height as ratio of viewport (default: 0.85). Drawer auto-sizes to content up to this max. */
+    maxHeightRatio?: number
+    /** Callback when snap point changes */
+    onSnapPointChange?: (point: MobileDrawerSnapPoint) => void
+  }
   /** Custom content to render inside the popover (overrides step content) */
   children?: React.ReactNode
   /** Custom step content renderer */
   renderContent?: (step: Step<React.ReactNode>) => React.ReactNode
+}
+
+// =============================================================================
+// Hooks
+// =============================================================================
+
+function useIsMobile(breakpoint: number = MOBILE_BREAKPOINT) {
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= breakpoint)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [breakpoint])
+
+  return isMobile
 }
 
 // =============================================================================
@@ -148,6 +195,7 @@ export function TourHUD({
   controls = {},
   progress = { show: false, variant: 'dots', position: 'bottom', size: 'sm' },
   shortcuts = { escape: false },
+  mobile = {},
   children,
   renderContent,
 }: TourHUDProps) {
@@ -177,6 +225,12 @@ export function TourHUD({
   const isHeadlessFlow = hudRenderMode === 'none' && Boolean(activeFlowId)
   const isDefaultFlow = hudRenderMode !== 'none' && shouldRender
   const hudEnabled = (isHeadlessFlow || isDefaultFlow) && shouldRender
+
+  // Mobile configuration
+  const mobileEnabled = mobile.enabled !== false
+  const mobileBreakpoint = mobile.breakpoint ?? MOBILE_BREAKPOINT
+  const isMobileViewport = useIsMobile(mobileBreakpoint)
+  const shouldRenderMobile = mobileEnabled && isMobileViewport
 
   const { components, transitions } = useHudMotion()
   const { MotionDiv, MotionSection } = components
@@ -252,139 +306,191 @@ export function TourHUD({
         }}
       />
 
-      {/* Content popover with smart positioning */}
-      <AnimatePresence>
-        <TourPopoverPortal
-          target={hudTarget}
-          offset={popoverOffset}
-          placement={popoverPlacement}
-          width={popoverWidth}
-          maxWidth={popoverMaxWidth}
-          zIndex={popoverZIndex}
-          role={popoverConfig.role}
-          ariaModal={Boolean(popoverConfig.ariaModal)}
-          ariaLabel={popoverConfig.ariaLabel}
-          ariaDescribedBy={description.combinedAriaDescribedBy}
-          descriptionId={description.descriptionId}
-          descriptionText={description.text ?? undefined}
-          onContainerChange={focusManager.setPopoverNode}
-          containerComponent={MotionSection}
-          contentComponent={MotionDiv}
-          layoutId="popover"
-          isInGracePeriod={isInGracePeriod}
-          transitionsOverride={{
-            popoverEntrance: popoverEntranceTransition,
-            popoverExit: popoverExitTransition,
-            popoverContent: popoverContentTransition,
+      {/* Mobile drawer or desktop popover */}
+      {shouldRenderMobile ? (
+        <MobileDrawer
+          defaultSnapPoint={mobile.defaultSnapPoint ?? 'expanded'}
+          snapPoints={mobile.snapPoints ?? ['minimized', 'expanded']}
+          allowMinimize={mobile.allowMinimize ?? true}
+          maxHeightRatio={mobile.maxHeightRatio}
+          onSnapPointChange={mobile.onSnapPointChange}
+          className={className}
+          controls={{
+            showSkip: controls.showSkip,
+            skipMode: controls.skipMode,
+            skipHoldDurationMs: controls.skipHoldDurationMs,
+            labels: controls.labels,
+            primaryVariant: controls.primaryVariant,
+            secondaryVariant: controls.secondaryVariant,
+            className: controls.className,
           }}
+          progress={{
+            show: progress.show,
+            variant: progress.variant,
+            size: progress.size,
+          }}
+          stepKey={runningStep.id}
         >
-          {({
-            Container,
-            Content,
-            containerProps,
-            contentProps,
-            descriptionProps,
-            layoutMode,
-            dragHandleProps,
-            isDragging,
-          }) => {
-            const { key: contentKey, ...restContentProps } = contentProps
-            const shouldShowHandle = popover.showDragHandle ?? true
-            const showHandleInLayout =
-              layoutMode === 'docked' || layoutMode === 'manual'
-            return (
-              <Container
-                {...containerProps}
-                className={cn(
-                  'rounded-xl border bg-popover text-popover-foreground shadow-lg',
-                  popover.className,
-                  className,
-                )}
+          {/* Step content */}
+          <div className="space-y-3">
+            {children ?? stepContent}
+
+            {/* Target issue warning */}
+            {targetIssue.issue && (
+              <div
+                className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
+                role="status"
+                aria-live="polite"
               >
-                {/* Screen reader description */}
-                {descriptionProps.id && descriptionProps.text && (
-                  <span id={descriptionProps.id} className="sr-only">
-                    {descriptionProps.text}
-                  </span>
+                <strong className="block mb-1">
+                  {targetIssue.issue.title}
+                </strong>
+                <p className="text-sm leading-relaxed">
+                  {targetIssue.issue.body}
+                </p>
+                {targetIssue.issue.hint && (
+                  <p className="mt-1 text-xs opacity-90">
+                    {targetIssue.issue.hint}
+                  </p>
                 )}
-
-                <motion.div
-                  className="relative overflow-hidden"
-                  data-tour-popover-shell=""
+              </div>
+            )}
+          </div>
+        </MobileDrawer>
+      ) : (
+        <AnimatePresence>
+          <TourPopoverPortal
+            target={hudTarget}
+            offset={popoverOffset}
+            placement={popoverPlacement}
+            width={popoverWidth}
+            maxWidth={popoverMaxWidth}
+            zIndex={popoverZIndex}
+            role={popoverConfig.role}
+            ariaModal={Boolean(popoverConfig.ariaModal)}
+            ariaLabel={popoverConfig.ariaLabel}
+            ariaDescribedBy={description.combinedAriaDescribedBy}
+            descriptionId={description.descriptionId}
+            descriptionText={description.text ?? undefined}
+            onContainerChange={focusManager.setPopoverNode}
+            containerComponent={MotionSection}
+            contentComponent={MotionDiv}
+            layoutId="popover"
+            isInGracePeriod={isInGracePeriod}
+            transitionsOverride={{
+              popoverEntrance: popoverEntranceTransition,
+              popoverExit: popoverExitTransition,
+              popoverContent: popoverContentTransition,
+            }}
+          >
+            {({
+              Container,
+              Content,
+              containerProps,
+              contentProps,
+              descriptionProps,
+              layoutMode,
+              dragHandleProps,
+              isDragging,
+            }) => {
+              const { key: contentKey, ...restContentProps } = contentProps
+              const shouldShowHandle = popover.showDragHandle ?? true
+              const showHandleInLayout =
+                layoutMode === 'docked' || layoutMode === 'manual'
+              return (
+                <Container
+                  {...containerProps}
+                  className={cn(
+                    'rounded-xl border bg-popover text-popover-foreground shadow-lg',
+                    popover.className,
+                    className,
+                  )}
                 >
-                  {shouldShowHandle && showHandleInLayout ? (
-                    <TourPopoverHandle
-                      dragHandleProps={dragHandleProps}
-                      isDragging={isDragging}
-                    />
-                  ) : null}
-                  <AnimatePresence mode="popLayout">
-                    <Content
-                      key={contentKey}
-                      {...restContentProps}
-                      className={cn(
-                        'p-4 space-y-3 overflow-hidden',
-                        popover.contentClassName,
-                      )}
-                    >
-                      {/* Progress indicator (top position) */}
-                      {progress.show && progress.position === 'top' && (
-                        <TourProgress
-                          variant={progress.variant}
-                          size={progress.size}
-                        />
-                      )}
+                  {/* Screen reader description */}
+                  {descriptionProps.id && descriptionProps.text && (
+                    <span id={descriptionProps.id} className="sr-only">
+                      {descriptionProps.text}
+                    </span>
+                  )}
 
-                      {/* Step content */}
-                      <motion.div layout="position">
-                        {children ?? stepContent}
-                      </motion.div>
+                  <motion.div
+                    className="relative overflow-hidden"
+                    data-tour-popover-shell=""
+                  >
+                    {shouldShowHandle && showHandleInLayout ? (
+                      <TourPopoverHandle
+                        dragHandleProps={dragHandleProps}
+                        isDragging={isDragging}
+                      />
+                    ) : null}
+                    <AnimatePresence mode="popLayout">
+                      <Content
+                        key={contentKey}
+                        {...restContentProps}
+                        className={cn(
+                          'p-4 space-y-3 overflow-hidden',
+                          popover.contentClassName,
+                        )}
+                      >
+                        {/* Progress indicator (top position) */}
+                        {progress.show && progress.position === 'top' && (
+                          <TourProgress
+                            variant={progress.variant}
+                            size={progress.size}
+                          />
+                        )}
 
-                      {/* Target issue warning */}
-                      {targetIssue.issue && (
-                        <div
-                          className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
-                          role="status"
-                          aria-live="polite"
-                        >
-                          <strong className="block mb-1">
-                            {targetIssue.issue.title}
-                          </strong>
-                          <p className="text-sm leading-relaxed">
-                            {targetIssue.issue.body}
-                          </p>
-                          {targetIssue.issue.hint && (
-                            <p className="mt-1 text-xs opacity-90">
-                              {targetIssue.issue.hint}
+                        {/* Step content */}
+                        <motion.div layout="position">
+                          {children ?? stepContent}
+                        </motion.div>
+
+                        {/* Target issue warning */}
+                        {targetIssue.issue && (
+                          <div
+                            className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
+                            role="status"
+                            aria-live="polite"
+                          >
+                            <strong className="block mb-1">
+                              {targetIssue.issue.title}
+                            </strong>
+                            <p className="text-sm leading-relaxed">
+                              {targetIssue.issue.body}
                             </p>
-                          )}
-                        </div>
-                      )}
+                            {targetIssue.issue.hint && (
+                              <p className="mt-1 text-xs opacity-90">
+                                {targetIssue.issue.hint}
+                              </p>
+                            )}
+                          </div>
+                        )}
 
-                      {/* Progress indicator (bottom position - default) */}
-                      {progress.show && progress.position !== 'top' && (
-                        <TourProgress
-                          variant={progress.variant}
-                          size={progress.size}
-                        />
-                      )}
-                    </Content>
-                  </AnimatePresence>
-                  <TourControls
-                    showSkip={controls.showSkip}
-                    skipMode={controls.skipMode}
-                    skipHoldDurationMs={controls.skipHoldDurationMs}
-                    labels={controls.labels}
-                    primaryVariant={controls.primaryVariant}
-                    secondaryVariant={controls.secondaryVariant}
-                    className={controls.className}
-                  />
-                </motion.div>
-              </Container>
-            )
-          }}
-        </TourPopoverPortal>
-      </AnimatePresence>
+                        {/* Progress indicator (bottom position - default) */}
+                        {progress.show && progress.position !== 'top' && (
+                          <TourProgress
+                            variant={progress.variant}
+                            size={progress.size}
+                          />
+                        )}
+                      </Content>
+                    </AnimatePresence>
+                    <TourControls
+                      showSkip={controls.showSkip}
+                      skipMode={controls.skipMode}
+                      skipHoldDurationMs={controls.skipHoldDurationMs}
+                      labels={controls.labels}
+                      primaryVariant={controls.primaryVariant}
+                      secondaryVariant={controls.secondaryVariant}
+                      className={controls.className}
+                    />
+                  </motion.div>
+                </Container>
+              )
+            }}
+          </TourPopoverPortal>
+        </AnimatePresence>
+      )}
     </div>,
     portalTarget,
   )

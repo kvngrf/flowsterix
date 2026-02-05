@@ -120,6 +120,8 @@ export type { UseHudMotionResult } from './motion/useHudMotion'
 
 export { useAdvanceRules } from './hooks/useAdvanceRules'
 export { useBodyScrollLock } from './hooks/useBodyScrollLock'
+export { useConstrainedScrollLock } from './hooks/useConstrainedScrollLock'
+export type { ConstrainedScrollLockOptions } from './hooks/useConstrainedScrollLock'
 export { useHiddenTargetFallback } from './hooks/useHiddenTargetFallback'
 export type {
   UseHiddenTargetFallbackConfig,
