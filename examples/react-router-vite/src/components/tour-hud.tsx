@@ -209,12 +209,13 @@ export function TourHUD({
   const isMobileViewport = useIsMobile(mobileBreakpoint)
   const shouldRenderMobile = mobileEnabled && isMobileViewport
 
-  // Track drawer height for scroll lock inset
+  // Track bottom inset for scroll lock (drawer on mobile, popover on desktop)
   const [drawerHeight, setDrawerHeight] = React.useState(0)
+  const [popoverHeight, setPopoverHeight] = React.useState(0)
 
   const hud = useTourHud({
     shortcuts,
-    scrollLockBottomInset: shouldRenderMobile ? drawerHeight : 0,
+    scrollLockBottomInset: shouldRenderMobile ? drawerHeight : popoverHeight,
   })
   const {
     hudState,
@@ -383,6 +384,7 @@ export function TourHUD({
             descriptionId={description.descriptionId}
             descriptionText={description.text ?? undefined}
             onContainerChange={focusManager.setPopoverNode}
+            onHeightChange={setPopoverHeight}
             containerComponent={MotionSection}
             contentComponent={MotionDiv}
             layoutId="popover"

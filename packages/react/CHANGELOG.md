@@ -1,5 +1,18 @@
 # @flowsterix/react
 
+## 0.14.1
+
+### Patch Changes
+
+- Enable constrained scroll lock on desktop for oversized highlights
+  - `TourPopoverPortal` now reports its rendered height via `onHeightChange` callback
+  - TourHUD passes popover height as `scrollLockBottomInset` on desktop, matching the mobile drawer pattern
+  - Ensures all highlighted content is reachable via scroll when the highlight exceeds the viewport
+
+- Fix popover shrinking when entering docked layout mode
+  - Docked position used `translate3d(-100%, -100%, 0)` which caused CSS shrink-to-fit to collapse the element to 24px available width
+  - Now calculates actual top-left position from measured `floatingSize`, avoiding percentage-based transforms
+
 ## 0.14.0
 
 ### Minor Changes

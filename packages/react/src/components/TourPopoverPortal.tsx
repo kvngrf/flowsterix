@@ -121,6 +121,12 @@ export interface TourPopoverPortalProps {
    * The backdrop will show but the popover content remains invisible.
    */
   isInGracePeriod?: boolean
+  /**
+   * Callback reporting the popover's rendered height (plus margin).
+   * Use as `scrollLockBottomInset` so constrained scroll lets users
+   * reach all highlighted content above the popover.
+   */
+  onHeightChange?: (height: number) => void
 }
 
 export const TourPopoverPortal = ({
@@ -143,6 +149,7 @@ export const TourPopoverPortal = ({
   contentComponent,
   transitionsOverride,
   isInGracePeriod = false,
+  onHeightChange,
 }: TourPopoverPortalProps) => {
   if (!isBrowser) return null
   const host = portalHost()
@@ -325,14 +332,22 @@ export const TourPopoverPortal = ({
     }
   }, [floatingPosition, target.isScreen, target.stepId])
 
-  const dockedPosition = useMemo(
-    () => ({
+  const dockedPosition = useMemo(() => {
+    if (floatingSize) {
+      return {
+        top: viewport.height - DOCKED_MARGIN - floatingSize.height,
+        left: viewport.width - DOCKED_MARGIN - floatingSize.width,
+        transform: 'translate3d(0px, 0px, 0px)',
+      }
+    }
+    // Fallback before first measurement (percentage transform resolves correctly
+    // even without explicit size, since floatingSize arrives within one frame)
+    return {
       top: viewport.height - DOCKED_MARGIN,
       left: viewport.width - DOCKED_MARGIN,
       transform: 'translate3d(-100%, -100%, 0px)',
-    }),
-    [viewport.height, viewport.width],
-  )
+    }
+  }, [viewport.height, viewport.width, floatingSize])
 
   const mobilePosition = useMemo(
     () => ({
@@ -348,6 +363,12 @@ export const TourPopoverPortal = ({
       setFloatingPosition(dockedPosition)
     }
   }, [dockedPosition, layoutMode])
+
+  // Report popover height for scroll lock bottom inset
+  useEffect(() => {
+    if (!onHeightChange) return
+    onHeightChange(floatingSize ? floatingSize.height + DOCKED_MARGIN : 0)
+  }, [floatingSize, onHeightChange])
 
   useEffect(() => {
     if (layoutMode === 'mobile') {
