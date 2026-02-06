@@ -41,6 +41,8 @@ export interface MobileDrawerProps {
   progress?: React.ComponentProps<typeof TourProgress> & { show?: boolean }
   /** Step key for crossfade animation */
   stepKey?: string
+  /** Callback reporting the visible drawer height for scroll lock inset */
+  onDrawerHeightChange?: (height: number) => void
 }
 
 // =============================================================================
@@ -216,6 +218,7 @@ export function MobileDrawer({
   controls,
   progress = { show: false, variant: 'fraction' },
   stepKey,
+  onDrawerHeightChange,
 }: MobileDrawerProps) {
   const { state } = useTour()
   const viewportHeight = useViewportHeight()
@@ -277,6 +280,11 @@ export function MobileDrawer({
       controls_.start({ y: targetY }, springConfig)
     }
   }, [isMeasured, currentSnapPoint, getTranslateY, controls_])
+
+  // Report visible drawer height for scroll lock inset
+  React.useEffect(() => {
+    onDrawerHeightChange?.(heights[currentSnapPoint])
+  }, [heights, currentSnapPoint, onDrawerHeightChange])
 
   // Content opacity: fade based on current translateY
   const contentOpacity =
@@ -397,7 +405,7 @@ export function MobileDrawer({
       <motion.div
         className={cn(
           'flex h-full flex-col overflow-hidden',
-          'rounded-t-[20px] border-t border-x',
+          'rounded-t-[20px] border-t border-x border-border',
           'bg-popover text-popover-foreground',
           'shadow-[0_-8px_32px_rgba(0,0,0,0.15)]',
           'touch-none',
@@ -408,28 +416,12 @@ export function MobileDrawer({
           <MobileDrawerHandle isDragging={isDragging} />
         </div>
 
-        {/* Minimized header - always visible */}
-        <div
-          className={cn(
-            'flex items-center justify-between px-4',
-            isMinimized ? 'pb-3' : 'pb-0',
-          )}
-        >
-          {progress.show && (
-            <TourProgress
-              variant={progress.variant ?? 'fraction'}
-              size={progress.size ?? 'sm'}
-              className={progress.className}
-            />
-          )}
-
-          {/* Aria live region for minimized state */}
-          {isMinimized && (
-            <span className="sr-only" role="status" aria-live="polite">
-              Tour content minimized. Swipe up or tap to expand.
-            </span>
-          )}
-        </div>
+        {/* Aria live region for minimized state */}
+        {isMinimized && (
+          <span className="sr-only" role="status" aria-live="polite">
+            Tour content minimized. Swipe up or tap to expand.
+          </span>
+        )}
 
         {/* Content area - fades when minimized */}
         <div
@@ -450,6 +442,17 @@ export function MobileDrawer({
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Progress - centered below content */}
+        {progress.show && !isMinimized && (
+          <div className="flex justify-center px-4 pb-2">
+            <TourProgress
+              variant={progress.variant ?? 'fraction'}
+              size={progress.size ?? 'sm'}
+              className={progress.className}
+            />
+          </div>
+        )}
 
         {/* Controls - always visible */}
         <div className="shrink-0">

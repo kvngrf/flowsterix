@@ -1,5 +1,25 @@
 # @flowsterix/react
 
+## 0.14.0
+
+### Minor Changes
+
+- Add mobile drawer support for TourHUD
+  - New `scrollLockBottomInset` option on `useTourHud` to account for bottom UI (e.g. mobile drawer height)
+  - `bottomInset` option on `useConstrainedScrollLock` adjusts scroll bounds so targets remain visible above the inset
+  - `useConstrainedScrollLock` now returns `{ isConstrainedMode }` to signal when constrained scrolling is active
+  - `useTourHud` exposes `isConstrainedScrollActive` in its result
+
+### Patch Changes
+
+- Fix highlight jumping 2x during constrained scroll when target extends beyond viewport
+  - `expandRect` padding could go negative when element exceeded viewport bounds, causing compounding position offsets
+  - Clamp vertical/horizontal padding to `Math.max(0, ...)` so it never inverts
+
+- Fix `advanceStep` to return `null` instead of throwing when no active store
+
+- Fix SSR hydration: use stable server snapshot references in `globalBridge` and `useStepStore`
+
 ## 0.13.0
 
 ### Minor Changes

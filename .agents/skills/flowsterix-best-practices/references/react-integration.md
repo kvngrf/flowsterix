@@ -64,7 +64,7 @@ function MyComponent() {
     resume,          // () => FlowState
     cancel,          // (reason?: 'skipped' | 'keyboard') => FlowState
     complete,        // () => FlowState
-    advanceStep,     // (stepId: string) => FlowState - only if on that step
+    advanceStep,     // (stepId: string) => FlowState | null - only if on that step
 
     // Events
     events,          // EventBus<FlowEvents>
@@ -98,8 +98,7 @@ const handleSave = async () => {
 }
 ```
 
-Returns current state (no-op) if:
-- Flow is not running
+Returns `null` if no active flow. Returns current state (no-op) if:
 - Currently on a different step
 - stepId doesn't exist in the flow
 ```

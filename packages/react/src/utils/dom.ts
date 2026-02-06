@@ -68,8 +68,9 @@ export const expandRect = (
   const spaceRight = viewport.width - rect.right
 
   // Use the minimum available space on each axis for symmetrical padding
-  const verticalPadding = Math.min(padding, spaceTop, spaceBottom)
-  const horizontalPadding = Math.min(padding, spaceLeft, spaceRight)
+  // Clamp to 0 so padding never goes negative when element extends beyond viewport
+  const verticalPadding = Math.max(0, Math.min(padding, spaceTop, spaceBottom))
+  const horizontalPadding = Math.max(0, Math.min(padding, spaceLeft, spaceRight))
 
   return createRect({
     top: rect.top - verticalPadding,

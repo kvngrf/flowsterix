@@ -1,6 +1,14 @@
 'use client'
 
-import { Bot, Check, Copy, Palette, Sparkles, Terminal } from 'lucide-react'
+import {
+  Bot,
+  Check,
+  Copy,
+  Palette,
+  Sparkles,
+  Terminal,
+  Wrench,
+} from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
@@ -8,17 +16,17 @@ const installCommands = [
   {
     id: 'pnpm',
     label: 'pnpm',
-    command: 'pnpm add @flowsterix/core @flowsterix/react motion',
+    command: 'pnpm add @flowsterix/core@latest @flowsterix/react@latest motion',
   },
   {
     id: 'npm',
     label: 'npm',
-    command: 'npm install @flowsterix/core @flowsterix/react motion',
+    command: 'npm install @flowsterix/core@latest @flowsterix/react@latest motion',
   },
   {
     id: 'yarn',
     label: 'yarn',
-    command: 'yarn add @flowsterix/core @flowsterix/react motion',
+    command: 'yarn add @flowsterix/core@latest @flowsterix/react@latest motion',
   },
 ]
 
@@ -210,12 +218,12 @@ export function GettingStarted() {
               <div className="flex items-center justify-between p-4">
                 <code className="text-sm text-zinc-100 font-mono">
                   <span className="text-zinc-500">$</span> npx skills add
-                  kvngrf/flowsterix
+                  kvngrf/flowsterix --skill flowsterix-best-practices
                 </code>
                 <button
                   onClick={() =>
                     copyToClipboard({
-                      text: 'npx skills add kvngrf/flowsterix',
+                      text: 'npx skills add kvngrf/flowsterix --skill flowsterix-best-practices',
                       index: 2,
                     })
                   }
@@ -234,6 +242,55 @@ export function GettingStarted() {
                   Works with Claude Code, Cursor, and other AI coding
                   assistants. Provides patterns for step definitions, advance
                   rules, lifecycle hooks, and more.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+          {/* Step 4: DevTools (optional) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-400 to-accent-500 flex items-center justify-center">
+                <Wrench className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <span className="text-xs font-medium text-accent-600 dark:text-accent-400">
+                  Step 4 (Optional)
+                </span>
+                <h3 className="font-semibold">Add DevTools for development</h3>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-code)]">
+              <div className="p-4">
+                <code className="text-sm text-zinc-100 font-mono whitespace-pre leading-relaxed block">
+                  <span className="text-zinc-500">{'// Wrap your app with DevToolsProvider'}</span>
+                  {'\n'}
+                  <span className="text-[#c678dd]">import</span>
+                  {' { DevToolsProvider } '}
+                  <span className="text-[#c678dd]">from</span>
+                  {' '}
+                  <span className="text-[#98c379]">{`'@flowsterix/react/devtools'`}</span>
+                  {'\n\n'}
+                  <span className="text-[#e5c07b]">{'<TourProvider>'}</span>
+                  {'\n  '}
+                  <span className="text-[#e5c07b]">{'<DevToolsProvider>'}</span>
+                  {'\n    '}
+                  <span className="text-zinc-400">{'<App />'}</span>
+                  {'\n  '}
+                  <span className="text-[#e5c07b]">{'</DevToolsProvider>'}</span>
+                  {'\n'}
+                  <span className="text-[#e5c07b]">{'</TourProvider>'}</span>
+                </code>
+              </div>
+              <div className="px-4 pb-4">
+                <p className="text-xs text-zinc-500">
+                  Element grabber, step reordering, flow inspector, and JSON export. Tree-shakeable — zero
+                  bytes in production when not imported.
                 </p>
               </div>
             </div>

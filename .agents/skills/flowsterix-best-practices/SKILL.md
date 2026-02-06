@@ -177,7 +177,7 @@ const {
   pause, // () => pause the flow
   cancel, // (reason?) => cancel the flow
   complete, // () => mark flow complete
-  advanceStep, // (stepId) => advance only if on that step
+  advanceStep, // (stepId) => FlowState | null — advance only if on that step
 } = useTour()
 ```
 
@@ -199,7 +199,7 @@ const handleLogoUpload = async (file: File) => {
 - If currently on the specified step → advances to next (or completes if last step)
 - If on a different step → silent no-op (returns current state)
 - If stepId doesn't exist → silent no-op (not an error)
-- If flow is not running → silent no-op
+- If no active flow → returns `null` (safe to call without checking flow state)
 
 ### TourHUD Configuration
 

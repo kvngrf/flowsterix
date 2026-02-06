@@ -28,6 +28,12 @@ export interface UseTourHudOptions {
    * Enabled by default.
    */
   bodyScrollLock?: boolean
+  /**
+   * Bottom inset in pixels for constrained scroll lock (e.g. mobile drawer height).
+   * When a target is taller than the viewport, this ensures users can scroll
+   * the target bottom into view above the inset area.
+   */
+  scrollLockBottomInset?: number
 }
 
 export interface TourHudOverlayConfig {
@@ -72,6 +78,8 @@ export interface UseTourHudResult {
   targetIssue: UseHudTargetIssueResult
   shouldLockBodyScroll: boolean
   shortcutsEnabled: boolean
+  /** Whether constrained scroll mode is active (target taller than viewport). */
+  isConstrainedScrollActive: boolean
 }
 
 const DEFAULT_SHORTCUTS = true
@@ -84,6 +92,7 @@ export const useTourHud = (
     overlayPadding,
     overlayRadius,
     bodyScrollLock = DEFAULT_BODY_SCROLL_LOCK,
+    scrollLockBottomInset,
   } = options
   const shortcuts = options.shortcuts ?? DEFAULT_SHORTCUTS
 
@@ -107,12 +116,14 @@ export const useTourHud = (
       (hudState.flowHudOptions?.behavior?.lockBodyScroll ?? lockBodyScroll) &&
       hudState.focusTrapActive,
   )
-  useConstrainedScrollLock({
-    enabled: shouldLockBodyScroll,
-    targetRect: hudState.hudTarget.rect,
-    viewportHeight: viewport.height,
-    padding: overlayPadding ?? 12,
-  })
+  const { isConstrainedMode: isConstrainedScrollActive } =
+    useConstrainedScrollLock({
+      enabled: shouldLockBodyScroll,
+      targetRect: hudState.hudTarget.rect,
+      viewportHeight: viewport.height,
+      padding: overlayPadding ?? 12,
+      bottomInset: scrollLockBottomInset,
+    })
 
   const shortcutOptions: UseHudShortcutsOptions =
     typeof shortcuts === 'object' ? shortcuts : {}
@@ -179,5 +190,6 @@ export const useTourHud = (
     targetIssue,
     shouldLockBodyScroll,
     shortcutsEnabled,
+    isConstrainedScrollActive,
   }
 }

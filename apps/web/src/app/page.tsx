@@ -5,6 +5,7 @@ import {
   Features,
   CodeExamples,
   Architecture,
+  DevToolsShowcase,
   GettingStarted,
   Footer,
   TourWrapper,
@@ -20,6 +21,7 @@ export default function Home() {
         <Features />
         <CodeExamples />
         <Architecture />
+        <DevToolsShowcase />
         <GettingStarted />
         <Footer />
       </main>

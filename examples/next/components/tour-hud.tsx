@@ -203,7 +203,19 @@ export function TourHUD({
     typeof window !== 'undefined' && typeof document !== 'undefined'
   const portalTarget = isBrowser ? document.body : null
 
-  const hud = useTourHud({ shortcuts })
+  // Mobile configuration (before useTourHud so we can pass scrollLockBottomInset)
+  const mobileEnabled = mobile.enabled !== false
+  const mobileBreakpoint = mobile.breakpoint ?? MOBILE_BREAKPOINT
+  const isMobileViewport = useIsMobile(mobileBreakpoint)
+  const shouldRenderMobile = mobileEnabled && isMobileViewport
+
+  // Track drawer height for scroll lock inset
+  const [drawerHeight, setDrawerHeight] = React.useState(0)
+
+  const hud = useTourHud({
+    shortcuts,
+    scrollLockBottomInset: shouldRenderMobile ? drawerHeight : 0,
+  })
   const {
     hudState,
     popover: popoverConfig,
@@ -211,6 +223,7 @@ export function TourHUD({
     focusManager,
     targetIssue,
     overlay: overlayConfig,
+    isConstrainedScrollActive,
   } = hud
   const {
     runningStep,
@@ -225,12 +238,6 @@ export function TourHUD({
   const isHeadlessFlow = hudRenderMode === 'none' && Boolean(activeFlowId)
   const isDefaultFlow = hudRenderMode !== 'none' && shouldRender
   const hudEnabled = (isHeadlessFlow || isDefaultFlow) && shouldRender
-
-  // Mobile configuration
-  const mobileEnabled = mobile.enabled !== false
-  const mobileBreakpoint = mobile.breakpoint ?? MOBILE_BREAKPOINT
-  const isMobileViewport = useIsMobile(mobileBreakpoint)
-  const shouldRenderMobile = mobileEnabled && isMobileViewport
 
   const { components, transitions } = useHudMotion()
   const { MotionDiv, MotionSection } = components
@@ -301,7 +308,9 @@ export function TourHUD({
         blurAmount={overlayBlur}
         shadow={showRing ? ringShadow : undefined}
         transitionsOverride={{
-          overlayHighlight: highlightTransition,
+          overlayHighlight: isConstrainedScrollActive
+            ? { type: 'tween', duration: 0 }
+            : highlightTransition,
           overlayFade: overlayFadeTransition,
         }}
       />
@@ -314,6 +323,7 @@ export function TourHUD({
           allowMinimize={mobile.allowMinimize ?? true}
           maxHeightRatio={mobile.maxHeightRatio}
           onSnapPointChange={mobile.onSnapPointChange}
+          onDrawerHeightChange={setDrawerHeight}
           className={className}
           controls={{
             showSkip: controls.showSkip,

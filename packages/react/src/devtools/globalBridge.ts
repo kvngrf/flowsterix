@@ -28,9 +28,11 @@ interface BridgeGlobal {
   listeners: Set<Listener>
 }
 
+const SERVER_BRIDGE: BridgeGlobal = { value: null, listeners: new Set() }
+
 function getBridge(): BridgeGlobal {
   if (typeof window === 'undefined') {
-    return { value: null, listeners: new Set() }
+    return SERVER_BRIDGE
   }
 
   const w = window as unknown as Record<string, BridgeGlobal | undefined>

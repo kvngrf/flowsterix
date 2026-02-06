@@ -27,8 +27,10 @@ function getSnapshot(): GrabbedStep[] {
   return store.steps
 }
 
+const SERVER_SNAPSHOT: GrabbedStep[] = []
+
 function getServerSnapshot(): GrabbedStep[] {
-  return []
+  return SERVER_SNAPSHOT
 }
 
 function generateId(): string {

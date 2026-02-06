@@ -139,7 +139,6 @@ export function CodeExamples() {
 
   const handleTabClick = (tabId: string) => {
     if (tabId !== activeTab) {
-      // Advance the tour if on the "code-examples" step
       advanceStep("code-examples");
     }
     setActiveTab(tabId);
