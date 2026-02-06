@@ -164,28 +164,35 @@ function useViewportHeight() {
   return height
 }
 
-function useContentHeight(contentRef: React.RefObject<HTMLDivElement | null>) {
+function useContentHeight() {
   // Start with -1 to indicate "not yet measured"
   const [contentHeight, setContentHeight] = React.useState(-1)
+  const observerRef = React.useRef<ResizeObserver | null>(null)
 
-  React.useEffect(() => {
-    const element = contentRef.current
-    if (!element) return
-
-    const measure = () => {
-      setContentHeight(element.scrollHeight)
+  // Callback ref: re-attaches ResizeObserver whenever AnimatePresence swaps elements
+  const contentRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+      observerRef.current = null
     }
 
-    // Measure after a frame to ensure content is rendered
+    if (!node) return
+
+    const measure = () => {
+      setContentHeight(node.scrollHeight)
+    }
+
     requestAnimationFrame(measure)
 
-    const observer = new ResizeObserver(measure)
-    observer.observe(element)
+    observerRef.current = new ResizeObserver(measure)
+    observerRef.current.observe(node)
+  }, [])
 
-    return () => observer.disconnect()
-  }, [contentRef])
+  React.useEffect(() => {
+    return () => observerRef.current?.disconnect()
+  }, [])
 
-  return contentHeight
+  return { contentRef, contentHeight }
 }
 
 // =============================================================================
@@ -223,8 +230,7 @@ export function MobileDrawer({
   const { state } = useTour()
   const viewportHeight = useViewportHeight()
   const safeAreaBottom = useSafeAreaBottom()
-  const contentRef = React.useRef<HTMLDivElement>(null)
-  const contentHeight = useContentHeight(contentRef)
+  const { contentRef, contentHeight } = useContentHeight()
 
   // Ensure minimized is available if allowMinimize
   const snapPoints = React.useMemo(() => {
@@ -280,6 +286,11 @@ export function MobileDrawer({
       controls_.start({ y: targetY }, springConfig)
     }
   }, [isMeasured, currentSnapPoint, getTranslateY, controls_])
+
+  // Animate drawer height changes between steps
+  React.useEffect(() => {
+    controls_.start({ height: expandedHeight }, springConfig)
+  }, [expandedHeight, controls_])
 
   // Report visible drawer height for scroll lock inset
   React.useEffect(() => {
@@ -389,7 +400,6 @@ export function MobileDrawer({
         className,
       )}
       style={{
-        height: expandedHeight,
         paddingBottom: `env(safe-area-inset-bottom, 0px)`,
       }}
       drag="y"
@@ -398,7 +408,7 @@ export function MobileDrawer({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       animate={controls_}
-      initial={{ y: getTranslateY(defaultSnapPoint) }}
+      initial={{ y: getTranslateY(defaultSnapPoint), height: expandedHeight }}
       data-mobile-drawer=""
       data-snap-point={currentSnapPoint}
     >
