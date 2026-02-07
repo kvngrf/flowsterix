@@ -237,11 +237,34 @@ export function GettingStarted() {
                   )}
                 </button>
               </div>
+              <div className="border-t border-white/5 flex items-center justify-between p-4">
+                <code className="text-sm text-zinc-100 font-mono">
+                  <span className="text-zinc-500">$</span> npx skills add
+                  kvngrf/flowsterix --skill studio-sdk
+                </code>
+                <button
+                  onClick={() =>
+                    copyToClipboard({
+                      text: 'npx skills add kvngrf/flowsterix --skill studio-sdk',
+                      index: 3,
+                    })
+                  }
+                  className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+                  aria-label="Copy command"
+                >
+                  {copiedIndex === 3 ? (
+                    <Check className="w-4 h-4 text-tertiary-400" />
+                  ) : (
+                    <Copy className="w-4 h-4 text-zinc-400" />
+                  )}
+                </button>
+              </div>
               <div className="px-4 pb-4">
                 <p className="text-xs text-zinc-500">
                   Works with Claude Code, Cursor, and other AI coding
-                  assistants. Provides patterns for step definitions, advance
-                  rules, lifecycle hooks, and more.
+                  assistants. <span className="text-zinc-400">flowsterix-best-practices</span> covers
+                  tour patterns, advance rules, and lifecycle hooks. <span className="text-zinc-400">studio-sdk</span> covers
+                  Studio analytics integration, event serialization, and batched transport.
                 </p>
               </div>
             </div>

@@ -535,6 +535,12 @@ importers:
         specifier: ^19.2.0
         version: 19.2.3(react@19.2.3)
 
+  packages/studio:
+    dependencies:
+      '@flowsterix/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/video:
     dependencies:
       '@remotion/cli':

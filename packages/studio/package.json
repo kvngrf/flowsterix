@@ -1,0 +1,43 @@
+{
+  "name": "@flowsterix/studio",
+  "version": "0.1.0",
+  "description": "SDK bridge for Flowsterix Studio — analytics, storage sync, and event ingestion",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kvngrf/flowsterix.git",
+    "directory": "packages/studio"
+  },
+  "keywords": [
+    "flowsterix",
+    "studio",
+    "analytics",
+    "tour",
+    "onboarding",
+    "sdk"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --config tsup.config.ts && tsc --build tsconfig.json --force",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@flowsterix/core": "workspace:*"
+  }
+}
