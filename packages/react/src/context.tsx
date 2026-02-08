@@ -55,8 +55,10 @@ import { useDialogAutomation } from './hooks/useDialogAutomation'
 import {
   AnimationAdapterProvider,
   defaultAnimationAdapter,
+  tweenAnimationAdapter,
   usePreferredAnimationAdapter,
 } from './motion/animationAdapter'
+import { setUseSpringAnimations } from './devtools/motion'
 import {
   getCurrentRoutePath,
   matchRoute,
@@ -87,6 +89,8 @@ export interface TourProviderProps {
   lockBodyScroll?: boolean
   /** Customize UI labels for internationalization */
   labels?: Partial<TourLabels>
+  /** Use tween (easing-curve) animations instead of spring physics everywhere */
+  useSpringAnimations?: boolean
   /** Callback when a version mismatch is detected and resolved */
   onVersionMismatch?: (info: VersionMismatchInfo) => void
 }
@@ -150,6 +154,7 @@ export const TourProvider = ({
   backdropInteraction: backdropInteractionProp = 'passthrough',
   lockBodyScroll: lockBodyScrollProp = false,
   labels: labelsProp,
+  useSpringAnimations: useSpringAnimationsProp = true,
   onVersionMismatch,
 }: PropsWithChildren<TourProviderProps>) => {
   const mergedLabels = useMemo<TourLabels>(
@@ -796,8 +801,17 @@ export const TourProvider = ({
     ],
   )
 
+  // Sync devtools spring flag with prop
+  useEffect(() => {
+    setUseSpringAnimations(useSpringAnimationsProp)
+  }, [useSpringAnimationsProp])
+
+  const effectiveDefaultAdapter = useSpringAnimationsProp
+    ? animationAdapterProp
+    : tweenAnimationAdapter
+
   const resolvedAnimationAdapter = usePreferredAnimationAdapter({
-    defaultAdapter: animationAdapterProp,
+    defaultAdapter: effectiveDefaultAdapter,
     reducedMotionAdapter,
     enabled: autoDetectReducedMotion,
   })

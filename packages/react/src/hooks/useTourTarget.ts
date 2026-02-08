@@ -58,6 +58,11 @@ const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 
 type ScrollBehaviorSetting = ScrollBehavior | undefined
 
+type ScrollOptions = {
+  behavior?: ScrollBehaviorSetting
+  durationMs?: number
+}
+
 const rectHasMeaningfulSize = (rect: ClientRectLike | null) =>
   !!rect &&
   rect.width > 0 &&
@@ -100,16 +105,77 @@ const computeVisibilityState = (
   return 'visible'
 }
 
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
+
+const easeInOutCubic = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+let windowScrollAnimationToken = 0
+
+const getWindowScrollY = () => {
+  if (!isBrowser) return 0
+  const scrollingElement = document.scrollingElement
+  return scrollingElement?.scrollTop ?? window.scrollY ?? 0
+}
+
+const setWindowScrollY = (value: number) => {
+  if (!isBrowser) return
+  const scrollingElement = document.scrollingElement
+  if (scrollingElement) {
+    scrollingElement.scrollTop = value
+    return
+  }
+  document.documentElement.scrollTop = value
+  document.body.scrollTop = value
+}
+
+const animateWindowScrollBy = (topDelta: number, durationMs: number) => {
+  if (!isBrowser) return
+  if (!Number.isFinite(topDelta) || Math.abs(topDelta) < 0.5) return
+
+  const startY = getWindowScrollY()
+  const targetY = startY + topDelta
+  const scrollingElement = document.scrollingElement ?? document.documentElement
+  const maxScrollY = Math.max(
+    0,
+    scrollingElement.scrollHeight - scrollingElement.clientHeight,
+  )
+  const clampedTargetY = Math.max(0, Math.min(targetY, maxScrollY))
+  const distance = clampedTargetY - startY
+  if (Math.abs(distance) < 0.5) return
+
+  const duration = Math.max(0, durationMs)
+  const startTime = performance.now()
+  const token = (windowScrollAnimationToken += 1)
+
+  const tick = (now: number) => {
+    if (token !== windowScrollAnimationToken) return
+    const elapsed = now - startTime
+    const progress = duration === 0 ? 1 : clamp01(elapsed / duration)
+    const eased = easeInOutCubic(progress)
+    const nextY = startY + distance * eased
+    setWindowScrollY(nextY)
+    if (progress < 1) {
+      window.requestAnimationFrame(tick)
+    }
+  }
+
+  window.requestAnimationFrame(tick)
+}
+
 const scrollContainerBy = (
   container: Element,
   topDelta: number,
   leftDelta: number,
-  behavior: ScrollBehaviorSetting,
+  options?: ScrollOptions,
 ) => {
   if (!isBrowser) return
   if (Math.abs(topDelta) < 0.5 && Math.abs(leftDelta) < 0.5) {
     return
   }
+
+  const behavior = options?.behavior
+  const durationMs = options?.durationMs
 
   const isRootContainer =
     container === document.body ||
@@ -117,6 +183,13 @@ const scrollContainerBy = (
     container === document.scrollingElement
 
   if (isRootContainer) {
+    if (typeof durationMs === 'number' && durationMs >= 0) {
+      animateWindowScrollBy(topDelta, durationMs)
+      if (Math.abs(leftDelta) >= 0.5) {
+        window.scrollBy({ left: leftDelta, behavior: behavior ?? 'auto' })
+      }
+      return
+    }
     window.scrollBy({
       top: topDelta,
       left: leftDelta,
@@ -143,6 +216,7 @@ type ScrollMode = StepScrollMode
 
 interface EnsureInViewOptions {
   behavior?: ScrollBehaviorSetting
+  durationMs?: number
   mode?: ScrollMode
 }
 
@@ -150,6 +224,7 @@ const alignWithinViewport = (
   element: Element,
   margin: ScrollMargin,
   behavior: ScrollBehaviorSetting,
+  durationMs: number | undefined,
   mode: ScrollMode,
 ) => {
   if (mode === 'preserve') return
@@ -165,6 +240,11 @@ const alignWithinViewport = (
   const delta = finalRect.top - desiredTop
   if (Math.abs(delta) < 0.5) return
 
+  if (typeof durationMs === 'number' && durationMs >= 0) {
+    animateWindowScrollBy(delta, durationMs)
+    return
+  }
+
   window.scrollBy({
     top: delta,
     behavior: behavior ?? 'auto',
@@ -177,6 +257,7 @@ const ensureElementInView = (
   options?: EnsureInViewOptions,
 ) => {
   const behavior = options?.behavior ?? 'auto'
+  const durationMs = options?.durationMs
   const mode: ScrollMode = options?.mode ?? 'preserve'
   if (!isBrowser) return
 
@@ -212,7 +293,10 @@ const ensureElementInView = (
     }
 
     if (topDelta !== 0 || leftDelta !== 0) {
-      scrollContainerBy(container, topDelta, leftDelta, behavior)
+      scrollContainerBy(container, topDelta, leftDelta, {
+        behavior,
+        durationMs,
+      })
     }
   }
 
@@ -234,14 +318,21 @@ const ensureElementInView = (
   }
 
   if (viewportTopDelta !== 0 || viewportLeftDelta !== 0) {
-    window.scrollBy({
-      top: viewportTopDelta,
-      left: viewportLeftDelta,
-      behavior,
-    })
+    if (typeof durationMs === 'number' && durationMs >= 0) {
+      animateWindowScrollBy(viewportTopDelta, durationMs)
+      if (Math.abs(viewportLeftDelta) >= 0.5) {
+        window.scrollBy({ left: viewportLeftDelta, behavior: behavior ?? 'auto' })
+      }
+    } else {
+      window.scrollBy({
+        top: viewportTopDelta,
+        left: viewportLeftDelta,
+        behavior,
+      })
+    }
   }
 
-  alignWithinViewport(element, margin, behavior, mode)
+  alignWithinViewport(element, margin, behavior, durationMs, mode)
 }
 
 const resolveStepTarget = (
@@ -281,7 +372,13 @@ export const useTourTarget = (): TourTargetInfo => {
     stalledChecks: number
     done: boolean
     lastRect: ClientRectLike | null
-  }>({ stepId: null, checks: 0, stalledChecks: 0, done: false, lastRect: null })
+  }>({
+    stepId: null,
+    checks: 0,
+    stalledChecks: 0,
+    done: false,
+    lastRect: null,
+  })
   const autoScrollRafRef = useRef<number | null>(null)
   const autoScrollTimeoutRef = useRef<ReturnType<
     typeof globalThis.setTimeout
@@ -310,6 +407,25 @@ export const useTourTarget = (): TourTargetInfo => {
     }
   }, [activeStep?.id])
 
+  useEffect(() => {
+    if (!isBrowser) return
+    if (!activeStep || !state || state.status !== 'running') return
+    if (typeof activeStep.targetBehavior?.scrollDurationMs !== 'number') return
+
+    const html = document.documentElement
+    const body = document.body
+    const previousHtmlScrollBehavior = html.style.scrollBehavior
+    const previousBodyScrollBehavior = body.style.scrollBehavior
+
+    html.style.scrollBehavior = 'auto'
+    body.style.scrollBehavior = 'auto'
+
+    return () => {
+      html.style.scrollBehavior = previousHtmlScrollBehavior
+      body.style.scrollBehavior = previousBodyScrollBehavior
+    }
+  }, [activeStep?.id, activeStep?.targetBehavior?.scrollDurationMs, state?.status])
+
   useLayoutEffect(() => {
     if (!isBrowser) return
     if (!activeStep) return
@@ -330,6 +446,7 @@ export const useTourTarget = (): TourTargetInfo => {
 
     const scrollMode: ScrollMode =
       activeStep.targetBehavior?.scrollMode ?? DEFAULT_SCROLL_MODE
+    const scrollDurationMs = activeStep.targetBehavior?.scrollDurationMs
 
     const hasLiveRect = targetInfo.rectSource === 'live'
     const scrollBehavior: ScrollBehaviorSetting = hasLiveRect
@@ -338,12 +455,15 @@ export const useTourTarget = (): TourTargetInfo => {
 
     ensureElementInView(targetInfo.element, margin, {
       behavior: scrollBehavior,
+      durationMs:
+        scrollBehavior === 'smooth' ? scrollDurationMs : undefined,
       mode: scrollMode,
     })
   }, [
     activeStep?.id,
     activeStep?.targetBehavior?.scrollMargin,
     activeStep?.targetBehavior?.scrollMode,
+    activeStep?.targetBehavior?.scrollDurationMs,
     targetInfo.rect,
     targetInfo.lastResolvedRect,
     targetInfo.element,
@@ -795,6 +915,7 @@ export const useTourTarget = (): TourTargetInfo => {
     const { element } = targetInfo
     const scrollMode: ScrollMode =
       activeStep.targetBehavior?.scrollMode ?? 'center'
+    const scrollDurationMs = activeStep.targetBehavior?.scrollDurationMs
 
     const runCheck = () => {
       autoScrollRafRef.current = null
@@ -858,11 +979,17 @@ export const useTourTarget = (): TourTargetInfo => {
         autoState.stalledChecks >= STALLED_CHECKS_BEFORE_AUTO
           ? 'auto'
           : 'smooth'
+      const shouldDispatchScroll =
+        behavior === 'auto' || !hasProgress || autoState.checks <= 1
 
-      ensureElementInView(element, margin, {
-        behavior,
-        mode: scrollMode,
-      })
+      if (shouldDispatchScroll) {
+        ensureElementInView(element, margin, {
+          behavior,
+          durationMs:
+            behavior === 'smooth' ? scrollDurationMs : undefined,
+          mode: scrollMode,
+        })
+      }
 
       autoScrollTimeoutRef.current = globalThis.setTimeout(() => {
         autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
@@ -873,7 +1000,12 @@ export const useTourTarget = (): TourTargetInfo => {
     autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
 
     return cancelAutoScrollLoop
-  }, [activeStep, activeStep?.targetBehavior?.scrollMode, targetInfo])
+  }, [
+    activeStep,
+    activeStep?.targetBehavior?.scrollMode,
+    activeStep?.targetBehavior?.scrollDurationMs,
+    targetInfo,
+  ])
 
   return targetInfo
 }

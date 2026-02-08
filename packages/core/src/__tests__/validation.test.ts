@@ -59,6 +59,7 @@ describe('validateFlowDefinition', () => {
               hiddenDelayMs: 1000,
               scrollMargin: { top: 10, bottom: 10 },
               scrollMode: 'center',
+              scrollDurationMs: 350,
             },
             content: 'Content',
             advance: [{ type: 'manual' }],

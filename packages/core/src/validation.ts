@@ -202,6 +202,7 @@ const stepSchema = z.object({
       scrollMode: z
         .union([z.literal('preserve'), z.literal('start'), z.literal('center')])
         .optional(),
+      scrollDurationMs: z.number().nonnegative().optional(),
     })
     .optional(),
   content: z.any(),

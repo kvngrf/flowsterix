@@ -3,7 +3,6 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { Transition } from 'motion/react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { ElementInfo } from '../types'
 import { formatSourcePath } from '../utils/sourceExtractor'
@@ -123,12 +122,6 @@ const styles = {
   },
 } as const
 
-const springTransition: Transition = {
-  type: 'spring',
-  damping: 30,
-  stiffness: 400,
-  mass: 0.8,
-}
 
 export interface GrabberOverlayProps {
   isGrabbing: boolean
@@ -217,7 +210,7 @@ export function GrabberOverlay(props: GrabberOverlayProps) {
             exit={{
               opacity: 0,
             }}
-            transition={reducedMotion ? { duration: 0 } : springTransition}
+            transition={reducedMotion ? { duration: 0 } : springs.grabber}
           >
             <motion.div
               style={labelStyle}

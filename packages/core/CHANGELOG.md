@@ -1,5 +1,11 @@
 # @flowsterix/core
 
+## 0.10.1
+
+### Patch Changes
+
+- Add `scrollDurationMs` to `StepTargetBehavior` to allow configuring smooth scroll duration for step targets.
+
 ## 0.10.0
 
 ### Minor Changes

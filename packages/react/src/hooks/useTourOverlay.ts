@@ -88,6 +88,15 @@ const DEFAULT_PADDING = 12
 const DEFAULT_RADIUS = 12
 const DEFAULT_EDGE_BUFFER = 0
 
+const rectIntersectsViewport = (
+  rect: ClientRectLike,
+  viewport: ClientRectLike,
+) =>
+  rect.bottom > 0 &&
+  rect.right > 0 &&
+  rect.top < viewport.height &&
+  rect.left < viewport.width
+
 export const useTourOverlay = (
   options: UseTourOverlayOptions,
 ): UseTourOverlayResult => {
@@ -102,10 +111,15 @@ export const useTourOverlay = (
 
   const hasShownRef = useRef(false)
   const lastReadyTargetRef = useRef<TourTargetInfo | null>(null)
+  const viewport = getViewportRect()
+  const liveRectIsInViewport = Boolean(
+    target.isScreen ||
+      (target.rect && rectIntersectsViewport(target.rect, viewport)),
+  )
 
   useEffect(() => {
     if (!isBrowser) return
-    if (target.status === 'ready') {
+    if (target.status === 'ready' && liveRectIsInViewport) {
       hasShownRef.current = true
       lastReadyTargetRef.current = {
         ...target,
@@ -120,13 +134,14 @@ export const useTourOverlay = (
       hasShownRef.current = false
       lastReadyTargetRef.current = null
     }
-  }, [target, isInGracePeriod])
+  }, [target, isInGracePeriod, liveRectIsInViewport])
 
-  const viewport = getViewportRect()
   const cachedTarget = lastReadyTargetRef.current
-  const highlightTarget = target.status === 'ready' ? target : cachedTarget
+  const highlightTarget =
+    target.status === 'ready' && liveRectIsInViewport ? target : cachedTarget
 
-  const resolvedRect = highlightTarget?.rect ?? target.rect
+  const resolvedRect =
+    highlightTarget?.rect ?? (cachedTarget ? null : (target.rect ?? null))
   const resolvedIsScreen = highlightTarget?.isScreen ?? target.isScreen
 
   const expandedRect =

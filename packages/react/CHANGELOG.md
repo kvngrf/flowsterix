@@ -1,5 +1,17 @@
 # @flowsterix/react
 
+## 0.14.2
+
+### Patch Changes
+
+- Add support for `targetBehavior.scrollDurationMs` to control smooth scroll timing when bringing targets into view.
+- Improve scroll synchronization for large step jumps:
+  - Ignore page-level CSS smooth scrolling while a step uses `scrollDurationMs`, so Flowsterix duration control stays deterministic.
+  - Prevent repeated auto-scroll re-dispatch while the target is already progressing into view.
+- Keep HUD positioning stable during long jumps:
+  - Overlay highlight and popover now keep their previous on-screen position while the next target is still offscreen.
+  - They move to the new target once it enters the viewport.
+
 ## 0.14.1
 
 ### Patch Changes

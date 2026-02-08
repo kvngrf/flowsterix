@@ -111,6 +111,7 @@ export interface StepTargetBehavior {
   hiddenDelayMs?: number
   scrollMargin?: ScrollMarginConfig
   scrollMode?: StepScrollMode
+  scrollDurationMs?: number
 }
 
 export type StepTarget =

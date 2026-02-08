@@ -51,6 +51,7 @@ export function TourWrapper({ children }: { children: React.ReactNode }) {
       <TourProvider
         flows={[landingTourFlow]}
         storageNamespace="flowsterix-landing"
+        useSpringAnimations={false}
       >
         <DevToolsProvider enabled={devToolsEnabled}>
           {children}

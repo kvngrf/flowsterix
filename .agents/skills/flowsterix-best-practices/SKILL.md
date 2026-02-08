@@ -307,6 +307,7 @@ When body scroll lock is enabled and the highlighted target exceeds viewport hei
    targetBehavior: {
      scrollMargin: { top: 80 },  // Height of sticky header
      scrollMode: 'start',
+     scrollDurationMs: 350,      // Keep scroll timing aligned with HUD motion
    }
    ```
 
@@ -330,6 +331,27 @@ When body scroll lock is enabled and the highlighted target exceeds viewport hei
    onResume: () => ensureMenuOpen(),
    onExit: () => ensureMenuClosed(),
    ```
+
+## Scroll Synchronization for Long Jumps
+
+When consecutive steps are far apart on the page, set a fixed `scrollDurationMs` on the step:
+
+```tsx
+{
+  id: 'architecture',
+  target: { selector: '[data-tour-target="architecture"]' },
+  targetBehavior: {
+    scrollMode: 'center',
+    scrollDurationMs: 350,
+  },
+}
+```
+
+Guidelines:
+- Use `250-450ms` for most landing pages. Start with `350ms`.
+- Keep page-level CSS smooth scroll if you want; when `scrollDurationMs` is set, Flowsterix temporarily bypasses global CSS smooth scrolling so timing stays deterministic.
+- During long jumps, overlay highlight and popover stay anchored to the previous on-screen position until the next target enters the viewport, then transition to the new target.
+- Use `scrollMode: 'preserve'` for minimal movement, `center` for guided storytelling, or `start` when sticky headers need strict top alignment.
 
 ## Shadcn Components
 

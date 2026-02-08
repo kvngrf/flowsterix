@@ -60,6 +60,15 @@ type FloatingPositionState = {
 
 const floatingPositionCache = new Map<string, FloatingPositionState>()
 
+const rectIntersectsViewport = (
+  rect: ClientRectLike,
+  viewport: ClientRectLike,
+) =>
+  rect.bottom > 0 &&
+  rect.right > 0 &&
+  rect.top < viewport.height &&
+  rect.left < viewport.width
+
 const getFloatingCacheKey = (target: TourTargetInfo) => {
   if (target.stepId) {
     return `step:${target.stepId}`
@@ -176,6 +185,11 @@ export const TourPopoverPortal = ({
   const prefersMobileLayout =
     viewport.width <= MOBILE_BREAKPOINT ||
     viewport.height <= MOBILE_HEIGHT_BREAKPOINT
+  const liveTargetUsable = Boolean(
+    target.status === 'ready' &&
+      (target.isScreen ||
+        (target.rect && rectIntersectsViewport(target.rect, viewport))),
+  )
   const prefersMobileRef = useRef(prefersMobileLayout)
   useEffect(() => {
     prefersMobileRef.current = prefersMobileLayout
@@ -186,7 +200,7 @@ export const TourPopoverPortal = ({
     isScreen: boolean
   } | null>(null)
   useEffect(() => {
-    if (target.status === 'ready' && target.rect) {
+    if (liveTargetUsable && target.rect) {
       lastReadyTargetRef.current = {
         rect: { ...target.rect },
         isScreen: target.isScreen,
@@ -196,19 +210,21 @@ export const TourPopoverPortal = ({
       // This preserves position for smooth animations between steps
       lastReadyTargetRef.current = null
     }
-  }, [target.isScreen, target.rect, target.status, isInGracePeriod])
+  }, [target.isScreen, target.rect, target.status, isInGracePeriod, liveTargetUsable])
 
   const cachedTarget = lastReadyTargetRef.current
   const resolvedRect =
-    target.rect ?? target.lastResolvedRect ?? cachedTarget?.rect ?? null
-  const resolvedIsScreen =
-    target.status === 'ready'
-      ? target.isScreen
-      : (cachedTarget?.isScreen ?? target.isScreen)
+    liveTargetUsable
+      ? (target.rect ?? target.lastResolvedRect ?? cachedTarget?.rect ?? null)
+      : (cachedTarget?.rect ??
+        (cachedTarget ? null : (target.rect ?? target.lastResolvedRect ?? null)))
+  const resolvedIsScreen = liveTargetUsable
+    ? target.isScreen
+    : (cachedTarget?.isScreen ?? target.isScreen)
 
   // Hide popover when there's no valid rect to position against
   // (screen fallback sets target.isScreen=true and provides viewport rect)
-  const shouldHidePopover = !resolvedRect && !target.isScreen
+  const shouldHidePopover = !resolvedRect && !resolvedIsScreen
 
   const fallbackRect = resolvedRect ?? viewport
   const fallbackIsScreen = resolvedIsScreen
@@ -480,10 +496,13 @@ export const TourPopoverPortal = ({
   useLayoutEffect(() => {
     if (!isBrowser) return
     const floatingEl = floatingRef.current
-    const rectInfo = target.rect
+    const rectInfo = liveTargetUsable
+      ? (target.rect ?? target.lastResolvedRect ?? null)
+      : null
     if (!floatingEl) return
+    if (!liveTargetUsable) return
     if (target.status !== 'ready') return
-    if (!rectInfo || target.isScreen) return
+    if (!rectInfo || resolvedIsScreen) return
     if (layoutMode === 'mobile' || layoutMode === 'manual') return
 
     const cancelState = { cancelled: false }
@@ -502,7 +521,7 @@ export const TourPopoverPortal = ({
     }
 
     const virtualReference: VirtualElement = {
-      contextElement: target.element ?? undefined,
+      contextElement: liveTargetUsable ? (target.element ?? undefined) : undefined,
       getBoundingClientRect: () =>
         DOMRectReadOnly.fromRect({
           width: rectInfo.width,
@@ -658,10 +677,13 @@ export const TourPopoverPortal = ({
     dockedPosition,
     isAutoPlacement,
     layoutMode,
+    liveTargetUsable,
     offset,
+    resolvedIsScreen,
     resolvedPlacement,
     target.element,
     target.isScreen,
+    target.lastResolvedRect,
     target.lastUpdated,
     target.status,
     target.stepId,

@@ -96,6 +96,22 @@ export const useAnimationAdapter = (): AnimationAdapter => {
 
 export const defaultAnimationAdapter = defaultAdapter
 
+export const tweenAnimationAdapter: AnimationAdapter = {
+  components: defaultAdapter.components,
+  transitions: {
+    overlayHighlight: {
+      type: 'tween',
+      duration: 0.35,
+      ease: [0.25, 1, 0.5, 1],
+    },
+    overlayFade: defaultAdapter.transitions.overlayFade,
+    popoverEntrance: defaultAdapter.transitions.popoverEntrance,
+    popoverExit: defaultAdapter.transitions.popoverExit,
+    popoverContent: defaultAdapter.transitions.popoverContent,
+    delayIndicator: defaultAdapter.transitions.delayIndicator,
+  },
+}
+
 export const reducedMotionAnimationAdapter: AnimationAdapter = {
   components: defaultAdapter.components,
   transitions: {

@@ -104,6 +104,7 @@ export {
   AnimationAdapterProvider,
   defaultAnimationAdapter,
   reducedMotionAnimationAdapter,
+  tweenAnimationAdapter,
   useAnimationAdapter,
   usePreferredAnimationAdapter,
 } from './motion/animationAdapter'

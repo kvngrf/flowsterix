@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import type { Transition } from 'motion/react'
 
 // Spring configs for different animation feels
-export const springs = {
+const springPresets = {
   snappy: {
     type: 'spring',
     damping: 30,
@@ -23,6 +23,53 @@ export const springs = {
     stiffness: 400,
     mass: 0.5,
   } as Transition,
+  grabber: {
+    type: 'spring',
+    damping: 30,
+    stiffness: 400,
+    mass: 0.8,
+  } as Transition,
+}
+
+// Tween equivalents for each spring preset (no overshoot)
+const springTweenEquivalents: typeof springPresets = {
+  snappy: {
+    duration: 0.2,
+    ease: [0.25, 1, 0.5, 1],
+  } as Transition,
+  smooth: {
+    duration: 0.3,
+    ease: [0.25, 1, 0.5, 1],
+  } as Transition,
+  bouncy: {
+    duration: 0.3,
+    ease: [0.25, 1, 0.5, 1],
+  } as Transition,
+  grabber: {
+    duration: 0.25,
+    ease: [0.25, 1, 0.5, 1],
+  } as Transition,
+}
+
+let _useSpringAnimations = true
+
+export function setUseSpringAnimations(value: boolean) {
+  _useSpringAnimations = value
+}
+
+export const springs: typeof springPresets = {
+  get snappy() {
+    return _useSpringAnimations ? springPresets.snappy : springTweenEquivalents.snappy
+  },
+  get smooth() {
+    return _useSpringAnimations ? springPresets.smooth : springTweenEquivalents.smooth
+  },
+  get bouncy() {
+    return _useSpringAnimations ? springPresets.bouncy : springTweenEquivalents.bouncy
+  },
+  get grabber() {
+    return _useSpringAnimations ? springPresets.grabber : springTweenEquivalents.grabber
+  },
 }
 
 // Tween presets with custom easing

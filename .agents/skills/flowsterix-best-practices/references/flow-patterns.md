@@ -177,9 +177,23 @@ waitFor: {
   targetBehavior: {
     scrollMargin: { top: 80 },  // Offset for sticky header
     scrollMode: 'start',        // 'start' | 'center' | 'preserve'
+    scrollDurationMs: 350,      // Fixed smooth-scroll timing in ms
   },
 }
 ```
+
+### Long Jump Synchronization
+
+```tsx
+targetBehavior: {
+  scrollMode: 'center',
+  scrollDurationMs: 350,
+}
+```
+
+- `scrollDurationMs` keeps viewport movement aligned with HUD transitions for large step jumps.
+- When set, Flowsterix temporarily bypasses global CSS smooth scrolling to keep timing predictable.
+- Overlay and popover remain at the previous on-screen position while the new target is still offscreen.
 
 ### Hidden Target Handling
 

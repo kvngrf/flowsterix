@@ -284,6 +284,7 @@ const flow = createFlow({
           top: 96, // height of the sticky header
         },
         scrollMode: 'center',
+        scrollDurationMs: 350,
       },
       content: <FeatureCallout />,
     },
@@ -297,6 +298,9 @@ Details:
 - Flowsterix already detects nested scroll containers, so the same margin keeps targets inside overflow panels padded as they animate into view.
 - The helper clamps negative values to zero and falls back to the default 16 px margin whenever a side isn’t provided.
 - Add `targetBehavior.scrollMode` when you want Flowsterix to reposition the viewport even if the target is technically visible. Use `'start'` to pin the element just below the margin buffer, `'center'` (the default) to center it inside the available space, or `'preserve'` to keep the lighter-touch behavior that only scrolls when the element would otherwise be clipped.
+- Add `targetBehavior.scrollDurationMs` to set a fixed smooth-scroll duration (for example `350`) and keep scroll timing aligned with HUD transitions.
+- If your app sets `html { scroll-behavior: smooth; }`, Flowsterix temporarily disables that style while a step uses `scrollDurationMs` so duration control remains predictable.
+- During long jumps, Flowsterix keeps the overlay highlight and popover anchored to the previous on-screen position until the next target is visible, avoiding "flying out of view" artifacts.
 
 In the demo app, the “Sticky Header Safe Zone” step uses this option to keep the popover just below the persistent navigation bar, making it obvious how the HUD will behave in real products.
 

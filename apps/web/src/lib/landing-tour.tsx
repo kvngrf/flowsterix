@@ -44,7 +44,7 @@ export const landingTourFlow = createFlow<ReactNode>({
       id: 'hero-code',
       target: { selector: "[data-tour-target='hero-code']" },
       placement: 'left',
-      targetBehavior: { scrollMargin: { top: 64 } },
+      targetBehavior: { scrollMargin: { top: 64 }, scrollDurationMs: 350 },
       advance: [{ type: 'delay', ms: 6000 }, { type: 'manual' }],
       content: (
         <StepContent>
@@ -65,7 +65,7 @@ export const landingTourFlow = createFlow<ReactNode>({
       id: 'features',
       target: { selector: "[data-tour-target='features']" },
       placement: 'top',
-      targetBehavior: { scrollMargin: { top: 64 } },
+      targetBehavior: { scrollMargin: { top: 64 }, scrollDurationMs: 350 },
       advance: [{ type: 'manual' }],
       content: (
         <StepContent>
@@ -83,7 +83,7 @@ export const landingTourFlow = createFlow<ReactNode>({
       id: 'architecture',
       target: { selector: "[data-tour-target='architecture']" },
       placement: 'bottom',
-      targetBehavior: { scrollMargin: { top: 64 } },
+      targetBehavior: { scrollMargin: { top: 64 }, scrollDurationMs: 350 },
       advance: [
         { type: 'event', event: 'click', on: 'target' },
         { type: 'manual' },
@@ -109,7 +109,7 @@ export const landingTourFlow = createFlow<ReactNode>({
       id: 'code-examples',
       target: { selector: "[data-tour-target='code-tabs']" },
       placement: 'bottom',
-      targetBehavior: { scrollMargin: { top: 64 } },
+      targetBehavior: { scrollMargin: { top: 64 }, scrollDurationMs: 350 },
       advance: [{ type: 'manual' }],
       controls: {
         next: 'hidden',
@@ -134,7 +134,7 @@ export const landingTourFlow = createFlow<ReactNode>({
       id: 'getting-started',
       target: { selector: "[data-tour-target='getting-started']" },
       placement: 'top',
-      targetBehavior: { scrollMargin: { top: 64 } },
+      targetBehavior: { scrollMargin: { top: 64 }, scrollDurationMs: 350 },
       advance: [{ type: 'manual' }],
       content: (
         <StepContent>
