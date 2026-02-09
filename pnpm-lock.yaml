@@ -513,7 +513,7 @@ importers:
         specifier: ^1.7.4
         version: 1.7.4
       '@flowsterix/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@tanstack/react-router':
         specifier: '>=1'
@@ -538,7 +538,7 @@ importers:
   packages/studio:
     dependencies:
       '@flowsterix/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
 
   packages/video:
