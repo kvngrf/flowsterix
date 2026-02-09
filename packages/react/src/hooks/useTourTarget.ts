@@ -447,6 +447,18 @@ export const useTourTarget = (): TourTargetInfo => {
     const scrollMode: ScrollMode =
       activeStep.targetBehavior?.scrollMode ?? DEFAULT_SCROLL_MODE
     const scrollDurationMs = activeStep.targetBehavior?.scrollDurationMs
+    const measurementRect = targetInfo.rect ?? targetInfo.lastResolvedRect
+    const viewport = getViewportRect()
+    const availableHeight = viewport.height - (margin.top + margin.bottom)
+    const availableWidth = viewport.width - (margin.left + margin.right)
+    const fitsHeight = Boolean(
+      measurementRect && measurementRect.height <= availableHeight,
+    )
+    const fitsWidth = Boolean(
+      measurementRect && measurementRect.width <= availableWidth,
+    )
+    const resolvedScrollMode: ScrollMode =
+      measurementRect && (!fitsHeight || !fitsWidth) ? 'preserve' : scrollMode
 
     const hasLiveRect = targetInfo.rectSource === 'live'
     const scrollBehavior: ScrollBehaviorSetting = hasLiveRect
@@ -457,7 +469,7 @@ export const useTourTarget = (): TourTargetInfo => {
       behavior: scrollBehavior,
       durationMs:
         scrollBehavior === 'smooth' ? scrollDurationMs : undefined,
-      mode: scrollMode,
+      mode: resolvedScrollMode,
     })
   }, [
     activeStep?.id,
@@ -975,20 +987,34 @@ export const useTourTarget = (): TourTargetInfo => {
         autoState.stalledChecks += 1
       }
 
+      const oversizedTarget = !fitsHeight || !fitsWidth
+
       const behavior: ScrollBehaviorSetting =
         autoState.stalledChecks >= STALLED_CHECKS_BEFORE_AUTO
           ? 'auto'
           : 'smooth'
-      const shouldDispatchScroll =
-        behavior === 'auto' || !hasProgress || autoState.checks <= 1
+
+      // For oversized targets, the initial step-enter scroll is enough in practice.
+      // Additional auto-loop dispatches can fight constrained scroll lock and cause
+      // small up/down jitter when the target re-enters viewport.
+      if (oversizedTarget) {
+        autoState.done = true
+      }
+
+      const shouldDispatchScroll = !oversizedTarget &&
+        (behavior === 'auto' || !hasProgress || autoState.checks <= 1)
 
       if (shouldDispatchScroll) {
         ensureElementInView(element, margin, {
           behavior,
           durationMs:
             behavior === 'smooth' ? scrollDurationMs : undefined,
-          mode: scrollMode,
+          mode: oversizedTarget ? 'preserve' : scrollMode,
         })
+      }
+
+      if (autoState.done) {
+        return
       }
 
       autoScrollTimeoutRef.current = globalThis.setTimeout(() => {

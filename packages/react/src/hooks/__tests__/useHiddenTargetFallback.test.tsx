@@ -69,6 +69,50 @@ const HiddenFallbackHarness = ({
 }
 
 describe('useHiddenTargetFallback', () => {
+  it('does not switch to screen fallback when hidden target still has a live rect', () => {
+    vi.useFakeTimers()
+    try {
+      const onSkip = vi.fn()
+      const onUpdate = vi.fn()
+
+      const step = createStep({
+        targetBehavior: { hidden: 'screen', hiddenDelayMs: 30 },
+      })
+      const hiddenWithLiveRect = createTarget({
+        visibility: 'hidden',
+        rectSource: 'live',
+        rect: {
+          top: 1200,
+          left: 80,
+          width: 900,
+          height: 640,
+          right: 980,
+          bottom: 1840,
+        },
+      })
+
+      render(
+        <HiddenFallbackHarness
+          step={step}
+          target={hiddenWithLiveRect}
+          onSkip={onSkip}
+          onUpdate={onUpdate}
+        />,
+      )
+
+      act(() => {
+        vi.advanceTimersByTime(500)
+      })
+
+      const latest = onUpdate.mock.calls.at(-1)?.[0] as HookUpdate
+      expect(latest).toBeDefined()
+      expect(latest.usingScreenFallback).toBe(false)
+      expect(latest.target.isScreen).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('switches to a screen-centered fallback when the target stays hidden', () => {
     vi.useFakeTimers()
     try {
@@ -112,6 +156,10 @@ describe('useHiddenTargetFallback', () => {
             onUpdate={onUpdate}
           />,
         )
+      })
+
+      act(() => {
+        vi.advanceTimersByTime(350)
       })
 
       const afterReset = onUpdate.mock.calls.at(-1)?.[0] as HookUpdate

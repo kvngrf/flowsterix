@@ -1,5 +1,11 @@
 # @flowsterix/core
 
+## 0.10.2
+
+### Patch Changes
+
+- Add maintainer-focused package documentation in `README.md` covering architecture, API inventory, and runtime data flow.
+
 ## 0.10.1
 
 ### Patch Changes

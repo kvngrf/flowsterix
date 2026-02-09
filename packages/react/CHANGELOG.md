@@ -1,5 +1,13 @@
 # @flowsterix/react
 
+## 0.14.3
+
+### Patch Changes
+
+- Patch release for React HUD/overlay transition improvements and maintainer documentation updates in core and react packages.
+- Updated dependencies
+  - @flowsterix/core@0.10.2
+
 ## 0.14.2
 
 ### Patch Changes
@@ -11,6 +19,10 @@
 - Keep HUD positioning stable during long jumps:
   - Overlay highlight and popover now keep their previous on-screen position while the next target is still offscreen.
   - They move to the new target once it enters the viewport.
+- Respect `targetBehavior.scrollMargin` in constrained scroll-lock mode for oversized targets so top/bottom spacing is preserved while scrolling.
+- Prevent popover flash/unmount during step transitions (including docked -> floating back-navigation) by persisting the previous rendered position while the next target is still resolving.
+- Reduce oversize-target stutter when re-entering view by avoiding repeated recenter attempts during constrained scrolling (`preserve` mode + redispatch only when stalled).
+- Internal: expand `README.md` into a maintainer-focused, full-coverage package documentation entry point (architecture, data flows, capabilities, and exhaustive API inventory).
 
 ## 0.14.1
 

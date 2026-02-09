@@ -85,10 +85,23 @@ export const useHiddenTargetFallback = ({
     clearPendingTimeout()
     clearGraceTimeout()
 
-    // Handle hidden/detached (element found but not visible) - status is 'ready'
-    const isHiddenOrDetached =
-      (target.visibility === 'hidden' || target.visibility === 'detached') &&
-      target.status === 'ready'
+    const hasLiveRect =
+      target.rectSource === 'live' &&
+      target.rect !== null &&
+      target.rect.width > 0 &&
+      target.rect.height > 0
+
+    // Detached targets should still trigger fallback handling.
+    const isDetached =
+      target.visibility === 'detached' && target.status === 'ready'
+
+    // Hidden targets with a live rect are often transitional (e.g. scrolling,
+    // CSS visibility/opacity transitions). Keep anchor/persistence and avoid
+    // forcing screen fallback in that case.
+    const isHiddenWithoutLiveRect =
+      target.visibility === 'hidden' &&
+      target.status === 'ready' &&
+      !hasLiveRect
 
     // Handle missing (element never found, no rect data) - status is 'resolving'
     const isMissingWithNoRect =
@@ -106,7 +119,8 @@ export const useHiddenTargetFallback = ({
 
     const shouldHandleHiddenTarget =
       !target.isScreen &&
-      (isHiddenOrDetached ||
+      (isDetached ||
+        isHiddenWithoutLiveRect ||
         isMissingWithNoRect ||
         isMissingAfterNavigation)
 
@@ -117,6 +131,8 @@ export const useHiddenTargetFallback = ({
     const MIN_GRACE_AFTER_STEP_CHANGE = 300 // ms
 
     if (!shouldHandleHiddenTarget && target.visibility !== 'unknown') {
+      setUsingScreenFallback(false)
+
       if (timeSinceStepChange < MIN_GRACE_AFTER_STEP_CHANGE) {
         // Schedule check after min grace period
         graceTimeoutRef.current = globalThis.setTimeout(() => {
@@ -125,7 +141,6 @@ export const useHiddenTargetFallback = ({
         return undefined
       }
 
-      setUsingScreenFallback(false)
       setIsInGracePeriod(false)
       return undefined
     }
@@ -170,6 +185,7 @@ export const useHiddenTargetFallback = ({
     target.status,
     target.rect,
     target.lastResolvedRect,
+    target.rectSource,
     hiddenMode,
     hiddenDelayMs,
     onSkip,

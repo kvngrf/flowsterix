@@ -29,6 +29,68 @@ export interface ConstrainedScrollLockOptions {
    * Default: 0
    */
   bottomInset?: number
+  /**
+   * Additional top inset in pixels to keep free space above the target
+   * while constrained scrolling (for step `scrollMargin.top`).
+   * Default: 0
+   */
+  topInset?: number
+  /**
+   * Additional bottom margin in pixels to keep free space below the target
+   * while constrained scrolling (for step `scrollMargin.bottom`).
+   * Default: 0
+   */
+  bottomMargin?: number
+}
+
+const sanitizeInset = (value: number | undefined) => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0
+  return Math.max(0, value)
+}
+
+const resolveEffectiveViewportHeight = (
+  viewportHeight: number,
+  bottomInset: number,
+  topInset: number,
+  bottomMargin: number,
+) => Math.max(1, viewportHeight - bottomInset - topInset - bottomMargin)
+
+export const computeConstrainedScrollBounds = ({
+  targetRect,
+  currentScrollY,
+  viewportHeight,
+  padding = 0,
+  bottomInset = 0,
+  topInset = 0,
+  bottomMargin = 0,
+}: {
+  targetRect: ClientRectLike
+  currentScrollY: number
+  viewportHeight: number
+  padding?: number
+  bottomInset?: number
+  topInset?: number
+  bottomMargin?: number
+}) => {
+  const safePadding = Math.max(0, padding)
+  const safeBottomInset = sanitizeInset(bottomInset)
+  const safeTopInset = sanitizeInset(topInset)
+  const safeBottomMargin = sanitizeInset(bottomMargin)
+
+  const targetTop = targetRect.top - safePadding
+  const targetBottom = targetRect.bottom + safePadding
+
+  const minY = currentScrollY + targetTop - safeTopInset
+  const bottomLimit = viewportHeight - safeBottomInset - safeBottomMargin
+  const maxY = currentScrollY + targetBottom - bottomLimit
+
+  const clampedMinY = Math.max(0, minY)
+  const clampedMaxY = Math.max(clampedMinY, maxY)
+
+  return {
+    minY: clampedMinY,
+    maxY: clampedMaxY,
+  }
 }
 
 let lockCount = 0
@@ -70,23 +132,65 @@ export const useConstrainedScrollLock = ({
   viewportHeight,
   padding = 0,
   bottomInset = 0,
+  topInset = 0,
+  bottomMargin = 0,
 }: ConstrainedScrollLockOptions): ConstrainedScrollLockResult => {
   const isConstrainedModeRef = useRef(false)
   const boundsRef = useRef({ minY: 0, maxY: 0 })
 
+  const safeBottomInset = sanitizeInset(bottomInset)
+  const safeTopInset = sanitizeInset(topInset)
+  const safeBottomMargin = sanitizeInset(bottomMargin)
+
   // Derive constrained mode from inputs (no state needed)
   const targetHeight = targetRect ? targetRect.height + padding * 2 : 0
-  const effectiveViewportHeight = viewportHeight - bottomInset
+  const effectiveViewportHeight = resolveEffectiveViewportHeight(
+    viewportHeight,
+    safeBottomInset,
+    safeTopInset,
+    safeBottomMargin,
+  )
   const isConstrainedMode =
     enabled && Boolean(targetRect) && targetHeight > effectiveViewportHeight
 
   useEffect(() => {
     if (!enabled || !isBrowser) return
+    if (!isConstrainedMode) return
+    if (!targetRect) return
 
-    // Calculate if target exceeds the effective viewport (viewport minus bottom inset like mobile drawer)
-    const targetHeight = targetRect ? targetRect.height + padding * 2 : 0
-    const effectiveViewportHeight = viewportHeight - bottomInset
-    const targetExceedsViewport = targetRect && targetHeight > effectiveViewportHeight
+    boundsRef.current = computeConstrainedScrollBounds({
+      targetRect,
+      currentScrollY: window.scrollY,
+      viewportHeight,
+      padding,
+      bottomInset: safeBottomInset,
+      topInset: safeTopInset,
+      bottomMargin: safeBottomMargin,
+    })
+
+    const { minY, maxY } = boundsRef.current
+    const currentY = window.scrollY
+    if (currentY < minY) {
+      window.scrollTo({ top: minY, behavior: 'auto' })
+    } else if (currentY > maxY) {
+      window.scrollTo({ top: maxY, behavior: 'auto' })
+    }
+  }, [
+    enabled,
+    isConstrainedMode,
+    targetRect,
+    viewportHeight,
+    padding,
+    safeBottomInset,
+    safeTopInset,
+    safeBottomMargin,
+  ])
+
+  useEffect(() => {
+    if (!enabled || !isBrowser) return
+
+    const targetExceedsViewport =
+      Boolean(targetRect) && targetHeight > effectiveViewportHeight
 
     if (!targetExceedsViewport) {
       // Target fits in effective viewport - use hard lock
@@ -99,21 +203,6 @@ export const useConstrainedScrollLock = ({
 
     // Target exceeds effective viewport - use constrained scroll
     isConstrainedModeRef.current = true
-
-    // Calculate scroll bounds
-    const targetTop = targetRect.top - padding
-    const targetBottom = targetRect.bottom + padding
-    const currentScroll = window.scrollY
-
-    // minY = target top at viewport top
-    // maxY = target bottom just above the drawer
-    const minY = currentScroll + targetTop
-    const maxY = currentScroll + targetBottom - effectiveViewportHeight
-
-    boundsRef.current = {
-      minY: Math.max(0, minY),
-      maxY: Math.max(0, maxY),
-    }
 
     // Scroll handler that constrains scroll position
     const handleScroll = () => {
@@ -136,7 +225,18 @@ export const useConstrainedScrollLock = ({
       window.removeEventListener('scroll', handleScroll)
       isConstrainedModeRef.current = false
     }
-  }, [enabled, targetRect, viewportHeight, padding, bottomInset])
+  }, [
+    enabled,
+    Boolean(targetRect),
+    targetRect?.height,
+    viewportHeight,
+    padding,
+    safeBottomInset,
+    safeTopInset,
+    safeBottomMargin,
+    targetHeight,
+    effectiveViewportHeight,
+  ])
 
   return { isConstrainedMode }
 }

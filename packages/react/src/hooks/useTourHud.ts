@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 
 import { useTour } from '../context'
 import { useConstrainedScrollLock } from './useConstrainedScrollLock'
+import { DEFAULT_SCROLL_MARGIN, resolveScrollMargin } from './scrollMargin'
 import { useViewportRect } from './useViewportRect'
 import type { UseHudDescriptionResult } from './useHudDescription'
 import { useHudDescription } from './useHudDescription'
@@ -111,6 +112,10 @@ export const useTourHud = (
   const targetIssue = useHudTargetIssue(hudState.hudTarget)
 
   const viewport = useViewportRect()
+  const constrainedScrollMargin = resolveScrollMargin(
+    hudState.runningStep?.targetBehavior?.scrollMargin,
+    DEFAULT_SCROLL_MARGIN,
+  )
   const shouldLockBodyScroll = Boolean(
     bodyScrollLock &&
       (hudState.flowHudOptions?.behavior?.lockBodyScroll ?? lockBodyScroll) &&
@@ -123,6 +128,8 @@ export const useTourHud = (
       viewportHeight: viewport.height,
       padding: overlayPadding ?? 12,
       bottomInset: scrollLockBottomInset,
+      topInset: constrainedScrollMargin.top,
+      bottomMargin: constrainedScrollMargin.bottom,
     })
 
   const shortcutOptions: UseHudShortcutsOptions =

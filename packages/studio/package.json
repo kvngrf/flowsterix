@@ -38,6 +38,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@flowsterix/core": "workspace:*"
+    "@flowsterix/core": "workspace:^"
   }
 }

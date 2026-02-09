@@ -44,6 +44,12 @@ const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
   duration: 0.4,
   ease: 'easeOut',
 }
+const STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD = 0.9
+const STEP_TRANSITION_OVERSIZED_VISIBILITY_THRESHOLD = 0.35
+const STEP_TRANSITION_SCROLL_SETTLE_MS = 90
+const STEP_TRANSITION_MOVEMENT_THRESHOLD = 0.6
+const STEP_TRANSITION_PROMOTE_SPEED_THRESHOLD = 0.5
+const SPEED_SMOOTHING_FACTOR = 0.3
 
 type MotionElementProps = MotionProps &
   Omit<HTMLAttributes<HTMLElement>, 'style'> & {
@@ -68,6 +74,44 @@ const rectIntersectsViewport = (
   rect.right > 0 &&
   rect.top < viewport.height &&
   rect.left < viewport.width
+
+const visibleSpan = (start: number, end: number, boundary: number) =>
+  Math.max(0, Math.min(end, boundary) - Math.max(start, 0))
+
+const hasStableVisibilityForStepTransition = (
+  rect: ClientRectLike,
+  viewport: ClientRectLike,
+) => {
+  if (rect.width <= 0 || rect.height <= 0) return false
+
+  const visibleWidth = visibleSpan(rect.left, rect.right, viewport.width)
+  const visibleHeight = visibleSpan(rect.top, rect.bottom, viewport.height)
+  const widthRatio = visibleWidth / rect.width
+  const heightRatio = visibleHeight / rect.height
+  const widthThreshold =
+    rect.width <= viewport.width
+      ? STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
+      : STEP_TRANSITION_OVERSIZED_VISIBILITY_THRESHOLD
+  const heightThreshold =
+    rect.height <= viewport.height
+      ? STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
+      : STEP_TRANSITION_OVERSIZED_VISIBILITY_THRESHOLD
+
+  return widthRatio >= widthThreshold && heightRatio >= heightThreshold
+}
+
+const rectMoved = (
+  previous: ClientRectLike,
+  current: ClientRectLike,
+  threshold = STEP_TRANSITION_MOVEMENT_THRESHOLD,
+) =>
+  Math.abs(previous.top - current.top) > threshold ||
+  Math.abs(previous.left - current.left) > threshold ||
+  Math.abs(previous.width - current.width) > threshold ||
+  Math.abs(previous.height - current.height) > threshold
+
+const rectPositionDistance = (previous: ClientRectLike, current: ClientRectLike) =>
+  Math.hypot(previous.left - current.left, previous.top - current.top)
 
 const getFloatingCacheKey = (target: TourTargetInfo) => {
   if (target.stepId) {
@@ -182,37 +226,143 @@ export const TourPopoverPortal = ({
     DEFAULT_POPOVER_CONTENT_TRANSITION
 
   const viewport = useViewportRect()
+  const [, forceSettleCheck] = useState(0)
+  const lastReadyTargetRef = useRef<{
+    rect: ClientRectLike
+    isScreen: boolean
+    stepId: string | null
+  } | null>(null)
+  const incomingMotionRef = useRef<{
+    stepId: string | null
+    lastRect: ClientRectLike | null
+    lastMovedAt: number
+    lastSampleAt: number
+    speedPxPerMs: number
+  }>({
+    stepId: null,
+    lastRect: null,
+    lastMovedAt: 0,
+    lastSampleAt: 0,
+    speedPxPerMs: Number.POSITIVE_INFINITY,
+  })
+  const cachedTarget = lastReadyTargetRef.current
+  const isTransitioningBetweenSteps = Boolean(
+    cachedTarget &&
+      target.stepId &&
+      cachedTarget.stepId &&
+      cachedTarget.stepId !== target.stepId,
+  )
+  const motion = incomingMotionRef.current
+  const currentStepId = target.stepId ?? null
+  const now = Date.now()
+  if (motion.stepId !== currentStepId) {
+    motion.stepId = currentStepId
+    motion.lastRect = target.rect ? { ...target.rect } : null
+    motion.lastMovedAt = now
+    motion.lastSampleAt = now
+    motion.speedPxPerMs = Number.POSITIVE_INFINITY
+  } else if (!target.rect) {
+    motion.lastRect = null
+    motion.lastMovedAt = now
+    motion.lastSampleAt = now
+    motion.speedPxPerMs = Number.POSITIVE_INFINITY
+  } else if (!motion.lastRect) {
+    motion.lastRect = { ...target.rect }
+    motion.lastMovedAt = now
+    motion.lastSampleAt = now
+    motion.speedPxPerMs = Number.POSITIVE_INFINITY
+  } else {
+    const elapsedMs = Math.max(1, now - motion.lastSampleAt)
+    const sampleSpeedPxPerMs =
+      rectPositionDistance(motion.lastRect, target.rect) / elapsedMs
+    const previousSpeed =
+      Number.isFinite(motion.speedPxPerMs)
+        ? motion.speedPxPerMs
+        : sampleSpeedPxPerMs
+    motion.speedPxPerMs =
+      previousSpeed * (1 - SPEED_SMOOTHING_FACTOR) +
+      sampleSpeedPxPerMs * SPEED_SMOOTHING_FACTOR
+    motion.lastSampleAt = now
+
+    if (rectMoved(motion.lastRect, target.rect)) {
+      motion.lastMovedAt = now
+    }
+    motion.lastRect = { ...target.rect }
+  }
+  const incomingRectSettledByTime =
+    !target.rect || now - motion.lastMovedAt >= STEP_TRANSITION_SCROLL_SETTLE_MS
+  const incomingRectSlowEnough =
+    Number.isFinite(motion.speedPxPerMs) &&
+    motion.speedPxPerMs <= STEP_TRANSITION_PROMOTE_SPEED_THRESHOLD
+  const incomingRectSettled = incomingRectSettledByTime || incomingRectSlowEnough
+  const requiresSettleBeforePromote = Boolean(
+    isTransitioningBetweenSteps &&
+      target.rectSource === 'live' &&
+      target.rect &&
+      !target.isScreen,
+  )
+  const settleRemainingMs = Math.max(
+    0,
+    STEP_TRANSITION_SCROLL_SETTLE_MS - (now - motion.lastMovedAt),
+  )
+  useEffect(() => {
+    if (!isBrowser) return
+    if (!requiresSettleBeforePromote) return
+    if (incomingRectSettled) return
+
+    const timeoutId = window.setTimeout(() => {
+      forceSettleCheck((value) => value + 1)
+    }, settleRemainingMs)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [
+    forceSettleCheck,
+    incomingRectSettled,
+    requiresSettleBeforePromote,
+    settleRemainingMs,
+  ])
+  const liveRectCanPromote = Boolean(
+    target.isScreen ||
+      (target.rect &&
+        rectIntersectsViewport(target.rect, viewport) &&
+        (!isTransitioningBetweenSteps ||
+          hasStableVisibilityForStepTransition(target.rect, viewport)) &&
+        (!requiresSettleBeforePromote || incomingRectSettled)),
+  )
   const prefersMobileLayout =
     viewport.width <= MOBILE_BREAKPOINT ||
     viewport.height <= MOBILE_HEIGHT_BREAKPOINT
   const liveTargetUsable = Boolean(
-    target.status === 'ready' &&
-      (target.isScreen ||
-        (target.rect && rectIntersectsViewport(target.rect, viewport))),
+    target.status === 'ready' && liveRectCanPromote,
   )
   const prefersMobileRef = useRef(prefersMobileLayout)
   useEffect(() => {
     prefersMobileRef.current = prefersMobileLayout
   }, [prefersMobileLayout])
 
-  const lastReadyTargetRef = useRef<{
-    rect: ClientRectLike
-    isScreen: boolean
-  } | null>(null)
   useEffect(() => {
     if (liveTargetUsable && target.rect) {
       lastReadyTargetRef.current = {
         rect: { ...target.rect },
         isScreen: target.isScreen,
+        stepId: target.stepId ?? null,
       }
     } else if (target.status === 'idle' && !isInGracePeriod) {
       // Only clear when truly idle, not during step transitions
       // This preserves position for smooth animations between steps
       lastReadyTargetRef.current = null
     }
-  }, [target.isScreen, target.rect, target.status, isInGracePeriod, liveTargetUsable])
+  }, [
+    target.isScreen,
+    target.rect,
+    target.status,
+    target.stepId,
+    isInGracePeriod,
+    liveTargetUsable,
+  ])
 
-  const cachedTarget = lastReadyTargetRef.current
   const resolvedRect =
     liveTargetUsable
       ? (target.rect ?? target.lastResolvedRect ?? cachedTarget?.rect ?? null)
@@ -221,13 +371,32 @@ export const TourPopoverPortal = ({
   const resolvedIsScreen = liveTargetUsable
     ? target.isScreen
     : (cachedTarget?.isScreen ?? target.isScreen)
+  const hasResolvedAnchor = Boolean(resolvedRect || resolvedIsScreen)
+  const lastStableAnchorRef = useRef<{
+    rect: ClientRectLike | null
+    isScreen: boolean
+  } | null>(null)
+  useEffect(() => {
+    if (!hasResolvedAnchor) return
+    lastStableAnchorRef.current = {
+      rect: resolvedRect ? { ...resolvedRect } : null,
+      isScreen: resolvedIsScreen,
+    }
+  }, [hasResolvedAnchor, resolvedIsScreen, resolvedRect])
+
+  const stableAnchor = hasResolvedAnchor ? null : lastStableAnchorRef.current
+  const anchoredRect = resolvedRect ?? stableAnchor?.rect ?? null
+  const anchoredIsScreen =
+    resolvedIsScreen || Boolean(stableAnchor?.isScreen)
+  const hasAnchor = Boolean(anchoredRect || anchoredIsScreen)
+  const hasLiveStableAnchor = target.status === 'ready' && liveTargetUsable
 
   // Hide popover when there's no valid rect to position against
   // (screen fallback sets target.isScreen=true and provides viewport rect)
-  const shouldHidePopover = !resolvedRect && !resolvedIsScreen
+  const shouldHidePopover = !hasAnchor
 
-  const fallbackRect = resolvedRect ?? viewport
-  const fallbackIsScreen = resolvedIsScreen
+  const fallbackRect = anchoredRect ?? viewport
+  const fallbackIsScreen = anchoredIsScreen
 
   const [floatingSize, setFloatingSize] = useState<{
     width: number
@@ -329,8 +498,11 @@ export const TourPopoverPortal = ({
 
   useEffect(() => {
     setDragPosition(null)
-    setLayoutMode(prefersMobileRef.current ? 'mobile' : 'floating')
-    cachedFloatingPositionRef.current = null
+    setLayoutMode((current) => {
+      if (prefersMobileRef.current) return 'mobile'
+      if (current === 'manual' || current === 'mobile') return 'floating'
+      return current
+    })
     appliedFloatingCacheRef.current = null
   }, [target.stepId])
 
@@ -421,11 +593,12 @@ export const TourPopoverPortal = ({
       return
     }
     appliedFloatingCacheRef.current = stepId
-    if (target.status !== 'ready' || target.isScreen) {
+    if ((target.status !== 'ready' || target.isScreen) && hasAnchor) {
       setFloatingPosition(fallbackPosition)
     }
   }, [
     fallbackPosition,
+    hasAnchor,
     layoutMode,
     target.isScreen,
     target.status,
@@ -448,9 +621,11 @@ export const TourPopoverPortal = ({
     if (layoutMode !== 'floating') return
     if (target.status === 'ready' && !target.isScreen) return
     if (shouldDeferScreenSnap) return
+    if (!hasAnchor) return
     setFloatingPosition(fallbackPosition)
   }, [
     fallbackPosition,
+    hasAnchor,
     layoutMode,
     shouldDeferScreenSnap,
     target.isScreen,
@@ -818,6 +993,19 @@ export const TourPopoverPortal = ({
   const initialLeft = resolvedInitialPosition.left
   const initialTransform = resolvedInitialPosition.transform
 
+  const hasPersistableAnchor =
+    Boolean(cachedTarget) ||
+    Boolean(target.lastResolvedRect) ||
+    Boolean(target.rect) ||
+    Boolean(cachedFloatingPositionRef.current) ||
+    Boolean(lastStableAnchorRef.current)
+
+  const shouldPersistWhileResolving =
+    !hasAnchor &&
+    target.stepId !== null &&
+    target.status !== 'idle' &&
+    hasPersistableAnchor
+
   const containerStyle: CSSProperties = {
     position: 'fixed',
     pointerEvents: 'auto',
@@ -874,8 +1062,59 @@ export const TourPopoverPortal = ({
     ...(layoutId ? { layoutId } : {}),
   } satisfies TourPopoverPortalRenderProps['containerProps']
 
+  const contentKeyCommitTimeoutRef = useRef<number | null>(null)
+  const [displayedStepKey, setDisplayedStepKey] = useState<string | null>(
+    target.stepId ?? null,
+  )
+
+  useEffect(() => {
+    return () => {
+      if (contentKeyCommitTimeoutRef.current !== null) {
+        window.clearTimeout(contentKeyCommitTimeoutRef.current)
+        contentKeyCommitTimeoutRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const nextStepKey = target.stepId ?? null
+    if (nextStepKey === null) {
+      if (contentKeyCommitTimeoutRef.current !== null) {
+        window.clearTimeout(contentKeyCommitTimeoutRef.current)
+        contentKeyCommitTimeoutRef.current = null
+      }
+      setDisplayedStepKey(null)
+      return
+    }
+    if (displayedStepKey === nextStepKey) return
+    if (contentKeyCommitTimeoutRef.current !== null) {
+      window.clearTimeout(contentKeyCommitTimeoutRef.current)
+      contentKeyCommitTimeoutRef.current = null
+    }
+    if (displayedStepKey === null) {
+      setDisplayedStepKey(nextStepKey)
+      return
+    }
+    if (!hasLiveStableAnchor) return
+    contentKeyCommitTimeoutRef.current = window.setTimeout(() => {
+      setDisplayedStepKey(nextStepKey)
+      contentKeyCommitTimeoutRef.current = null
+    }, 120)
+  }, [displayedStepKey, hasLiveStableAnchor, target.stepId])
+
+  useEffect(() => {
+    if (displayedStepKey !== null) return
+    if (target.stepId === null) return
+    if (hasAnchor) {
+      setDisplayedStepKey(target.stepId)
+    }
+  }, [displayedStepKey, hasAnchor, target.stepId])
+
+  const contentKey =
+    target.stepId === null ? undefined : (displayedStepKey ?? target.stepId)
+
   const contentProps = {
-    key: target.stepId ?? undefined,
+    key: contentKey ?? undefined,
     'data-tour-popover-content': '',
     initial: { opacity: 0, translateX: 0, filter: 'blur(4px)' },
     animate: { opacity: 1, translateX: 0, filter: 'blur(0px)' },
@@ -908,8 +1147,9 @@ export const TourPopoverPortal = ({
     descriptionProps,
   }
 
-  // Don't render popover when there's no valid positioning rect
-  if (shouldHidePopover) return null
+  // Keep the last rendered position during resolving transitions (e.g. long scroll between steps)
+  // to avoid brief unmount/remount flashes when rect data is temporarily unavailable.
+  if (shouldHidePopover && !shouldPersistWhileResolving) return null
 
   return createPortal(children(context), host)
 }
