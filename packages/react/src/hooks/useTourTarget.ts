@@ -340,7 +340,7 @@ const resolveStepTarget = (
 ): Element | null => {
   if (!isBrowser) return null
   if (target === 'screen') {
-    return document.body
+    return null
   }
   if (target.getNode) {
     try {

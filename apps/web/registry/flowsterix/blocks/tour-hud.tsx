@@ -223,7 +223,6 @@ export function TourHUD({
     focusManager,
     targetIssue,
     overlay: overlayConfig,
-    isConstrainedScrollActive,
   } = hud
   const {
     runningStep,
@@ -308,9 +307,7 @@ export function TourHUD({
         blurAmount={overlayBlur}
         shadow={showRing ? ringShadow : undefined}
         transitionsOverride={{
-          overlayHighlight: isConstrainedScrollActive
-            ? { type: 'tween', duration: 0 }
-            : highlightTransition,
+          overlayHighlight: highlightTransition,
           overlayFade: overlayFadeTransition,
         }}
       />

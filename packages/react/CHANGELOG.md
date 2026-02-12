@@ -1,5 +1,33 @@
 # @flowsterix/react
 
+## 0.14.4
+
+### Patch Changes
+
+- Prevent constrained scroll lock from activating on `screen` steps, so body scroll lock no longer introduces scrollbar-driven layout shifts for full-screen targets.
+
+  Keep the previous highlight/popover anchor during step transitions to oversized targets until the incoming target covers most of the viewport, avoiding transient vanish/jump behavior before constrained scrolling settles.
+
+  Ensure screen-target steps reset popover layout back to floating on desktop so transitions from oversized/docked steps re-center correctly.
+
+  Promote cached highlight/popover anchors synchronously when a target becomes promotable, preventing brief anchor loss during fast step switches into oversized-scroll steps.
+
+  Avoid reapplying stale per-step popover floating cache until the incoming target is actually promotable, so popovers stay pinned to the previous anchor during long oversized-target scroll transitions.
+
+  Restore animated highlight transitions in the shadcn `TourHUD` constrained-scroll path (no forced zero-duration snap), so settled target handoff remains smooth.
+
+  Rebase popover repositioning on the resolved anchor rect (including preserved handoff anchors) instead of only `liveTargetUsable`, so popovers no longer stay pinned to the previous step after oversized-target transitions settle.
+
+  Prevent stale popover positions from being cached under the incoming step ID while its anchor is still preserved from the previous step; cache persistence now waits until the incoming target is promotable.
+
+  Freeze popover auto-positioning during cross-step handoff until the incoming target is promotable, so popovers keep their previous on-screen position while oversized target scroll/settle is in progress.
+
+  Expand opt-in popover debug logging with handoff state transitions, source-tagged position writes, deduped skip reasons, and DOM-vs-state drift reports to diagnose sticky positioning paths.
+
+  Disable Motion shared `layoutId` projection for steps that enter frozen handoff (and auto-disable on detected drift), preventing scroll-linked DOM offset from pulling the popover away from its intended fixed coordinates.
+
+  Retain popover content keys across transient `null` step-id frames while anchor persistence is active, preventing blank content/remount gaps during oversized-target handoff transitions.
+
 ## 0.14.3
 
 ### Patch Changes

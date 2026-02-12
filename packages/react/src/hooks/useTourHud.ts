@@ -116,6 +116,7 @@ export const useTourHud = (
     hudState.runningStep?.targetBehavior?.scrollMargin,
     DEFAULT_SCROLL_MARGIN,
   )
+  const isScreenTarget = hudState.hudTarget.isScreen
   const shouldLockBodyScroll = Boolean(
     bodyScrollLock &&
       (hudState.flowHudOptions?.behavior?.lockBodyScroll ?? lockBodyScroll) &&
@@ -124,12 +125,12 @@ export const useTourHud = (
   const { isConstrainedMode: isConstrainedScrollActive } =
     useConstrainedScrollLock({
       enabled: shouldLockBodyScroll,
-      targetRect: hudState.hudTarget.rect,
+      targetRect: isScreenTarget ? null : hudState.hudTarget.rect,
       viewportHeight: viewport.height,
-      padding: overlayPadding ?? 12,
-      bottomInset: scrollLockBottomInset,
-      topInset: constrainedScrollMargin.top,
-      bottomMargin: constrainedScrollMargin.bottom,
+      padding: isScreenTarget ? 0 : (overlayPadding ?? 12),
+      bottomInset: isScreenTarget ? 0 : scrollLockBottomInset,
+      topInset: isScreenTarget ? 0 : constrainedScrollMargin.top,
+      bottomMargin: isScreenTarget ? 0 : constrainedScrollMargin.bottom,
     })
 
   const shortcutOptions: UseHudShortcutsOptions =

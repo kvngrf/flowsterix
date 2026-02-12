@@ -88,7 +88,7 @@ const DEFAULT_PADDING = 12
 const DEFAULT_RADIUS = 12
 const DEFAULT_EDGE_BUFFER = 0
 const STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD = 0.9
-const STEP_TRANSITION_OVERSIZED_VISIBILITY_THRESHOLD = 0.35
+const STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD = 0.9
 const STEP_TRANSITION_SCROLL_SETTLE_MS = 90
 const STEP_TRANSITION_MOVEMENT_THRESHOLD = 0.6
 const STEP_TRANSITION_PROMOTE_SPEED_THRESHOLD = 0.5
@@ -114,18 +114,20 @@ const hasStableVisibilityForStepTransition = (
 
   const visibleWidth = visibleSpan(rect.left, rect.right, viewport.width)
   const visibleHeight = visibleSpan(rect.top, rect.bottom, viewport.height)
-  const widthRatio = visibleWidth / rect.width
-  const heightRatio = visibleHeight / rect.height
-  const widthThreshold =
-    rect.width <= viewport.width
-      ? STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
-      : STEP_TRANSITION_OVERSIZED_VISIBILITY_THRESHOLD
-  const heightThreshold =
-    rect.height <= viewport.height
-      ? STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
-      : STEP_TRANSITION_OVERSIZED_VISIBILITY_THRESHOLD
+  const oversizedWidth = rect.width > viewport.width
+  const oversizedHeight = rect.height > viewport.height
 
-  return widthRatio >= widthThreshold && heightRatio >= heightThreshold
+  const widthStable = oversizedWidth
+    ? visibleWidth >=
+      viewport.width * STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD
+    : visibleWidth / rect.width >= STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
+
+  const heightStable = oversizedHeight
+    ? visibleHeight >=
+      viewport.height * STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD
+    : visibleHeight / rect.height >= STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
+
+  return widthStable && heightStable
 }
 
 const rectMoved = (
@@ -170,12 +172,12 @@ export const useTourOverlay = (
     speedPxPerMs: Number.POSITIVE_INFINITY,
   })
   const viewport = getViewportRect()
-  const cachedTarget = lastReadyTargetRef.current
+  const previousCachedTarget = lastReadyTargetRef.current
   const isTransitioningBetweenSteps = Boolean(
-    cachedTarget &&
+    previousCachedTarget &&
       target.stepId &&
-      cachedTarget.stepId &&
-      cachedTarget.stepId !== target.stepId,
+      previousCachedTarget.stepId &&
+      previousCachedTarget.stepId !== target.stepId,
   )
   const motion = incomingMotionRef.current
   const currentStepId = target.stepId ?? null
@@ -254,24 +256,29 @@ export const useTourOverlay = (
         (!requiresSettleBeforePromote || incomingRectSettled)),
   )
 
+  const promotedTarget =
+    target.status === 'ready' && liveRectCanPromote
+      ? {
+          ...target,
+          rect: target.rect ? { ...target.rect } : null,
+        }
+      : null
+
+  if (promotedTarget) {
+    hasShownRef.current = true
+    lastReadyTargetRef.current = promotedTarget
+  }
+
+  const cachedTarget = promotedTarget ?? previousCachedTarget
+
   useEffect(() => {
     if (!isBrowser) return
-    if (target.status === 'ready' && liveRectCanPromote) {
-      hasShownRef.current = true
-      lastReadyTargetRef.current = {
-        ...target,
-        rect: target.rect ? { ...target.rect } : null,
-      }
-      return
-    }
-
-    // Only clear when truly idle (no step), not during step transitions
-    // During transitions (resolving), keep the cached position for smooth animation
+    // Only clear when truly idle (no step), not during step transitions.
     if (target.status === 'idle' && !isInGracePeriod) {
       hasShownRef.current = false
       lastReadyTargetRef.current = null
     }
-  }, [target, isInGracePeriod, liveRectCanPromote])
+  }, [isInGracePeriod, target.status])
 
   const highlightTarget =
     target.status === 'ready' && liveRectCanPromote ? target : cachedTarget
