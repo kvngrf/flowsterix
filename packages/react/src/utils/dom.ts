@@ -40,10 +40,23 @@ export const getViewportRect = (): ClientRectLike => {
     return createRect({ top: 0, left: 0, width: 0, height: 0 })
   }
 
+  const visualViewport = window.visualViewport
+  const visualViewportWidth = visualViewport?.width ?? 0
+  const visualViewportHeight = visualViewport?.height ?? 0
   const clientWidth = document.documentElement.clientWidth
   const clientHeight = document.documentElement.clientHeight
-  const width = clientWidth > 0 ? clientWidth : window.innerWidth
-  const height = clientHeight > 0 ? clientHeight : window.innerHeight
+  const width =
+    visualViewportWidth > 0
+      ? visualViewportWidth
+      : clientWidth > 0
+        ? clientWidth
+        : window.innerWidth
+  const height =
+    visualViewportHeight > 0
+      ? visualViewportHeight
+      : clientHeight > 0
+        ? clientHeight
+        : window.innerHeight
 
   return createRect({
     top: 0,
@@ -139,37 +152,3 @@ export const getScrollParents = (element: Element): Array<Element> => {
 }
 
 export const portalHost = () => (isBrowser ? document.body : null)
-
-let cachedMaskSupport: boolean | null = null
-
-const detectMaskSupport = () => {
-  if (!isBrowser) return false
-
-  if ('CSS' in window) {
-    try {
-      if (window.CSS.supports('mask-image', 'linear-gradient(#000,#000)')) {
-        return true
-      }
-      if (
-        window.CSS.supports('-webkit-mask-image', 'linear-gradient(#000,#000)')
-      ) {
-        return true
-      }
-    } catch (error) {
-      if (typeof console !== 'undefined') {
-        console.warn('Flowsterix: CSS.supports check failed', error)
-      }
-    }
-  }
-
-  const probe = document.createElement('div')
-  return 'maskImage' in probe.style || 'webkitMaskImage' in probe.style
-}
-
-export const supportsMasking = () => {
-  if (!isBrowser) return false
-  if (cachedMaskSupport === null) {
-    cachedMaskSupport = detectMaskSupport()
-  }
-  return cachedMaskSupport
-}

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { createRect } from '../../utils/dom'
-import { computeConstrainedScrollBounds } from '../useConstrainedScrollLock'
+import {
+  computeConstrainedScrollBounds,
+  resolveStableScrollLockViewportHeight,
+} from '../useConstrainedScrollLock'
 
 describe('computeConstrainedScrollBounds', () => {
   it('respects top and bottom scroll margins in constrained bounds', () => {
@@ -47,5 +50,34 @@ describe('computeConstrainedScrollBounds', () => {
 
     expect(bounds.minY).toBeGreaterThanOrEqual(0)
     expect(bounds.maxY).toBeGreaterThanOrEqual(bounds.minY)
+  })
+})
+
+describe('resolveStableScrollLockViewportHeight', () => {
+  it('accepts viewport shrinks immediately', () => {
+    const nextHeight = resolveStableScrollLockViewportHeight({
+      previousHeight: 760,
+      nextHeight: 680,
+    })
+
+    expect(nextHeight).toBe(680)
+  })
+
+  it('ignores small viewport growth caused by browser chrome', () => {
+    const nextHeight = resolveStableScrollLockViewportHeight({
+      previousHeight: 700,
+      nextHeight: 760,
+    })
+
+    expect(nextHeight).toBe(700)
+  })
+
+  it('accepts large viewport growth for major layout transitions', () => {
+    const nextHeight = resolveStableScrollLockViewportHeight({
+      previousHeight: 620,
+      nextHeight: 820,
+    })
+
+    expect(nextHeight).toBe(820)
   })
 })

@@ -190,7 +190,12 @@ function useIsMobile(breakpoint: number = MOBILE_BREAKPOINT) {
  */
 export function TourHUD({
   className,
-  overlay = { showRing: true, blurAmount: 6, zIndex: 2000, opacity: 1 },
+  overlay = {
+    showRing: true,
+    blurAmount: 6,
+    zIndex: 2000,
+    opacity: 1,
+  },
   popover = {},
   controls = {},
   progress = { show: false, variant: 'dots', position: 'bottom', size: 'sm' },
@@ -214,6 +219,7 @@ export function TourHUD({
 
   const hud = useTourHud({
     shortcuts,
+    bodyScrollLock: !shouldRenderMobile,
     scrollLockBottomInset: shouldRenderMobile ? drawerHeight : 0,
   })
   const {

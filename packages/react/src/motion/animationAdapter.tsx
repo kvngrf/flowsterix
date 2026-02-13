@@ -7,9 +7,7 @@ export interface AnimationAdapterComponents {
   MotionDiv: typeof motion.div
   MotionSection: typeof motion.section
   MotionSvg: typeof motion.svg
-  MotionDefs: typeof motion.defs
-  MotionMask: typeof motion.mask
-  MotionRect: typeof motion.rect
+  MotionPath: typeof motion.path
   MotionSpan: typeof motion.span
   MotionButton: typeof motion.button
 }
@@ -33,9 +31,7 @@ const defaultAdapter: AnimationAdapter = {
     MotionDiv: motion.div,
     MotionSection: motion.section,
     MotionSvg: motion.svg,
-    MotionDefs: motion.defs,
-    MotionMask: motion.mask,
-    MotionRect: motion.rect,
+    MotionPath: motion.path,
     MotionSpan: motion.span,
     MotionButton: motion.button,
   },

@@ -56,7 +56,7 @@ flowchart TD
   A --> C["useHudState<br/>(step render state, fallback)"]
   B --> C
   C --> D["useTourHud<br/>(HUD behavior + lock)"]
-  C --> E["useTourOverlay<br/>(mask geometry + handoff gate)"]
+  C --> E["useTourOverlay<br/>(overlay geometry + handoff gate)"]
   D --> F["TourPopoverPortal<br/>(position + handoff gate)"]
   E --> G["OverlayBackdrop"]
   D --> H["TourFocusManager"]
@@ -120,7 +120,7 @@ Both should stay aligned unless divergence is deliberate.
 | Target acquisition and rect provenance | `useTourTarget` | `src/hooks/useTourTarget.ts` |
 | HUD state derivation | `useHudState`, `useTourHud` | `src/hooks/useHudState.ts`, `src/hooks/useTourHud.ts` |
 | Hidden/missing fallback handling | `useHiddenTargetFallback` | `src/hooks/useHiddenTargetFallback.ts` |
-| Overlay geometry and mask state | `useTourOverlay`, `OverlayBackdrop` | `src/hooks/useTourOverlay.ts`, `src/components/OverlayBackdrop.tsx` |
+| Unified overlay geometry and state | `useTourOverlay`, `OverlayBackdrop` | `src/hooks/useTourOverlay.ts`, `src/components/OverlayBackdrop.tsx` |
 | Popover positioning modes and persistence | `TourPopoverPortal` | `src/components/TourPopoverPortal.tsx` |
 | Focus dominance and trap management | `useTourFocusDominance`, `TourFocusManager` | `src/hooks/useTourFocusDominance.ts`, `src/components/TourFocusManager.tsx` |
 | Tour controls state | `useTourControls` | `src/hooks/useTourControls.ts` |

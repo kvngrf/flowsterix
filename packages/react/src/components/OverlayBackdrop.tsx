@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -9,10 +8,7 @@ import type { UseTourOverlayResult } from '../hooks/useTourOverlay'
 import type { AnimationAdapterTransitions } from '../motion/animationAdapter'
 import { useAnimationAdapter } from '../motion/animationAdapter'
 import { isBrowser, portalHost } from '../utils/dom'
-
-// =============================================================================
-// Inline style helpers (replacing Tailwind classes for headless compatibility)
-// =============================================================================
+import { buildOverlayCutoutPath } from './overlayPath'
 
 const styles = {
   root: {
@@ -20,18 +16,20 @@ const styles = {
     inset: 0,
     pointerEvents: 'none' as const,
   },
-  svgMask: {
-    position: 'absolute' as const,
-  },
   overlay: {
     position: 'absolute' as const,
     transformOrigin: 'center',
     inset: 0,
     pointerEvents: 'none' as const,
   },
-  segment: {
+  svgBackdrop: {
     position: 'absolute' as const,
-    transformOrigin: 'center',
+    inset: 0,
+    pointerEvents: 'none' as const,
+  },
+  uniformGlow: {
+    position: 'absolute' as const,
+    inset: 0,
     pointerEvents: 'none' as const,
   },
   blockerContainer: {
@@ -70,6 +68,52 @@ const DEFAULT_OVERLAY_TRANSITION: Transition = {
   ease: 'easeOut',
 }
 
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value))
+
+const getFauxGlowBackground = ({
+  centerX,
+  centerY,
+  radiusPx,
+  blurPx,
+  overlayOpacity,
+}: {
+  centerX: number
+  centerY: number
+  radiusPx: number
+  blurPx: number
+  overlayOpacity: number
+}) => {
+  const safeRadius = Math.max(1, radiusPx)
+  const blurFactor = clamp(blurPx / 10, 0.55, 1.8)
+  const opacityFactor = clamp(overlayOpacity, 0.2, 1)
+
+  const midAlpha = clamp(0.12 * blurFactor * opacityFactor, 0.04, 0.22)
+  const ambientAlpha = clamp(0.09 * blurFactor * opacityFactor, 0.03, 0.18)
+
+  const innerDeadZone = safeRadius * 0.42
+  const midStop = safeRadius * 0.86
+  const outerStop = safeRadius * 1.22
+  const ambientStop = safeRadius * (1.75 + blurFactor * 0.32)
+
+  return [
+    `radial-gradient(circle at ${centerX}px ${centerY}px, rgba(255,255,255,0) 0px, rgba(255,255,255,0) ${Math.max(
+      0,
+      innerDeadZone,
+    )}px, rgba(255,255,255,${midAlpha.toFixed(3)}) ${Math.max(
+      0,
+      midStop,
+    )}px, rgba(255,255,255,0) ${Math.max(0, outerStop)}px)`,
+    `radial-gradient(circle at ${centerX}px ${centerY}px, rgba(255,255,255,0) ${Math.max(
+      0,
+      midStop * 0.72,
+    )}px, rgba(255,255,255,${ambientAlpha.toFixed(3)}) ${Math.max(
+      0,
+      outerStop,
+    )}px, rgba(255,255,255,0) ${Math.max(0, ambientStop)}px)`,
+  ].join(',')
+}
+
 export interface OverlayBackdropTransitionsOverride
   extends Partial<
     Pick<AnimationAdapterTransitions, 'overlayHighlight' | 'overlayFade'>
@@ -80,24 +124,17 @@ export interface OverlayBackdropTransitionsOverride
 export interface OverlayBackdropProps {
   overlay: UseTourOverlayResult
   zIndex?: number
-  /** Background color of the overlay */
   color?: string
   /**
    * @deprecated Use `color` prop instead. This is kept for backwards compatibility but has no effect.
    */
   colorClassName?: string
   opacity?: number
-  /** Box shadow for the highlight ring */
   shadow?: string
   blurAmount?: number
   ariaHidden?: boolean
-  /** Additional class name for the root element */
   rootClassName?: string
-  /** Additional class name for the overlay backdrop */
   overlayClassName?: string
-  /** Additional class name for fallback segments */
-  segmentClassName?: string
-  /** Additional class name for the highlight ring */
   ringClassName?: string
   showHighlightRing?: boolean
   showInteractionBlocker?: boolean
@@ -115,7 +152,6 @@ export const OverlayBackdrop = ({
   ariaHidden,
   rootClassName,
   overlayClassName,
-  segmentClassName,
   ringClassName,
   showHighlightRing = true,
   showInteractionBlocker = true,
@@ -126,17 +162,7 @@ export const OverlayBackdrop = ({
   if (!host) return null
 
   const adapter = useAnimationAdapter()
-  const {
-    highlight,
-    shouldMask,
-    maskId,
-    maskUrl,
-    fallbackSegments,
-    blockerSegments,
-    showBaseOverlay,
-    isActive,
-    viewport,
-  } = overlay
+  const { highlight, blockerSegments, showBaseOverlay, isActive, viewport } = overlay
   const hasHighlightBounds = Boolean(highlight.rect)
 
   const prevScreenTargetRef = useRef<boolean | null>(null)
@@ -149,10 +175,6 @@ export const OverlayBackdrop = ({
     prevScreenTargetRef.current = highlight.isScreen
   }, [highlight.isScreen])
 
-  // Compute blur value: use prop if provided, otherwise fall back to CSS var
-  const resolvedBlur =
-    typeof blurAmount === 'number' ? `${blurAmount}px` : '0px'
-
   const defaultInsetShadow =
     'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
 
@@ -160,8 +182,7 @@ export const OverlayBackdrop = ({
     ? { boxShadow: shadow }
     : { boxShadow: defaultInsetShadow }
 
-  const { MotionDiv, MotionSvg, MotionDefs, MotionMask, MotionRect } =
-    adapter.components
+  const { MotionDiv, MotionSvg, MotionPath } = adapter.components
 
   const highlightTransition =
     transitionsOverride?.overlayHighlight ??
@@ -185,24 +206,6 @@ export const OverlayBackdrop = ({
     ? resolvedHighlightTransition
     : highlightCollapseTransition
 
-  const highlightRectAnimation = shouldMask
-    ? {
-        x: highlight.rect?.left ?? highlight.centerX,
-        y: highlight.rect?.top ?? highlight.centerY,
-        width: highlight.rect?.width ?? 0,
-        height: highlight.rect?.height ?? 0,
-        rx: highlight.rect?.radius ?? 0,
-        ry: highlight.rect?.radius ?? 0,
-      }
-    : {
-        x: highlight.centerX,
-        y: highlight.centerY,
-        width: 0,
-        height: 0,
-        rx: 0,
-        ry: 0,
-      }
-
   const highlightRingAnimation = hasHighlightBounds
     ? {
         top: highlight.centerY,
@@ -223,23 +226,30 @@ export const OverlayBackdrop = ({
         transform: 'translate(-50%, -50%)',
       }
 
-  const overlayStyle: CSSProperties = {}
+  const hasCutout = isActive && hasHighlightBounds && !!highlight.rect
+  const cutoutPath = hasCutout && highlight.rect
+    ? buildOverlayCutoutPath({
+        viewportWidth: viewport.width,
+        viewportHeight: viewport.height,
+        rect: highlight.rect,
+      })
+    : null
 
-  if (shouldMask) {
-    overlayStyle.maskRepeat = 'no-repeat'
-    overlayStyle.WebkitMaskRepeat = 'no-repeat'
-    overlayStyle.maskSize = '100% 100%'
-    overlayStyle.WebkitMaskSize = '100% 100%'
-  }
-
-  if (maskUrl) {
-    overlayStyle.mask = maskUrl
-    overlayStyle.WebkitMask = maskUrl
-  }
-
-  if (color) {
-    overlayStyle.backgroundColor = color
-  }
+  const resolvedBlurPx =
+    typeof blurAmount === 'number' ? Math.max(0, blurAmount) : 6
+  const uniformGlowRadius = highlight.rect
+    ? Math.max(highlight.rect.width, highlight.rect.height) * 1.35
+    : 0
+  const uniformGlowBackground =
+    hasCutout
+      ? getFauxGlowBackground({
+          centerX: highlight.centerX,
+          centerY: highlight.centerY,
+          radiusPx: uniformGlowRadius,
+          blurPx: resolvedBlurPx,
+          overlayOpacity: opacity,
+        })
+      : null
 
   return createPortal(
     <MotionDiv
@@ -249,59 +259,6 @@ export const OverlayBackdrop = ({
       data-tour-overlay=""
     >
       <AnimatePresence mode="popLayout">
-        {shouldMask ? (
-          <MotionSvg
-            key="tour-mask"
-            width="0"
-            height="0"
-            aria-hidden
-            focusable="false"
-            style={styles.svgMask}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={overlayTransition}
-          >
-            <MotionDefs>
-              <MotionMask
-                id={maskId ?? undefined}
-                initial={false}
-                maskUnits="userSpaceOnUse"
-                maskContentUnits="userSpaceOnUse"
-                x="0"
-                y="0"
-                animate={{ width: viewport.width, height: viewport.height }}
-                transition={highlightTransition}
-              >
-                <MotionRect
-                  x="0"
-                  y="0"
-                  initial={false}
-                  animate={{
-                    width: viewport.width,
-                    height: viewport.height,
-                    opacity: 1,
-                  }}
-                  fill="white"
-                  transition={highlightTransition}
-                  exit={{ opacity: 0 }}
-                />
-                <MotionRect
-                  initial={false}
-                  animate={highlightRectAnimation}
-                  exit={{
-                    x: highlight.centerX,
-                    y: highlight.centerY,
-                  }}
-                  transition={highlightRectTransition}
-                  fill="black"
-                />
-              </MotionMask>
-            </MotionDefs>
-          </MotionSvg>
-        ) : null}
-      </AnimatePresence>
-      <AnimatePresence mode="popLayout">
         {showBaseOverlay ? (
           <MotionDiv
             key="tour-overlay"
@@ -309,59 +266,63 @@ export const OverlayBackdrop = ({
             data-tour-overlay-layer="backdrop"
             style={{
               ...styles.overlay,
-              ...overlayStyle,
               zIndex,
               backgroundColor: color ?? undefined,
             }}
             initial={{
               opacity: 0,
               transition: overlayTransition,
-              backdropFilter: `blur(0px)`,
             }}
-            animate={{
-              opacity,
-              backdropFilter: `blur(${resolvedBlur})`,
-            }}
-            exit={{
-              opacity: 0,
-              backdropFilter: `blur(${resolvedBlur})`,
-            }}
+            animate={{ opacity }}
+            exit={{ opacity: 0 }}
             transition={overlayTransition}
           />
         ) : null}
       </AnimatePresence>
       <AnimatePresence mode="popLayout">
-        {fallbackSegments
-          ? fallbackSegments.map((segment) => (
-              <MotionDiv
-                key={`tour-overlay-fallback-${segment.key}`}
-                className={segmentClassName}
-                data-tour-overlay-layer="segment"
-                style={{
-                  ...styles.segment,
-                  zIndex,
-                  top: segment.top,
-                  left: segment.left,
-                  width: segment.width,
-                  height: segment.height,
-                  backgroundColor: color ?? undefined,
-                }}
-                initial={{
-                  opacity: 0,
-                  backdropFilter: `blur(0px)`,
-                }}
-                animate={{
-                  opacity,
-                  backdropFilter: `blur(${resolvedBlur})`,
-                }}
-                exit={{
-                  opacity: 0,
-                  backdropFilter: `blur(0px)`,
-                }}
-                transition={overlayTransition}
-              />
-            ))
-          : null}
+        {uniformGlowBackground ? (
+          <MotionDiv
+            key="tour-overlay-uniform-glow"
+            style={{
+              ...styles.uniformGlow,
+              zIndex,
+              backgroundImage: uniformGlowBackground,
+            }}
+            data-tour-overlay-layer="uniform-glow"
+            initial={{ opacity: 0 }}
+            animate={{ opacity }}
+            exit={{ opacity: 0 }}
+            transition={overlayTransition}
+          />
+        ) : null}
+      </AnimatePresence>
+      <AnimatePresence mode="popLayout">
+        {hasCutout && cutoutPath ? (
+          <MotionSvg
+            key="tour-overlay-svg"
+            width={viewport.width}
+            height={viewport.height}
+            viewBox={`0 0 ${viewport.width} ${viewport.height}`}
+            preserveAspectRatio="none"
+            aria-hidden
+            focusable="false"
+            style={{ ...styles.svgBackdrop, zIndex }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity }}
+            exit={{ opacity: 0 }}
+            transition={overlayTransition}
+            data-tour-overlay-layer="svg"
+          >
+            <MotionPath
+              initial={false}
+              animate={{ d: cutoutPath }}
+              transition={highlightRectTransition}
+              fill={color ?? 'rgba(0, 0, 0, 0.5)'}
+              fillRule="evenodd"
+              clipRule="evenodd"
+            />
+          </MotionSvg>
+        ) : null}
       </AnimatePresence>
       {showInteractionBlocker && blockerSegments ? (
         <div

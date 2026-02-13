@@ -45,26 +45,14 @@ const SyncHarness = ({ target }: { target: TourTargetInfo }) => {
 }
 
 describe('useTourOverlay', () => {
-  const originalCss = window.CSS
-
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-02-12T09:00:00.000Z'))
-    Object.defineProperty(window, 'CSS', {
-      value: { supports: () => false },
-      configurable: true,
-      writable: true,
-    })
   })
 
   afterEach(() => {
     vi.useRealTimers()
     latestSyncResult = null
-    Object.defineProperty(window, 'CSS', {
-      value: originalCss,
-      configurable: true,
-      writable: true,
-    })
   })
 
   it('retains previous highlight on immediate step switch before effects settle', () => {
@@ -188,5 +176,49 @@ describe('useTourOverlay', () => {
       | undefined
     expect(promoted?.highlight.target?.stepId).toBe('step-b')
     expect(promoted?.highlight.rect).not.toBeNull()
+  })
+
+  it('returns unified overlay payload with blocker segments', () => {
+    render(
+      <SyncHarness
+        target={createTarget({
+          rect: {
+            top: 120,
+            left: 100,
+            width: 220,
+            height: 120,
+            right: 320,
+            bottom: 240,
+          },
+        })}
+      />, 
+    )
+
+    expect(latestSyncResult?.isActive).toBe(true)
+    expect(latestSyncResult?.highlight.rect).not.toBeNull()
+    expect(latestSyncResult?.showBaseOverlay).toBe(false)
+
+    const BlockHarness = ({ target }: { target: TourTargetInfo }) => {
+      const result = useTourOverlay({ target, interactionMode: 'block' })
+      latestSyncResult = result
+      return null
+    }
+
+    render(
+      <BlockHarness
+        target={createTarget({
+          rect: {
+            top: 120,
+            left: 100,
+            width: 220,
+            height: 120,
+            right: 320,
+            bottom: 240,
+          },
+        })}
+      />,
+    )
+
+    expect(latestSyncResult?.blockerSegments?.length).toBeGreaterThan(0)
   })
 })

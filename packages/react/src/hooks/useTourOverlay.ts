@@ -2,12 +2,7 @@ import type { BackdropInteractionMode } from '@flowsterix/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { ClientRectLike } from '../utils/dom'
-import {
-  expandRect,
-  getViewportRect,
-  isBrowser,
-  supportsMasking,
-} from '../utils/dom'
+import { expandRect, getViewportRect, isBrowser } from '../utils/dom'
 import type { TourTargetInfo } from './useTourTarget'
 
 export interface TourOverlayRect {
@@ -41,11 +36,11 @@ export interface UseTourOverlayOptions {
 
 export interface UseTourOverlayResult {
   /**
-   * W hether the overlay is actively highlighting a resolved target.
+   * Whether the overlay is actively highlighting a resolved target.
    */
   isActive: boolean
   /**
-   * M etrics for the highlight cutout.
+   * Metrics for the highlight cutout.
    */
   highlight: {
     rect: TourOverlayRect | null
@@ -55,31 +50,15 @@ export interface UseTourOverlayResult {
     isScreen: boolean
   }
   /**
-   * W hether the overlay can apply a mask to the viewport instead of falling back to segments.
-   */
-  shouldMask: boolean
-  /**
-   * I D of the generated mask element, if masking is supported.
-   */
-  maskId: string | null
-  /**
-   * C SS url() for the generated mask, if applicable.
-   */
-  maskUrl?: string
-  /**
-   * R ectangles that approximate the overlay when masking is unavailable.
-   */
-  fallbackSegments: Array<TourOverlaySegment> | null
-  /**
-   * R ectangles that block pointer interaction when `interactionMode` is `block`.
+   * Rectangles that block pointer interaction when `interactionMode` is `block`.
    */
   blockerSegments: Array<TourOverlaySegment> | null
   /**
-   * W hether the base overlay layer (with backdrop blur) should be rendered.
+   * Whether the base overlay layer should be rendered.
    */
   showBaseOverlay: boolean
   /**
-   * C ached viewport metrics for downstream calculations.
+   * Cached viewport metrics for downstream calculations.
    */
   viewport: ClientRectLike
 }
@@ -203,7 +182,9 @@ export const useTourOverlay = (
     const sampleSpeedPxPerMs =
       rectPositionDistance(motion.lastRect, target.rect) / elapsedMs
     const previousSpeed =
-      Number.isFinite(motion.speedPxPerMs) ? motion.speedPxPerMs : sampleSpeedPxPerMs
+      Number.isFinite(motion.speedPxPerMs)
+        ? motion.speedPxPerMs
+        : sampleSpeedPxPerMs
     motion.speedPxPerMs =
       previousSpeed * (1 - SPEED_SMOOTHING_FACTOR) +
       sampleSpeedPxPerMs * SPEED_SMOOTHING_FACTOR
@@ -312,10 +293,7 @@ export const useTourOverlay = (
 
   const highlightTop = expandedRect.top + insetTop
   const highlightLeft = expandedRect.left + insetLeft
-  const highlightWidth = Math.max(
-    0,
-    expandedRect.width - insetLeft - insetRight,
-  )
+  const highlightWidth = Math.max(0, expandedRect.width - insetLeft - insetRight)
   const highlightHeight = Math.max(
     0,
     expandedRect.height - insetTop - insetBottom,
@@ -344,76 +322,10 @@ export const useTourOverlay = (
       }
     : null
 
-  const maskCapable = useMemo(() => supportsMasking(), [])
-
   const isActive =
     target.status === 'ready' ||
     (target.status === 'resolving' && cachedTarget !== null) ||
     isInGracePeriod
-
-  const shouldMask = maskCapable && isActive
-
-  const maskId = useMemo(
-    () => `tour-overlay-mask-${Math.random().toString(36).slice(2, 10)}`,
-    [],
-  )
-  const maskUrl = shouldMask ? `url(#${maskId})` : undefined
-
-  const fallbackSegments = useMemo(() => {
-    if (!isActive || shouldMask || !hasHighlightBounds || !highlightRect) {
-      return null
-    }
-
-    const topEdge = Math.max(0, Math.min(highlightRect.top, viewport.height))
-    const bottomEdge = Math.max(
-      topEdge,
-      Math.min(highlightRect.top + highlightRect.height, viewport.height),
-    )
-    const leftEdge = Math.max(0, Math.min(highlightRect.left, viewport.width))
-    const rightEdge = Math.max(
-      leftEdge,
-      Math.min(highlightRect.left + highlightRect.width, viewport.width),
-    )
-    const middleHeight = Math.max(0, bottomEdge - topEdge)
-
-    return [
-      {
-        key: 'top',
-        top: 0,
-        left: 0,
-        width: viewport.width,
-        height: topEdge,
-      },
-      {
-        key: 'bottom',
-        top: bottomEdge,
-        left: 0,
-        width: viewport.width,
-        height: Math.max(0, viewport.height - bottomEdge),
-      },
-      {
-        key: 'left',
-        top: topEdge,
-        left: 0,
-        width: leftEdge,
-        height: middleHeight,
-      },
-      {
-        key: 'right',
-        top: topEdge,
-        left: rightEdge,
-        width: Math.max(0, viewport.width - rightEdge),
-        height: middleHeight,
-      },
-    ].filter((segment) => segment.width > 0 && segment.height > 0)
-  }, [
-    hasHighlightBounds,
-    highlightRect,
-    isActive,
-    shouldMask,
-    viewport.height,
-    viewport.width,
-  ])
 
   const blockerSegments = useMemo(() => {
     if (interactionMode !== 'block') {
@@ -482,7 +394,7 @@ export const useTourOverlay = (
     viewport.width,
   ])
 
-  const showBaseOverlay = isActive && (shouldMask || !hasHighlightBounds)
+  const showBaseOverlay = isActive && !hasHighlightBounds
 
   return {
     isActive,
@@ -493,10 +405,6 @@ export const useTourOverlay = (
       target: highlightTarget ?? null,
       isScreen: resolvedIsScreen,
     },
-    shouldMask,
-    maskId: shouldMask ? maskId : null,
-    maskUrl,
-    fallbackSegments,
     blockerSegments,
     showBaseOverlay,
     viewport,

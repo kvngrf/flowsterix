@@ -209,7 +209,7 @@ const handleLogoUpload = async (file: File) => {
     padding: 12, // Padding around highlight
     radius: 12, // Border radius of cutout
     showRing: true, // Glow effect around target
-    blurAmount: 6, // Backdrop blur (px)
+    blurAmount: 6, // Controls unified faux-glow intensity
   }}
   popover={{
     maxWidth: 360,
@@ -232,6 +232,8 @@ const handleLogoUpload = async (file: File) => {
   }}
 />
 ```
+
+**Overlay rendering model:** Flowsterix now uses a unified SVG-based overlay path across desktop and mobile. Avoid browser-specific mask toggles and optimize visuals through `padding`, `radius`, `showRing`, and `blurAmount`.
 
 ### Mobile Drawer
 

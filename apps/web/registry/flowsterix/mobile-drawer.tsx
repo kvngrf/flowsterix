@@ -56,13 +56,13 @@ const CONTROLS_HEIGHT = 72 // controls padding + buttons
 const CHROME_HEIGHT = HANDLE_HEIGHT + HEADER_HEIGHT + CONTROLS_HEIGHT
 const PEEK_RATIO = 0.4
 const DEFAULT_MAX_HEIGHT_RATIO = 0.85
-const VELOCITY_THRESHOLD = 500
+const VELOCITY_THRESHOLD = 380
 const DRAG_ELASTIC = { top: 0.1, bottom: 0.3 }
 
 const springConfig = {
   type: 'spring' as const,
-  damping: 30,
-  stiffness: 400,
+  damping: 32,
+  stiffness: 320,
 }
 
 // =============================================================================
@@ -272,6 +272,10 @@ export function MobileDrawer({
 
   // Max drag = push down to minimized
   const maxTranslateY = expandedHeight - MINIMIZED_HEIGHT
+  const clampY = React.useCallback(
+    (value: number) => Math.min(Math.max(value, 0), maxTranslateY),
+    [maxTranslateY],
+  )
 
   // Is minimized state
   const isMinimized = currentSnapPoint === 'minimized'
@@ -329,7 +333,7 @@ export function MobileDrawer({
   const calculateSnapPoint = React.useCallback(
     (currentY: number, velocity: number): MobileDrawerSnapPoint => {
       // Project where we'll end up based on velocity
-      const projectedY = currentY + velocity * 0.15
+      const projectedY = currentY + velocity * 0.2
 
       // If fast swipe, go to direction
       if (Math.abs(velocity) > VELOCITY_THRESHOLD) {
@@ -339,12 +343,14 @@ export function MobileDrawer({
           const smaller = enabled.filter((s) => s.height < currentHeight)
           return smaller.length > 0
             ? smaller[smaller.length - 1].point
-            : currentSnapPoint
+            : enabled[0].point
         } else {
           // Swiping up -> go to next larger height (smaller Y)
           const currentHeight = expandedHeight - currentY
           const larger = enabled.filter((s) => s.height > currentHeight)
-          return larger.length > 0 ? larger[0].point : currentSnapPoint
+          return larger.length > 0
+            ? larger[0].point
+            : enabled[enabled.length - 1].point
         }
       }
 
@@ -372,22 +378,21 @@ export function MobileDrawer({
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     setIsDragging(false)
-    // Get current visual Y position from the animation
-    const element = document.querySelector('[data-mobile-drawer]') as HTMLElement
-    const transform = element?.style.transform || ''
-    const match = transform.match(/translateY\(([^)]+)px\)/)
-    const currentY = match ? parseFloat(match[1]) : getTranslateY(currentSnapPoint)
+    const startY = getTranslateY(currentSnapPoint)
+    const currentY = clampY(startY + info.offset.y)
 
     const targetPoint = calculateSnapPoint(currentY, info.velocity.y)
     snapTo(targetPoint)
   }
 
-  // Handle tap to toggle between minimized and expanded
+  // Handle tap to cycle drawer states.
   const handleHandleTap = () => {
     if (isMinimized) {
       snapTo('expanded')
     } else if (currentSnapPoint === 'expanded' && snapPoints.includes('peek')) {
       snapTo('peek')
+    } else if (currentSnapPoint === 'expanded' && snapPoints.includes('minimized')) {
+      snapTo('minimized')
     } else if (currentSnapPoint === 'peek') {
       snapTo('expanded')
     }

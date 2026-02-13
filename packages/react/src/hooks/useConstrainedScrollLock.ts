@@ -48,6 +48,39 @@ const sanitizeInset = (value: number | undefined) => {
   return Math.max(0, value)
 }
 
+const sanitizeViewportHeight = (value: number) => {
+  if (!Number.isFinite(value)) return 1
+  return Math.max(1, value)
+}
+
+const SIGNIFICANT_VIEWPORT_HEIGHT_EXPANSION_PX = 160
+
+export const resolveStableScrollLockViewportHeight = ({
+  previousHeight,
+  nextHeight,
+}: {
+  previousHeight: number | null
+  nextHeight: number
+}) => {
+  const safeNextHeight = sanitizeViewportHeight(nextHeight)
+  const safePreviousHeight =
+    previousHeight === null ? null : sanitizeViewportHeight(previousHeight)
+
+  if (safePreviousHeight === null) {
+    return safeNextHeight
+  }
+  if (safeNextHeight <= safePreviousHeight) {
+    return safeNextHeight
+  }
+  if (
+    safeNextHeight - safePreviousHeight >=
+    SIGNIFICANT_VIEWPORT_HEIGHT_EXPANSION_PX
+  ) {
+    return safeNextHeight
+  }
+  return safePreviousHeight
+}
+
 const resolveEffectiveViewportHeight = (
   viewportHeight: number,
   bottomInset: number,
@@ -137,15 +170,29 @@ export const useConstrainedScrollLock = ({
 }: ConstrainedScrollLockOptions): ConstrainedScrollLockResult => {
   const isConstrainedModeRef = useRef(false)
   const boundsRef = useRef({ minY: 0, maxY: 0 })
+  const stableViewportHeightRef = useRef<number | null>(null)
 
   const safeBottomInset = sanitizeInset(bottomInset)
   const safeTopInset = sanitizeInset(topInset)
   const safeBottomMargin = sanitizeInset(bottomMargin)
+  const hasTarget = Boolean(targetRect)
+  const stableViewportHeight = (() => {
+    if (!enabled || !hasTarget) {
+      stableViewportHeightRef.current = null
+      return sanitizeViewportHeight(viewportHeight)
+    }
+    const resolvedHeight = resolveStableScrollLockViewportHeight({
+      previousHeight: stableViewportHeightRef.current,
+      nextHeight: viewportHeight,
+    })
+    stableViewportHeightRef.current = resolvedHeight
+    return resolvedHeight
+  })()
 
   // Derive constrained mode from inputs (no state needed)
   const targetHeight = targetRect ? targetRect.height + padding * 2 : 0
   const effectiveViewportHeight = resolveEffectiveViewportHeight(
-    viewportHeight,
+    stableViewportHeight,
     safeBottomInset,
     safeTopInset,
     safeBottomMargin,
@@ -161,7 +208,7 @@ export const useConstrainedScrollLock = ({
     boundsRef.current = computeConstrainedScrollBounds({
       targetRect,
       currentScrollY: window.scrollY,
-      viewportHeight,
+      viewportHeight: stableViewportHeight,
       padding,
       bottomInset: safeBottomInset,
       topInset: safeTopInset,
@@ -179,7 +226,7 @@ export const useConstrainedScrollLock = ({
     enabled,
     isConstrainedMode,
     targetRect,
-    viewportHeight,
+    stableViewportHeight,
     padding,
     safeBottomInset,
     safeTopInset,
@@ -229,7 +276,7 @@ export const useConstrainedScrollLock = ({
     enabled,
     Boolean(targetRect),
     targetRect?.height,
-    viewportHeight,
+    stableViewportHeight,
     padding,
     safeBottomInset,
     safeTopInset,

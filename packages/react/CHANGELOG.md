@@ -1,5 +1,23 @@
 # @flowsterix/react
 
+## 1.0.0
+
+### Major Changes
+
+- Adopt a single unified overlay renderer across desktop and mobile:
+  - Remove CSS mask-based spotlight rendering.
+  - Remove segment-based visual fallback rendering.
+  - Use one SVG cutout path pipeline with consistent animation behavior and faux glow controls.
+
+  Breaking API changes:
+  - `useTourOverlay` no longer returns `shouldMask`, `maskId`, `maskUrl`, `fallbackSegments`, or `renderMode`.
+  - `UseTourOverlayOptions` no longer accepts `renderMode`.
+  - `OverlayRenderMode` type export is removed.
+  - DevTools "Spotlight Mask" override controls are removed.
+  - Mask-detection and mask-override helpers are removed from `utils/dom`.
+
+  Also includes constrained scroll-lock stabilization on mobile browsers by filtering small viewport-height growth caused by URL bar chrome show/hide, reducing bounce/jitter while preserving large viewport transitions.
+
 ## 0.14.4
 
 ### Patch Changes

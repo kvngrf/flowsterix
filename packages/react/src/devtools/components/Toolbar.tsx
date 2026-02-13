@@ -71,7 +71,7 @@ const styles = {
     cursor: 'not-allowed',
   },
   actionButtonDanger: {
-    borderColor: '#7a2c2c',
+    border: '1px solid #7a2c2c',
     color: '#e05555',
   },
   kbd: {
@@ -293,6 +293,7 @@ export function Toolbar(props: ToolbarProps) {
           Reset
         </motion.button>
       </div>
+
     </div>
   )
 }
