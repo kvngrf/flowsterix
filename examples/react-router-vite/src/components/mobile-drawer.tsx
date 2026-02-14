@@ -464,9 +464,17 @@ export function MobileDrawer({
             <motion.div
               ref={contentRef}
               key={stepKey}
-              initial={reducedMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, y: 8, filter: 'blur(4px)' }
+              }
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={
+                reducedMotion
+                  ? { opacity: 1, y: 0, filter: 'blur(0px)' }
+                  : { opacity: 0, y: -8, filter: 'blur(4px)' }
+              }
               transition={reducedMotion ? noMotionTransition : contentTransition}
             >
               {children}

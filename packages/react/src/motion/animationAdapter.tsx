@@ -57,7 +57,7 @@ const defaultAdapter: AnimationAdapter = {
       ease: 'easeOut',
     },
     popoverContent: {
-      duration: 0.2,
+      duration: 0.4,
       ease: 'easeOut',
     },
     delayIndicator: {

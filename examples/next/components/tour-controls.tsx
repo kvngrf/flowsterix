@@ -83,9 +83,9 @@ export function TourControls({
           {showBackButton && (
             <motion.div
               key="tour-control-back"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={popoverContentTransition}
               layout="position"
             >
@@ -112,9 +112,9 @@ export function TourControls({
           {showSkip && skipMode === 'hold' && (
             <motion.div
               key="tour-control-skip-hold"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={popoverContentTransition}
               layout="position"
             >
@@ -129,9 +129,9 @@ export function TourControls({
           {showSkip && skipMode === 'click' && (
             <motion.div
               key="tour-control-skip-click"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={popoverContentTransition}
               layout="position"
             >
@@ -160,9 +160,9 @@ export function TourControls({
         {showNextButton && (
           <motion.div
             key="tour-control-primary"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={popoverContentTransition}
             layout="position"
           >

@@ -208,6 +208,10 @@ export function TourHUD({
   const isBrowser =
     typeof window !== 'undefined' && typeof document !== 'undefined'
   const portalTarget = isBrowser ? document.body : null
+  const stepBodySnapshotByStepIdRef = React.useRef<Map<string, React.ReactNode>>(
+    new Map(),
+  )
+  const stepBodySnapshotOrderRef = React.useRef<string[]>([])
 
   // Mobile configuration (before useTourHud so we can pass scrollLockBottomInset)
   const mobileEnabled = mobile.enabled !== false
@@ -408,12 +412,62 @@ export function TourHUD({
               isDragging,
             }) => {
               const { key: contentKey, ...restContentProps } = contentProps
+              const liveStepBody = (
+                <>
+                  {/* Step content */}
+                  <motion.div layout={reducedMotion ? undefined : 'position'}>
+                    {children ?? stepContent}
+                  </motion.div>
+
+                  {/* Target issue warning */}
+                  {targetIssue.issue && (
+                    <motion.div
+                      layout={reducedMotion ? undefined : 'position'}
+                      className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <strong className="block mb-1">
+                        {targetIssue.issue.title}
+                      </strong>
+                      <p className="text-sm leading-relaxed">
+                        {targetIssue.issue.body}
+                      </p>
+                      {targetIssue.issue.hint && (
+                        <p className="mt-1 text-xs opacity-90">
+                          {targetIssue.issue.hint}
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
+                </>
+              )
+              const snapshots = stepBodySnapshotByStepIdRef.current
+              snapshots.set(runningStep.id, liveStepBody)
+              const snapshotOrder = stepBodySnapshotOrderRef.current
+              if (snapshotOrder[snapshotOrder.length - 1] !== runningStep.id) {
+                snapshotOrder.push(runningStep.id)
+                const MAX_SNAPSHOTS = 12
+                if (snapshotOrder.length > MAX_SNAPSHOTS) {
+                  const staleStepId = snapshotOrder.shift()
+                  if (staleStepId && staleStepId !== runningStep.id) {
+                    snapshots.delete(staleStepId)
+                  }
+                }
+              }
+              const displayedBodyStepId =
+                typeof contentKey === 'string' && contentKey.length > 0
+                  ? contentKey
+                  : runningStep.id
+              const displayedStepBody =
+                snapshots.get(displayedBodyStepId) ?? liveStepBody
               const shouldShowHandle = popover.showDragHandle ?? true
               const showHandleInLayout =
                 layoutMode === 'docked' || layoutMode === 'manual'
               return (
                 <Container
                   {...containerProps}
+                  layoutRoot
                   className={cn(
                     'rounded-xl border bg-popover text-popover-foreground shadow-lg',
                     popover.className,
@@ -437,18 +491,15 @@ export function TourHUD({
                         isDragging={isDragging}
                       />
                     ) : null}
-                    <AnimatePresence
-                      mode={reducedMotion ? 'wait' : 'popLayout'}
-                      initial={false}
+                    <Content
+                      {...restContentProps}
+                      layout={reducedMotion ? undefined : 'size'}
+                      className={cn(
+                        'p-4 space-y-3 overflow-hidden',
+                        popover.contentClassName,
+                      )}
                     >
-                      <Content
-                        key={contentKey}
-                        {...restContentProps}
-                        className={cn(
-                          'p-4 space-y-3 overflow-hidden',
-                          popover.contentClassName,
-                        )}
-                      >
+                      <motion.div layout={reducedMotion ? undefined : 'position'}>
                         {/* Progress indicator (top position) */}
                         {progress.show && progress.position === 'top' && (
                           <TourProgress
@@ -456,42 +507,43 @@ export function TourHUD({
                             size={progress.size}
                           />
                         )}
+                      </motion.div>
 
-                        {/* Step content */}
-                        <motion.div layout={reducedMotion ? undefined : 'position'}>
-                          {children ?? stepContent}
+                      <AnimatePresence
+                        mode={reducedMotion ? 'wait' : 'popLayout'}
+                        initial={false}
+                      >
+                        <motion.div
+                          key={contentKey ?? runningStep.id}
+                          layout={reducedMotion ? undefined : 'position'}
+                          initial={
+                            reducedMotion
+                              ? { opacity: 1, y: 0, filter: 'blur(0px)' }
+                              : { opacity: 0, y: 6, filter: 'blur(4px)' }
+                          }
+                          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                          exit={
+                            reducedMotion
+                              ? { opacity: 1, y: 0, filter: 'blur(0px)' }
+                              : { opacity: 0, y: -4, filter: 'blur(4px)' }
+                          }
+                          transition={popoverContentTransition}
+                          className="space-y-3"
+                        >
+                          {displayedStepBody}
+
+                          {/* Progress indicator (bottom position - default) */}
+                          {progress.show && progress.position !== 'top' && (
+                            <motion.div layout={reducedMotion ? undefined : 'position'}>
+                              <TourProgress
+                                variant={progress.variant}
+                                size={progress.size}
+                              />
+                            </motion.div>
+                          )}
                         </motion.div>
-
-                        {/* Target issue warning */}
-                        {targetIssue.issue && (
-                          <div
-                            className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
-                            role="status"
-                            aria-live="polite"
-                          >
-                            <strong className="block mb-1">
-                              {targetIssue.issue.title}
-                            </strong>
-                            <p className="text-sm leading-relaxed">
-                              {targetIssue.issue.body}
-                            </p>
-                            {targetIssue.issue.hint && (
-                              <p className="mt-1 text-xs opacity-90">
-                                {targetIssue.issue.hint}
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Progress indicator (bottom position - default) */}
-                        {progress.show && progress.position !== 'top' && (
-                          <TourProgress
-                            variant={progress.variant}
-                            size={progress.size}
-                          />
-                        )}
-                      </Content>
-                    </AnimatePresence>
+                      </AnimatePresence>
+                    </Content>
                     <TourControls
                       showSkip={controls.showSkip}
                       skipMode={controls.skipMode}

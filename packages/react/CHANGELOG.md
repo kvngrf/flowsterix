@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 1.0.1
+
+### Patch Changes
+
+- Increase the default popover content transition duration to `0.4s` for smoother step content animations.
+
 ## 1.0.0
 
 ### Major Changes
