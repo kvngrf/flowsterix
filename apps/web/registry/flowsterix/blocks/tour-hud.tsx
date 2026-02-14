@@ -10,7 +10,7 @@ import {
   useTourHud,
   useTourOverlay,
 } from '@flowsterix/react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import * as React from 'react'
 import { createPortal } from 'react-dom'
 
@@ -204,6 +204,7 @@ export function TourHUD({
   children,
   renderContent,
 }: TourHUDProps) {
+  const reducedMotion = useReducedMotion()
   const isBrowser =
     typeof window !== 'undefined' && typeof document !== 'undefined'
   const portalTarget = isBrowser ? document.body : null
@@ -371,7 +372,7 @@ export function TourHUD({
           </div>
         </MobileDrawer>
       ) : (
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           <TourPopoverPortal
             target={hudTarget}
             offset={popoverOffset}
@@ -436,7 +437,10 @@ export function TourHUD({
                         isDragging={isDragging}
                       />
                     ) : null}
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence
+                      mode={reducedMotion ? 'wait' : 'popLayout'}
+                      initial={false}
+                    >
                       <Content
                         key={contentKey}
                         {...restContentProps}
@@ -454,7 +458,7 @@ export function TourHUD({
                         )}
 
                         {/* Step content */}
-                        <motion.div layout="position">
+                        <motion.div layout={reducedMotion ? undefined : 'position'}>
                           {children ?? stepContent}
                         </motion.div>
 

@@ -6,6 +6,7 @@ import {
   StepText,
   StepTitle,
 } from '@/components/step-content'
+import { DelayProgressBar } from '@/components/delay-progress-bar'
 import { createFlow } from '@flowsterix/core'
 import type { ReactNode } from 'react'
 
@@ -53,6 +54,7 @@ export const landingTourFlow = createFlow<ReactNode>({
             Tours are defined as simple configuration objects. No imperative
             code needed - just describe your steps and rules.
           </StepText>
+          <DelayProgressBar />
           <StepHint>
             ⏱️ This step auto-advances in 6 seconds (delay rule), or click Next.
           </StepHint>

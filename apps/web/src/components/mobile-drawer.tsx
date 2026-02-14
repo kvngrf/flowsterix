@@ -5,6 +5,7 @@ import {
   AnimatePresence,
   motion,
   useAnimationControls,
+  useReducedMotion,
   type PanInfo,
 } from 'motion/react'
 import * as React from 'react'
@@ -63,6 +64,15 @@ const springConfig = {
   type: 'spring' as const,
   damping: 32,
   stiffness: 320,
+}
+
+const noMotionTransition = {
+  duration: 0,
+}
+
+const contentTransition = {
+  duration: 0.25,
+  ease: 'easeOut' as const,
 }
 
 // =============================================================================
@@ -228,9 +238,11 @@ export function MobileDrawer({
   onDrawerHeightChange,
 }: MobileDrawerProps) {
   const { state } = useTour()
+  const reducedMotion = useReducedMotion()
   const viewportHeight = useViewportHeight()
   const safeAreaBottom = useSafeAreaBottom()
   const { contentRef, contentHeight } = useContentHeight()
+  const drawerTransition = reducedMotion ? noMotionTransition : springConfig
 
   // Ensure minimized is available if allowMinimize
   const snapPoints = React.useMemo(() => {
@@ -287,14 +299,14 @@ export function MobileDrawer({
       wasMeasuredRef.current = true
       // Smoothly animate to the correct height now that we know content size
       const targetY = getTranslateY(currentSnapPoint)
-      controls_.start({ y: targetY }, springConfig)
+      controls_.start({ y: targetY }, drawerTransition)
     }
-  }, [isMeasured, currentSnapPoint, getTranslateY, controls_])
+  }, [isMeasured, currentSnapPoint, getTranslateY, controls_, drawerTransition])
 
   // Animate drawer height changes between steps
   React.useEffect(() => {
-    controls_.start({ height: expandedHeight }, springConfig)
-  }, [expandedHeight, controls_])
+    controls_.start({ height: expandedHeight }, drawerTransition)
+  }, [expandedHeight, controls_, drawerTransition])
 
   // Report visible drawer height for scroll lock inset
   React.useEffect(() => {
@@ -314,19 +326,19 @@ export function MobileDrawer({
   React.useEffect(() => {
     if (stepIndex !== undefined) {
       setCurrentSnapPoint('expanded')
-      controls_.start({ y: 0 }, springConfig)
+      controls_.start({ y: 0 }, drawerTransition)
     }
-  }, [stepIndex, controls_])
+  }, [stepIndex, controls_, drawerTransition])
 
   // Snap to point
   const snapTo = React.useCallback(
     (point: MobileDrawerSnapPoint) => {
       const targetY = getTranslateY(point)
       setCurrentSnapPoint(point)
-      controls_.start({ y: targetY }, springConfig)
+      controls_.start({ y: targetY }, drawerTransition)
       onSnapPointChange?.(point)
     },
-    [getTranslateY, controls_, onSnapPointChange],
+    [getTranslateY, controls_, onSnapPointChange, drawerTransition],
   )
 
   // Calculate nearest snap point based on drag position and velocity
@@ -406,10 +418,11 @@ export function MobileDrawer({
       )}
       style={{
         paddingBottom: `env(safe-area-inset-bottom, 0px)`,
+        willChange: reducedMotion ? undefined : 'transform',
       }}
       drag="y"
       dragConstraints={{ top: 0, bottom: maxTranslateY }}
-      dragElastic={DRAG_ELASTIC}
+      dragElastic={reducedMotion ? 0 : DRAG_ELASTIC}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       animate={controls_}
@@ -440,18 +453,21 @@ export function MobileDrawer({
 
         {/* Content area - fades when minimized */}
         <div
-          className="flex-1 overflow-y-auto overscroll-contain px-4 transition-opacity duration-200"
+          className={cn(
+            'flex-1 overflow-y-auto overscroll-contain px-4',
+            !reducedMotion && 'transition-opacity duration-200',
+          )}
           style={{ opacity: contentOpacity }}
           aria-hidden={isMinimized}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               ref={contentRef}
               key={stepKey}
-              initial={{ opacity: 0, y: 8 }}
+              initial={reducedMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              exit={reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+              transition={reducedMotion ? noMotionTransition : contentTransition}
             >
               {children}
             </motion.div>
