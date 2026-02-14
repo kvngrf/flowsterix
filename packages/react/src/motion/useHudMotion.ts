@@ -4,9 +4,9 @@ import { useMemo } from 'react'
 import type { AnimationAdapterComponents } from './animationAdapter'
 import { useAnimationAdapter } from './animationAdapter'
 
+const EASE_OUT: [number, number, number, number] = [0.25, 1, 0.5, 1]
+
 const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
-  duration: 0.35,
-  ease: 'easeOut',
   type: 'spring',
   damping: 25,
   stiffness: 300,
@@ -15,22 +15,22 @@ const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
 
 const DEFAULT_OVERLAY_TRANSITION: Transition = {
   duration: 0.35,
-  ease: 'easeOut',
+  ease: EASE_OUT,
 }
 
 const DEFAULT_POPOVER_ENTRANCE_TRANSITION: Transition = {
   duration: 0.25,
-  ease: 'easeOut',
+  ease: EASE_OUT,
 }
 
 const DEFAULT_POPOVER_EXIT_TRANSITION: Transition = {
   duration: 0.2,
-  ease: 'easeOut',
+  ease: EASE_OUT,
 }
 
 const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
-  duration: 0.6,
-  ease: 'easeOut',
+  duration: 0.25,
+  ease: EASE_OUT,
 }
 
 export interface UseHudMotionResult {

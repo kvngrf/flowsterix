@@ -49,8 +49,6 @@ const styles = {
 } as const
 
 const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
-  duration: 0.35,
-  ease: 'easeOut',
   type: 'spring',
   damping: 25,
   stiffness: 300,
@@ -59,13 +57,13 @@ const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
 
 const DEFAULT_HIGHLIGHT_COLLAPSE_TRANSITION: Transition = {
   duration: 0.18,
-  ease: 'easeOut',
+  ease: [0.25, 1, 0.5, 1],
   type: 'tween',
 }
 
 const DEFAULT_OVERLAY_TRANSITION: Transition = {
   duration: 0.35,
-  ease: 'easeOut',
+  ease: [0.25, 1, 0.5, 1],
 }
 
 const clamp = (value: number, min: number, max: number) =>
@@ -361,7 +359,7 @@ export const OverlayBackdrop = ({
               opacity: 0,
               transition: {
                 duration: 0.35,
-                ease: 'easeOut',
+                ease: [0.25, 1, 0.5, 1],
               },
             }}
             transition={resolvedHighlightTransition}

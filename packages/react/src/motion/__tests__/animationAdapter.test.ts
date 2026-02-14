@@ -8,8 +8,8 @@ import {
 describe('animationAdapter defaults', () => {
   it('uses longer popover content transition by default', () => {
     expect(defaultAnimationAdapter.transitions.popoverContent).toMatchObject({
-      duration: 0.4,
-      ease: 'easeOut',
+      duration: 0.25,
+      ease: [0.25, 1, 0.5, 1],
     })
   })
 

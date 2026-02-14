@@ -89,7 +89,7 @@ When moving to a new step:
 initial={{ opacity: 0, y: 8 }}
 animate={{ opacity: 1, y: 0 }}
 exit={{ opacity: 0, y: -8 }}
-transition={{ duration: 0.25, ease: 'easeOut' }}
+transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
 ```
 
 ## Safe Area Support

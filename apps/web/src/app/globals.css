@@ -268,7 +268,7 @@ body::before {
   background: var(--bg-elevated);
   border: 1px solid var(--border-primary);
   box-shadow: var(--glow-card);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-card:hover {

@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 1.0.2
+
+### Patch Changes
+
+- Align HUD motion defaults so popover step-content transitions consistently use `0.4s` across adapters and fallback hooks.
+
 ## 1.0.1
 
 ### Patch Changes

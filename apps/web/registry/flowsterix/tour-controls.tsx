@@ -6,7 +6,7 @@ import {
   useTourControls,
   useTourLabels,
 } from '@flowsterix/react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -47,6 +47,13 @@ export function TourControls({
 }: TourControlsProps) {
   const { transitions } = useHudMotion()
   const { popoverContent: popoverContentTransition } = transitions
+  const reducedMotion = useReducedMotion()
+  const controlsTransition = reducedMotion
+    ? { duration: 0 }
+    : popoverContentTransition
+  const layoutTransition = {
+    layout: { duration: 0.2, ease: [0.25, 1, 0.5, 1] as [number, number, number, number], type: 'tween' as const },
+  }
   const { cancel } = useTour()
   const providerLabels = useTourLabels()
   const labels = { ...providerLabels, ...labelOverrides }
@@ -70,14 +77,12 @@ export function TourControls({
       layout="position"
       className={cn('flex items-center justify-between gap-2 p-4', className)}
       data-tour-controls=""
-      transition={{ layout: { duration: 0.2, ease: 'easeOut', type: 'tween' } }}
+      transition={layoutTransition}
     >
       <motion.div
         className="flex items-center gap-2"
         layout="position"
-        transition={{
-          layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
-        }}
+        transition={layoutTransition}
       >
         <AnimatePresence mode="popLayout" initial={false}>
           {showBackButton && (
@@ -86,7 +91,7 @@ export function TourControls({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={popoverContentTransition}
+              transition={controlsTransition}
               layout="position"
             >
               <Button
@@ -100,9 +105,7 @@ export function TourControls({
                 <motion.button
                   layout="position"
                   layoutId="tour-control-back"
-                  transition={{
-                    layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
-                  }}
+                  transition={layoutTransition}
                 >
                   <span>{labels.back}</span>
                 </motion.button>
@@ -115,7 +118,7 @@ export function TourControls({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={popoverContentTransition}
+              transition={controlsTransition}
               layout="position"
             >
               <HoldToSkipButton
@@ -132,7 +135,7 @@ export function TourControls({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={popoverContentTransition}
+              transition={controlsTransition}
               layout="position"
             >
               <Button
@@ -144,9 +147,7 @@ export function TourControls({
               >
                 <motion.button
                   layout="position"
-                  transition={{
-                    layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
-                  }}
+                  transition={layoutTransition}
                 >
                   {labels.skip}
                 </motion.button>
@@ -163,7 +164,7 @@ export function TourControls({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={popoverContentTransition}
+            transition={controlsTransition}
             layout="position"
           >
             <Button
@@ -177,9 +178,7 @@ export function TourControls({
               <motion.button
                 layout="position"
                 layoutId="tour-control-primary"
-                transition={{
-                  layout: { duration: 0.2, ease: 'easeOut', type: 'tween' },
-                }}
+                transition={layoutTransition}
               >
                 {isLast ? labels.finish : labels.next}
               </motion.button>

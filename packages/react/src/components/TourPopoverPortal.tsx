@@ -34,15 +34,15 @@ const MOBILE_HEIGHT_BREAKPOINT = 560
 const MOBILE_HORIZONTAL_GUTTER = 12
 const DEFAULT_POPOVER_ENTRANCE_TRANSITION: Transition = {
   duration: 0.25,
-  ease: 'easeOut',
+  ease: [0.25, 1, 0.5, 1],
 }
 const DEFAULT_POPOVER_EXIT_TRANSITION: Transition = {
   duration: 0.2,
-  ease: 'easeOut',
+  ease: [0.25, 1, 0.5, 1],
 }
 const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
-  duration: 0.4,
-  ease: 'easeOut',
+  duration: 0.25,
+  ease: [0.25, 1, 0.5, 1],
 }
 const STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD = 0.9
 const STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD = 0.9

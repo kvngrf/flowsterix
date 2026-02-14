@@ -37,8 +37,6 @@ const defaultAdapter: AnimationAdapter = {
   },
   transitions: {
     overlayHighlight: {
-      duration: 0.35,
-      ease: 'easeOut',
       type: 'spring',
       damping: 25,
       stiffness: 300,
@@ -46,23 +44,23 @@ const defaultAdapter: AnimationAdapter = {
     },
     overlayFade: {
       duration: 0.35,
-      ease: 'easeOut',
+      ease: [0.25, 1, 0.5, 1],
     },
     popoverEntrance: {
       duration: 0.25,
-      ease: 'easeOut',
+      ease: [0.25, 1, 0.5, 1],
     },
     popoverExit: {
       duration: 0.2,
-      ease: 'easeOut',
+      ease: [0.25, 1, 0.5, 1],
     },
     popoverContent: {
-      duration: 0.4,
-      ease: 'easeOut',
+      duration: 0.25,
+      ease: [0.25, 1, 0.5, 1],
     },
     delayIndicator: {
       duration: 0.18,
-      ease: 'easeOut',
+      ease: [0.25, 1, 0.5, 1],
     },
   },
 }

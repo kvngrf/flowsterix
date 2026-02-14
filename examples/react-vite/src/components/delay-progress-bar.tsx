@@ -1,6 +1,7 @@
 'use client'
 
 import { useDelayAdvance, useTourLabels } from '@flowsterix/react'
+import { useReducedMotion } from 'motion/react'
 
 import { cn } from '@/lib/utils'
 
@@ -27,6 +28,7 @@ export function DelayProgressBar({
 }: DelayProgressBarProps) {
   const progress = useDelayAdvance()
   const labels = useTourLabels()
+  const reducedMotion = useReducedMotion()
   const formatter = formatRemaining ?? ((ms: number) => labels.formatTimeRemaining({ ms }))
   const resolvedAriaLabel = ariaLabel ?? labels.ariaDelayProgress
 
@@ -52,13 +54,13 @@ export function DelayProgressBar({
       >
         <div
           className={cn(
-            'h-full w-full bg-primary transition-transform duration-200 ease-out',
+            'h-full w-full bg-primary',
             indicatorClassName,
           )}
           style={{
             transform: `scaleX(${fillRatio})`,
             transformOrigin: 'left center',
-            willChange: 'transform',
+            willChange: progress.isActive && !reducedMotion ? 'transform' : undefined,
           }}
         />
       </div>
