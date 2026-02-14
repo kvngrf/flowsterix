@@ -148,6 +148,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     steps,
     addStep,
     removeStep,
+    updateStep,
     reorderSteps,
     clearAllSteps,
     exportSteps,
@@ -375,6 +376,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
                   mode={mode}
                   onToggleGrab={toggleGrabbing}
                   onDeleteStep={removeStep}
+                  onUpdateStep={updateStep}
                   onReorderSteps={reorderSteps}
                   onClearAll={clearAllSteps}
                   onExport={exportSteps}

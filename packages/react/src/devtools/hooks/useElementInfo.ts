@@ -15,6 +15,7 @@ export function useElementInfo() {
 
     return {
       element,
+      url: window.location.href,
       selector: selectorResult.selector,
       selectorType: selectorResult.selectorType,
       suggestedAttrName: selectorResult.suggestedAttrName,

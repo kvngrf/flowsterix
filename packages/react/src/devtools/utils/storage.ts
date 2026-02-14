@@ -3,8 +3,14 @@ import type { GrabbedStep } from '../types'
 const STORAGE_KEY = 'flowsterix-devtools-steps'
 
 function migrateStep(step: Partial<GrabbedStep>): GrabbedStep {
+  const fallbackOrder = typeof step.order === 'number' ? step.order : 0
+  const fallbackLabel = `Step ${fallbackOrder + 1}`
+  const fallbackUrl = typeof window !== 'undefined' ? window.location.href : ''
+
   return {
     ...step,
+    url: step.url ?? fallbackUrl,
+    label: step.label ?? fallbackLabel,
     componentHierarchy: step.componentHierarchy ?? [],
     existingAttrs: step.existingAttrs ?? [],
   } as GrabbedStep

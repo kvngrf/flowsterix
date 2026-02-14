@@ -7,6 +7,7 @@ export interface ElementSource {
 export interface GrabbedStep {
   id: string
   order: number
+  url: string
   selector: string
   selectorType: 'auto' | 'data-attr' | 'custom'
   elementTag: string
@@ -40,10 +41,13 @@ export interface DevToolsState {
 }
 
 export interface DevToolsExport {
-  version: '1.0'
+  version: '1.1'
   createdAt: string
   steps: Array<{
     order: number
+    name: string
+    url: string
+    selector: string
     element: string // e.g. '<button class="btn">Click me</button>'
     componentTree: string[] // e.g. ['h2', 'StepTitle', 'div', 'StepContent']
     source?: string // e.g. 'src/components/Button.tsx:45'
@@ -52,6 +56,7 @@ export interface DevToolsExport {
 
 export interface ElementInfo {
   element: Element
+  url: string
   selector: string
   selectorType: 'auto' | 'data-attr' | 'custom'
   suggestedAttrName: string

@@ -66,9 +66,11 @@ export function useStepStore(): UseStepStoreResult {
 
   const addStep = useCallback((params: { info: ElementInfo }): GrabbedStep => {
     const { info } = params
+    const stepNumber = store.steps.length + 1
     const newStep: GrabbedStep = {
       id: generateId(),
       order: store.steps.length,
+      url: info.url,
       selector: info.selector,
       selectorType: info.selectorType,
       elementTag: info.tag,
@@ -85,6 +87,7 @@ export function useStepStore(): UseStepStoreResult {
         height: info.rect.height,
       },
       source: info.source,
+      label: `Step ${stepNumber}`,
       createdAt: Date.now(),
     }
 
@@ -132,7 +135,7 @@ export function useStepStore(): UseStepStoreResult {
 
   const exportSteps = useCallback((): DevToolsExport => {
     return {
-      version: '1.0',
+      version: '1.1',
       createdAt: new Date().toISOString(),
       steps: store.steps.map((step) => {
         // Format element like: <button class="btn" type="button">Click me</button>
@@ -161,6 +164,9 @@ export function useStepStore(): UseStepStoreResult {
 
         return {
           order: step.order,
+          name: step.label?.trim() || `Step ${step.order + 1}`,
+          url: step.url,
+          selector: step.selector,
           element: elementStr,
           componentTree: step.componentHierarchy,
           source: sourceStr,

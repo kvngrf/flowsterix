@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { motion } from 'motion/react'
@@ -60,6 +60,18 @@ const styles = {
     gap: 4,
     padding: 10,
   },
+  stepNameInput: {
+    width: '100%',
+    padding: '4px 6px',
+    backgroundColor: 'hsl(215 20% 11%)',
+    border: '1px solid hsl(215 20% 20%)',
+    borderRadius: 4,
+    color: 'hsl(215 20% 82%)',
+    fontSize: 11,
+    fontWeight: 600,
+    lineHeight: 1.3,
+    outline: 'none',
+  },
   header: {
     display: 'flex',
     alignItems: 'center',
@@ -116,6 +128,20 @@ const styles = {
     gap: 4,
     marginTop: 2,
   },
+  urlRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+    color: 'hsl(195 80% 68%)',
+    fontSize: 10,
+    fontFamily: 'ui-monospace, monospace',
+  },
+  urlText: {
+    overflow: 'hidden' as const,
+    textOverflow: 'ellipsis' as const,
+    whiteSpace: 'nowrap' as const,
+  },
   sourceLink: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -162,17 +188,32 @@ const styles = {
   },
 } as const
 
+function formatStepUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const path = `${parsed.pathname}${parsed.search}${parsed.hash}` || '/'
+    if (typeof window !== 'undefined' && parsed.origin === window.location.origin) {
+      return path
+    }
+    return `${parsed.origin}${path}`
+  } catch {
+    return url
+  }
+}
+
 export interface StepItemProps {
   step: GrabbedStep
   index: number
+  onUpdateName?: (name: string) => void
   onDelete: () => void
   isDragActive?: boolean
   isBeingDragged?: boolean
 }
 
 export function SortableStepItem(props: StepItemProps) {
-  const { step, index, onDelete, isBeingDragged = false } = props
+  const { step, index, onUpdateName, onDelete, isBeingDragged = false } = props
   const [isHovered, setIsHovered] = useState(false)
+  const [nameDraft, setNameDraft] = useState(step.label ?? `Step ${index + 1}`)
   const reducedMotion = useReducedMotion()
 
   const {
@@ -188,6 +229,20 @@ export function SortableStepItem(props: StepItemProps) {
     if (step.source) {
       const path = formatSourcePath({ source: step.source })
       await navigator.clipboard.writeText(path)
+    }
+  }
+
+  useEffect(() => {
+    setNameDraft(step.label ?? `Step ${index + 1}`)
+  }, [step.id, step.label, index])
+
+  const commitName = () => {
+    const nextName = nameDraft.trim() || `Step ${index + 1}`
+    if (nextName !== step.label) {
+      onUpdateName?.(nextName)
+    }
+    if (nextName !== nameDraft) {
+      setNameDraft(nextName)
     }
   }
 
@@ -229,6 +284,29 @@ export function SortableStepItem(props: StepItemProps) {
         </div>
 
         <div style={styles.content}>
+          <input
+            type="text"
+            aria-label={`Step ${index + 1} name`}
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                ;(e.target as HTMLInputElement).blur()
+                return
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                const fallbackName = step.label ?? `Step ${index + 1}`
+                setNameDraft(fallbackName)
+                ;(e.target as HTMLInputElement).blur()
+              }
+            }}
+            placeholder={`Step ${index + 1}`}
+            style={styles.stepNameInput}
+          />
+
           <div style={styles.header}>
             <motion.span
               key={`order-${index}`}
@@ -246,6 +324,20 @@ export function SortableStepItem(props: StepItemProps) {
           </div>
 
           <div style={styles.selector}>{step.selector}</div>
+
+          <div style={styles.urlRow} title={step.url}>
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+            >
+              <path d="M6.354 5.5H9a.5.5 0 0 0 0-1H6.354a2.5 2.5 0 1 0 0 5H9a.5.5 0 0 0 0-1H6.354a1.5 1.5 0 1 1 0-3z" />
+              <path d="M7 8.5a.5.5 0 0 0 0-1h2a.5.5 0 0 0 0 1H7z" />
+              <path d="M9.646 4.5H7a.5.5 0 0 0 0 1h2.646a1.5 1.5 0 0 1 0 3H7a.5.5 0 0 0 0 1h2.646a2.5 2.5 0 0 0 0-5z" />
+            </svg>
+            <span style={styles.urlText}>{formatStepUrl(step.url)}</span>
+          </div>
 
           {step.source && (
             <div style={styles.sourceRow}>
@@ -335,6 +427,8 @@ export function StepItemDragPreview(props: StepItemDragPreviewProps) {
       </div>
 
       <div style={styles.content}>
+        <div style={styles.stepNameInput}>{step.label?.trim() || `Step ${index + 1}`}</div>
+
         <div style={styles.header}>
           <span style={styles.order}>{index + 1}</span>
           <span style={styles.tagBadge}>&lt;{step.elementTag}&gt;</span>
@@ -344,6 +438,20 @@ export function StepItemDragPreview(props: StepItemDragPreviewProps) {
         </div>
 
         <div style={styles.selector}>{step.selector}</div>
+
+        <div style={styles.urlRow} title={step.url}>
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+          >
+            <path d="M6.354 5.5H9a.5.5 0 0 0 0-1H6.354a2.5 2.5 0 1 0 0 5H9a.5.5 0 0 0 0-1H6.354a1.5 1.5 0 1 1 0-3z" />
+            <path d="M7 8.5a.5.5 0 0 0 0-1h2a.5.5 0 0 0 0 1H7z" />
+            <path d="M9.646 4.5H7a.5.5 0 0 0 0 1h2.646a1.5 1.5 0 0 1 0 3H7a.5.5 0 0 0 0 1h2.646a2.5 2.5 0 0 0 0-5z" />
+          </svg>
+          <span style={styles.urlText}>{formatStepUrl(step.url)}</span>
+        </div>
 
         {step.source && (
           <div style={styles.sourceRow}>

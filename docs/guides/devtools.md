@@ -1,6 +1,6 @@
 # DevTools
 
-The Flowsterix DevTools provide a development-only UI for debugging tours, managing flow state, and capturing element selectors.
+The Flowsterix DevTools provide a development-only UI for debugging tours, managing flow state, and capturing selectors across pages.
 
 ## Installation
 
@@ -37,10 +37,10 @@ export function App({ children }) {
 
 View and control the current flow's steps:
 
-- **Step list** - All steps in the active flow with status indicators
+- **Step list** - Captured target steps with selector, source, and URL
+- **Step naming** - Rename steps inline to keep multi-step and cross-page flows organized
 - **Drag-and-drop** - Reorder steps during development
-- **Jump to step** - Click any step to navigate directly to it
-- **Active tracking** - Current step is highlighted
+- **Export/Copy JSON** - Share captured data with AI or tooling
 
 ### Flows Tab
 
@@ -58,8 +58,9 @@ Capture CSS selectors for step targets:
 
 1. Click the grabber icon in the DevTools panel
 2. Hover over elements in your app - they highlight on hover
-3. Click to copy the selector to clipboard
-4. Use in your step definition: `target: { selector: '[data-tour-target="..."]' }`
+3. Click an element to capture a step entry
+4. Each entry stores selector, page URL, element context, and source metadata
+5. Rename entries so reordering remains clear when steps span multiple routes
 
 ## Props
 

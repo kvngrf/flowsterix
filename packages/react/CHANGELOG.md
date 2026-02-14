@@ -1,5 +1,13 @@
 # @flowsterix/react
 
+## 1.0.3
+
+### Patch Changes
+
+- Improve DevTools step capture for multi-page tours by storing the current page URL on each grabbed step and allowing inline step naming in the Steps tab.
+
+  DevTools export payloads now include each step's `name`, `url`, and `selector` (`version: '1.1'`) to improve downstream AI-assisted flow generation.
+
 ## 1.0.2
 
 ### Patch Changes

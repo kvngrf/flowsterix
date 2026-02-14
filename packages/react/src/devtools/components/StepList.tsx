@@ -80,6 +80,7 @@ export interface StepListProps {
   mode: GrabMode
   onToggleGrab: () => void
   onDeleteStep: (params: { id: string }) => void
+  onUpdateStep?: (params: { id: string; updates: Partial<GrabbedStep> }) => void
   onReorderSteps: (params: { fromIndex: number; toIndex: number }) => void
   onClearAll: () => void
   onExport: () => DevToolsExport
@@ -91,6 +92,7 @@ export function StepList(props: StepListProps) {
     mode,
     onToggleGrab,
     onDeleteStep,
+    onUpdateStep,
     onReorderSteps,
     onClearAll,
     onExport,
@@ -234,6 +236,9 @@ export function StepList(props: StepListProps) {
                         <SortableStepItem
                           step={step}
                           index={index}
+                          onUpdateName={(label) =>
+                            onUpdateStep?.({ id: step.id, updates: { label } })
+                          }
                           onDelete={() => onDeleteStep({ id: step.id })}
                           isDragActive={activeId !== null}
                           isBeingDragged={step.id === activeId}

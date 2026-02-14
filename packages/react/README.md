@@ -362,6 +362,13 @@ Type exports:
   - `GrabbedStep`
   - `GrabMode`
 
+DevTools export payload contract (`DevToolsExport`):
+
+- `version`: `'1.1'`
+- `steps[*].name`: user-editable step name
+- `steps[*].url`: captured page URL at selection time
+- `steps[*].selector`: generated selector used for target capture
+
 ## Files and Responsibility Map
 
 - Provider and runtime contract:
