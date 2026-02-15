@@ -78,4 +78,44 @@ describe('DevTools Toolbar', () => {
         .disabled,
     ).toBe(false)
   })
+
+  it('does not log a border shorthand warning when grab mode toggles', () => {
+    const onError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    try {
+      const { rerender } = render(
+        <Toolbar
+          mode="grabbing"
+          stepCount={1}
+          onToggleGrab={() => {}}
+          onExport={() => {}}
+          onCopyForAI={async () => {}}
+          onReset={() => {}}
+        />,
+      )
+
+      rerender(
+        <Toolbar
+          mode="idle"
+          stepCount={1}
+          onToggleGrab={() => {}}
+          onExport={() => {}}
+          onCopyForAI={async () => {}}
+          onReset={() => {}}
+        />,
+      )
+
+      const hasWarning = onError.mock.calls.some((args) =>
+        args.some(
+          (arg) =>
+            typeof arg === 'string' &&
+            arg.includes('Removing a style property during rerender'),
+        ),
+      )
+
+      expect(hasWarning).toBe(false)
+    } finally {
+      onError.mockRestore()
+    }
+  })
 })

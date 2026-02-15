@@ -38,7 +38,7 @@ const styles = {
   },
   grabButtonActive: {
     backgroundColor: devtoolsTheme.primarySoft,
-    borderColor: devtoolsTheme.primaryGlow,
+    border: `1px solid ${devtoolsTheme.primaryGlow}`,
     color: devtoolsTheme.primary,
     boxShadow: `0 0 0 2px ${devtoolsTheme.primarySoft}, 0 0 16px ${devtoolsTheme.primaryGlow}`,
     animation: 'grabPulse 2s ease-in-out infinite',

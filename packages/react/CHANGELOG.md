@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 1.0.5
+
+### Patch Changes
+
+- Fix React runtime warnings in DevTools step cards and the Toolbar grab button by avoiding shorthand/non-shorthand border style mixing during rerenders.
+
 ## 1.0.4
 
 ### Patch Changes

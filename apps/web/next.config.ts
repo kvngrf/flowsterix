@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@flowsterix/core", "@flowsterix/react"],
   async headers() {
     return [
       {

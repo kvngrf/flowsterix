@@ -17,7 +17,9 @@ const styles = {
     gap: 0,
     backgroundColor: devtoolsTheme.bgPanelAlt,
     borderRadius: 10,
-    border: `1px solid ${devtoolsTheme.border}`,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: devtoolsTheme.border,
     fontSize: 12,
     fontFamily: 'inherit',
     overflow: 'hidden' as const,
@@ -29,12 +31,14 @@ const styles = {
   },
   cardGhost: {
     opacity: 0.4,
-    border: `1px dashed ${devtoolsTheme.primaryStrong}`,
+    borderStyle: 'dashed',
+    borderColor: devtoolsTheme.primaryStrong,
     backgroundColor: devtoolsTheme.primarySoft,
   },
   cardOverlay: {
     boxShadow: '0 12px 24px rgba(0, 0, 0, 0.4)',
-    border: `1px solid ${devtoolsTheme.primary}`,
+    borderStyle: 'solid',
+    borderColor: devtoolsTheme.primary,
   },
   dragHandle: {
     display: 'flex',
