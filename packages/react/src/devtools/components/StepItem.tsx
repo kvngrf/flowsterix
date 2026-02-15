@@ -8,32 +8,33 @@ import { motion } from 'motion/react'
 import type { GrabbedStep } from '../types'
 import { formatSourcePath, getVSCodeLink } from '../utils/sourceExtractor'
 import { springs, useReducedMotion } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   card: {
     display: 'flex',
     alignItems: 'stretch',
     gap: 0,
-    backgroundColor: 'hsl(215 20% 16%)',
-    borderRadius: 8,
-    border: '1px solid hsl(215 20% 22%)',
+    backgroundColor: devtoolsTheme.bgPanelAlt,
+    borderRadius: 10,
+    border: `1px solid ${devtoolsTheme.border}`,
     fontSize: 12,
     fontFamily: 'inherit',
     overflow: 'hidden' as const,
     transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
   },
   cardHover: {
-    borderColor: 'hsl(217 91% 55% / 0.4)',
-    boxShadow: '0 0 0 2px hsl(217 91% 55% / 0.1), 0 4px 12px rgba(0, 0, 0, 0.2)',
+    borderColor: devtoolsTheme.borderStrong,
+    boxShadow: `0 0 0 2px ${devtoolsTheme.primarySoft}, 0 4px 12px rgba(0, 0, 0, 0.22)`,
   },
   cardGhost: {
     opacity: 0.4,
-    border: '1px dashed hsl(217 91% 60%)',
-    backgroundColor: 'hsl(217 91% 60% / 0.05)',
+    border: `1px dashed ${devtoolsTheme.primaryStrong}`,
+    backgroundColor: devtoolsTheme.primarySoft,
   },
   cardOverlay: {
     boxShadow: '0 12px 24px rgba(0, 0, 0, 0.4)',
-    border: '1px solid hsl(217 91% 60%)',
+    border: `1px solid ${devtoolsTheme.primary}`,
   },
   dragHandle: {
     display: 'flex',
@@ -41,16 +42,16 @@ const styles = {
     justifyContent: 'center',
     width: 28,
     cursor: 'grab',
-    color: 'hsl(215 20% 40%)',
+    color: devtoolsTheme.textFaint,
     flexShrink: 0,
-    backgroundColor: 'hsl(215 20% 13%)',
-    borderRight: '1px solid hsl(215 20% 20%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    borderRight: `1px solid ${devtoolsTheme.borderSoft}`,
     transition: 'color 0.15s ease, background-color 0.15s ease',
   },
   dragHandleActive: {
     cursor: 'grabbing',
-    backgroundColor: 'hsl(217 91% 60% / 0.15)',
-    color: 'hsl(217 91% 60%)',
+    backgroundColor: devtoolsTheme.primarySoft,
+    color: devtoolsTheme.primary,
   },
   content: {
     flex: 1,
@@ -63,10 +64,10 @@ const styles = {
   stepNameInput: {
     width: '100%',
     padding: '4px 6px',
-    backgroundColor: 'hsl(215 20% 11%)',
-    border: '1px solid hsl(215 20% 20%)',
+    backgroundColor: devtoolsTheme.bgPanelInsetStrong,
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 4,
-    color: 'hsl(215 20% 82%)',
+    color: devtoolsTheme.textPrimary,
     fontSize: 11,
     fontWeight: 600,
     lineHeight: 1.3,
@@ -83,8 +84,8 @@ const styles = {
     justifyContent: 'center',
     width: 18,
     height: 18,
-    backgroundColor: 'hsl(217 91% 55% / 0.2)',
-    color: 'hsl(217 91% 70%)',
+    backgroundColor: devtoolsTheme.primarySoft,
+    color: devtoolsTheme.primary,
     fontSize: 10,
     fontWeight: 600,
     borderRadius: 5,
@@ -94,15 +95,15 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '2px 6px',
-    backgroundColor: 'hsl(215 20% 22%)',
-    color: 'hsl(217 91% 70%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    color: devtoolsTheme.primary,
     fontFamily: 'ui-monospace, monospace',
     fontSize: 10,
     fontWeight: 500,
     borderRadius: 4,
   },
   text: {
-    color: 'hsl(215 20% 65%)',
+    color: devtoolsTheme.textSecondary,
     overflow: 'hidden' as const,
     textOverflow: 'ellipsis' as const,
     whiteSpace: 'nowrap' as const,
@@ -111,16 +112,16 @@ const styles = {
   },
   selector: {
     display: 'block',
-    color: 'hsl(265 83% 75%)',
+    color: devtoolsTheme.mustard,
     fontFamily: 'ui-monospace, monospace',
     fontSize: 10,
     overflow: 'hidden' as const,
     textOverflow: 'ellipsis' as const,
     whiteSpace: 'nowrap' as const,
     padding: '4px 6px',
-    backgroundColor: 'hsl(215 20% 12%)',
+    backgroundColor: devtoolsTheme.bgPanelInsetStrong,
     borderRadius: 4,
-    border: '1px solid hsl(215 20% 18%)',
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
   },
   sourceRow: {
     display: 'flex',
@@ -133,7 +134,7 @@ const styles = {
     alignItems: 'center',
     gap: 4,
     marginTop: 2,
-    color: 'hsl(195 80% 68%)',
+    color: devtoolsTheme.mint,
     fontSize: 10,
     fontFamily: 'ui-monospace, monospace',
   },
@@ -146,7 +147,7 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 4,
-    color: 'hsl(142 71% 55%)',
+    color: devtoolsTheme.mint,
     fontSize: 10,
     fontFamily: 'ui-monospace, monospace',
     textDecoration: 'none',
@@ -161,7 +162,7 @@ const styles = {
     height: 18,
     backgroundColor: 'transparent',
     border: 'none',
-    color: 'hsl(215 20% 50%)',
+    color: devtoolsTheme.textMuted,
     cursor: 'pointer',
     padding: 0,
     borderRadius: 4,
@@ -176,7 +177,7 @@ const styles = {
     height: 22,
     backgroundColor: 'transparent',
     border: 'none',
-    color: 'hsl(215 20% 45%)',
+    color: devtoolsTheme.textFaint,
     cursor: 'pointer',
     padding: 0,
     borderRadius: 5,
@@ -246,7 +247,6 @@ export function SortableStepItem(props: StepItemProps) {
     }
   }
 
-  // Show ghost placeholder when this item is being dragged
   const isGhost = isDragging || isBeingDragged
 
   const wrapperStyle: CSSProperties = {
@@ -260,10 +260,6 @@ export function SortableStepItem(props: StepItemProps) {
     ...(isGhost && styles.cardGhost),
   }
 
-  const handleStyle: CSSProperties = {
-    ...styles.dragHandle,
-  }
-
   return (
     <div
       ref={setNodeRef}
@@ -272,7 +268,7 @@ export function SortableStepItem(props: StepItemProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div style={cardStyle}>
-        <div style={handleStyle} {...attributes} {...listeners}>
+        <div style={styles.dragHandle} {...attributes} {...listeners}>
           <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
             <circle cx="3" cy="2" r="1.5" />
             <circle cx="7" cy="2" r="1.5" />
@@ -318,20 +314,13 @@ export function SortableStepItem(props: StepItemProps) {
               {index + 1}
             </motion.span>
             <span style={styles.tagBadge}>&lt;{step.elementTag}&gt;</span>
-            {step.elementText && (
-              <span style={styles.text}>{step.elementText}</span>
-            )}
+            {step.elementText && <span style={styles.text}>{step.elementText}</span>}
           </div>
 
           <div style={styles.selector}>{step.selector}</div>
 
           <div style={styles.urlRow} title={step.url}>
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-            >
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
               <path d="M6.354 5.5H9a.5.5 0 0 0 0-1H6.354a2.5 2.5 0 1 0 0 5H9a.5.5 0 0 0 0-1H6.354a1.5 1.5 0 1 1 0-3z" />
               <path d="M7 8.5a.5.5 0 0 0 0-1h2a.5.5 0 0 0 0 1H7z" />
               <path d="M9.646 4.5H7a.5.5 0 0 0 0 1h2.646a1.5 1.5 0 0 1 0 3H7a.5.5 0 0 0 0 1h2.646a2.5 2.5 0 0 0 0-5z" />
@@ -341,12 +330,7 @@ export function SortableStepItem(props: StepItemProps) {
 
           {step.source && (
             <div style={styles.sourceRow}>
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 16 16"
-                fill="hsl(142 71% 55%)"
-              >
+              <svg width="10" height="10" viewBox="0 0 16 16" fill={devtoolsTheme.mint}>
                 <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
               </svg>
               <a
@@ -362,12 +346,7 @@ export function SortableStepItem(props: StepItemProps) {
                 onClick={handleCopySource}
                 title="Copy path"
               >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                >
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M10 2H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM4 1h6a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3z" />
                   <path d="M14 5a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2H6a1 1 0 0 1 0-2h7V6a1 1 0 0 1 1-1z" />
                 </svg>
@@ -381,7 +360,7 @@ export function SortableStepItem(props: StepItemProps) {
           style={styles.deleteButton}
           onClick={onDelete}
           title="Delete step"
-          whileHover={reducedMotion ? {} : { scale: 1.1, color: 'hsl(0 70% 60%)' }}
+          whileHover={reducedMotion ? {} : { scale: 1.1, color: devtoolsTheme.accent }}
           whileTap={reducedMotion ? {} : { scale: 0.9 }}
         >
           <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
@@ -393,7 +372,6 @@ export function SortableStepItem(props: StepItemProps) {
   )
 }
 
-// Drag overlay preview - this is what you see while dragging
 export interface StepItemDragPreviewProps {
   step: GrabbedStep
   index: number
@@ -405,7 +383,7 @@ export function StepItemDragPreview(props: StepItemDragPreviewProps) {
   const cardStyle: CSSProperties = {
     ...styles.card,
     ...styles.cardOverlay,
-    width: 298, // Fixed width for overlay
+    width: 298,
   }
 
   const handleStyle: CSSProperties = {
@@ -432,20 +410,13 @@ export function StepItemDragPreview(props: StepItemDragPreviewProps) {
         <div style={styles.header}>
           <span style={styles.order}>{index + 1}</span>
           <span style={styles.tagBadge}>&lt;{step.elementTag}&gt;</span>
-          {step.elementText && (
-            <span style={styles.text}>{step.elementText}</span>
-          )}
+          {step.elementText && <span style={styles.text}>{step.elementText}</span>}
         </div>
 
         <div style={styles.selector}>{step.selector}</div>
 
         <div style={styles.urlRow} title={step.url}>
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-          >
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
             <path d="M6.354 5.5H9a.5.5 0 0 0 0-1H6.354a2.5 2.5 0 1 0 0 5H9a.5.5 0 0 0 0-1H6.354a1.5 1.5 0 1 1 0-3z" />
             <path d="M7 8.5a.5.5 0 0 0 0-1h2a.5.5 0 0 0 0 1H7z" />
             <path d="M9.646 4.5H7a.5.5 0 0 0 0 1h2.646a1.5 1.5 0 0 1 0 3H7a.5.5 0 0 0 0 1h2.646a2.5 2.5 0 0 0 0-5z" />
@@ -455,17 +426,10 @@ export function StepItemDragPreview(props: StepItemDragPreviewProps) {
 
         {step.source && (
           <div style={styles.sourceRow}>
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 16 16"
-              fill="hsl(142 71% 55%)"
-            >
+            <svg width="10" height="10" viewBox="0 0 16 16" fill={devtoolsTheme.mint}>
               <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
             </svg>
-            <span style={styles.sourceLink}>
-              {formatSourcePath({ source: step.source })}
-            </span>
+            <span style={styles.sourceLink}>{formatSourcePath({ source: step.source })}</span>
           </div>
         )}
       </div>
@@ -479,5 +443,4 @@ export function StepItemDragPreview(props: StepItemDragPreviewProps) {
   )
 }
 
-// Keep legacy export for compatibility
 export { SortableStepItem as StepItem }

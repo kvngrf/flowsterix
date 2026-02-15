@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { createPortal } from 'react-dom'
 import {
   DndContext,
   DragOverlay,
@@ -25,6 +26,7 @@ import {
   listItemVariants,
   useReducedMotion,
 } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   scrollArea: {
@@ -46,13 +48,13 @@ const styles = {
     gap: 8,
     padding: '32px 16px',
     textAlign: 'center' as const,
-    color: 'hsl(215 20% 55%)',
+    color: devtoolsTheme.textMuted,
   },
   emptyIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: 'hsl(215 20% 18%)',
+    backgroundColor: devtoolsTheme.bgPanelAlt,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -66,18 +68,19 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '2px 5px',
-    backgroundColor: 'hsl(215 20% 15%)',
-    border: '1px solid hsl(215 20% 22%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 4,
     fontSize: 11,
     fontFamily: 'ui-monospace, monospace',
-    color: 'hsl(215 20% 55%)',
+    color: devtoolsTheme.textMuted,
   },
 } as const
 
 export interface StepListProps {
   steps: GrabbedStep[]
   mode: GrabMode
+  overlayContainer?: Element | null
   onToggleGrab: () => void
   onDeleteStep: (params: { id: string }) => void
   onUpdateStep?: (params: { id: string; updates: Partial<GrabbedStep> }) => void
@@ -90,6 +93,7 @@ export function StepList(props: StepListProps) {
   const {
     steps,
     mode,
+    overlayContainer = null,
     onToggleGrab,
     onDeleteStep,
     onUpdateStep,
@@ -164,6 +168,12 @@ export function StepList(props: StepListProps) {
     }
   }, [onClearAll])
 
+  const dragOverlayContent = (
+    <DragOverlay dropAnimation={null} zIndex={100001}>
+      {activeStep && <StepItemDragPreview step={activeStep} index={activeIndex} />}
+    </DragOverlay>
+  )
+
   if (typeof window === 'undefined') return null
 
   return (
@@ -193,7 +203,7 @@ export function StepList(props: StepListProps) {
                   width="20"
                   height="20"
                   viewBox="0 0 16 16"
-                  fill="hsl(215 20% 45%)"
+                  fill={devtoolsTheme.textFaint}
                 >
                   <path d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM5.904 10.803L10 6.707v2.768a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5H6.525a.5.5 0 1 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 .707.707z" />
                 </svg>
@@ -248,11 +258,9 @@ export function StepList(props: StepListProps) {
                   </AnimatePresence>
                 </motion.div>
               </SortableContext>
-              <DragOverlay dropAnimation={null}>
-                {activeStep && (
-                  <StepItemDragPreview step={activeStep} index={activeIndex} />
-                )}
-              </DragOverlay>
+              {overlayContainer
+                ? createPortal(dragOverlayContent, overlayContainer)
+                : dragOverlayContent}
             </DndContext>
           )}
         </AnimatePresence>

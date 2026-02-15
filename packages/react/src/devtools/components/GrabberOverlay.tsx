@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import type { ElementInfo } from '../types'
 import { formatSourcePath } from '../utils/sourceExtractor'
 import { springs, useReducedMotion } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   root: {
@@ -17,15 +18,15 @@ const styles = {
   },
   highlight: {
     position: 'absolute' as const,
-    border: '2px solid hsl(217 91% 60%)',
-    backgroundColor: 'hsl(217 91% 60% / 0.08)',
+    border: `2px solid ${devtoolsTheme.primary}`,
+    backgroundColor: devtoolsTheme.primarySoft,
     borderRadius: 6,
     pointerEvents: 'none' as const,
-    boxShadow: '0 0 0 4px hsl(217 91% 60% / 0.15), 0 4px 20px hsl(217 91% 60% / 0.2)',
+    boxShadow: `0 0 0 4px ${devtoolsTheme.primarySoft}, 0 4px 20px ${devtoolsTheme.primaryGlow}`,
   },
   highlightPulse: {
-    boxShadow: '0 0 0 8px hsl(142 71% 55% / 0.3), 0 4px 20px hsl(142 71% 55% / 0.4)',
-    borderColor: 'hsl(142 71% 55%)',
+    boxShadow: '0 0 0 8px rgba(146, 196, 176, 0.28), 0 4px 20px rgba(146, 196, 176, 0.38)',
+    borderColor: devtoolsTheme.mint,
   },
   label: {
     position: 'absolute' as const,
@@ -36,9 +37,9 @@ const styles = {
     flexDirection: 'column' as const,
     gap: 4,
     padding: '8px 10px',
-    backgroundColor: 'hsl(222 47% 11%)',
-    border: '1px solid hsl(215 20% 22%)',
-    color: 'hsl(215 20% 75%)',
+    backgroundColor: devtoolsTheme.bgPanel,
+    border: `1px solid ${devtoolsTheme.border}`,
+    color: devtoolsTheme.textSecondary,
     fontSize: 11,
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     borderRadius: 8,
@@ -54,30 +55,30 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '2px 6px',
-    backgroundColor: 'hsl(215 20% 22%)',
-    color: 'hsl(217 91% 70%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    color: devtoolsTheme.primary,
     fontFamily: 'ui-monospace, monospace',
     fontSize: 10,
     fontWeight: 500,
     borderRadius: 4,
   },
   selector: {
-    color: 'hsl(265 83% 78%)',
+    color: devtoolsTheme.mustard,
     fontFamily: 'ui-monospace, monospace',
     fontSize: 10,
     overflow: 'hidden' as const,
     textOverflow: 'ellipsis' as const,
     whiteSpace: 'nowrap' as const,
     padding: '4px 6px',
-    backgroundColor: 'hsl(215 20% 15%)',
+    backgroundColor: devtoolsTheme.bgPanelInsetStrong,
     borderRadius: 4,
-    border: '1px solid hsl(215 20% 20%)',
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
   },
   source: {
     display: 'flex',
     alignItems: 'center',
     gap: 4,
-    color: 'hsl(142 71% 55%)',
+    color: devtoolsTheme.mint,
     fontFamily: 'ui-monospace, monospace',
     fontSize: 10,
   },
@@ -89,9 +90,9 @@ const styles = {
     alignItems: 'center',
     gap: 12,
     padding: '10px 16px',
-    backgroundColor: 'hsl(222 47% 11%)',
-    border: '1px solid hsl(215 20% 22%)',
-    color: 'hsl(215 20% 70%)',
+    backgroundColor: devtoolsTheme.bgPanel,
+    border: `1px solid ${devtoolsTheme.border}`,
+    color: devtoolsTheme.textSecondary,
     fontSize: 12,
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     borderRadius: 10,
@@ -101,24 +102,24 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 6,
-    color: 'hsl(215 20% 65%)',
+    color: devtoolsTheme.textSecondary,
   },
   kbd: {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '2px 5px',
-    backgroundColor: 'hsl(215 20% 15%)',
-    border: '1px solid hsl(215 20% 22%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 4,
     fontSize: 10,
     fontFamily: 'ui-monospace, monospace',
-    color: 'hsl(215 20% 60%)',
+    color: devtoolsTheme.textMuted,
     fontWeight: 500,
   },
   divider: {
     width: 1,
     height: 16,
-    backgroundColor: 'hsl(215 20% 25%)',
+    backgroundColor: devtoolsTheme.borderStrong,
   },
 } as const
 
@@ -225,7 +226,7 @@ export function GrabberOverlay(props: GrabberOverlayProps) {
                 {hoveredInfo.text && (
                   <span
                     style={{
-                      color: 'hsl(215 20% 65%)',
+                      color: devtoolsTheme.textSecondary,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',

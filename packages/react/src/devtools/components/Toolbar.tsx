@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { GrabMode } from '../types'
 import { springs, useReducedMotion } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   toolbar: {
@@ -24,10 +25,10 @@ const styles = {
     justifyContent: 'center',
     gap: 6,
     padding: '8px 12px',
-    backgroundColor: '#252a35',
-    border: '1px solid #353d4a',
+    backgroundColor: devtoolsTheme.bgPanelAlt,
+    border: `1px solid ${devtoolsTheme.border}`,
     borderRadius: 8,
-    color: '#a3adc2',
+    color: devtoolsTheme.textSecondary,
     fontSize: 12,
     fontWeight: 500,
     fontFamily: 'inherit',
@@ -36,10 +37,10 @@ const styles = {
     outline: 'none',
   },
   grabButtonActive: {
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: 'rgba(59, 130, 246, 0.4)',
-    color: '#60a5fa',
-    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1), 0 0 12px rgba(59, 130, 246, 0.2)',
+    backgroundColor: devtoolsTheme.primarySoft,
+    borderColor: devtoolsTheme.primaryGlow,
+    color: devtoolsTheme.primary,
+    boxShadow: `0 0 0 2px ${devtoolsTheme.primarySoft}, 0 0 16px ${devtoolsTheme.primaryGlow}`,
     animation: 'grabPulse 2s ease-in-out infinite',
   },
   actionRow: {
@@ -54,9 +55,9 @@ const styles = {
     gap: 5,
     padding: '7px 8px',
     backgroundColor: 'transparent',
-    border: '1px solid #2d3544',
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 6,
-    color: '#8b96a9',
+    color: devtoolsTheme.textMuted,
     fontSize: 11,
     fontWeight: 500,
     fontFamily: 'inherit',
@@ -71,28 +72,28 @@ const styles = {
     cursor: 'not-allowed',
   },
   actionButtonDanger: {
-    border: '1px solid #7a2c2c',
-    color: '#e05555',
+    border: `1px solid ${devtoolsTheme.accentStrong}`,
+    color: devtoolsTheme.accent,
   },
   kbd: {
     display: 'inline-flex',
     alignItems: 'center',
     padding: '1px 4px',
     marginLeft: 6,
-    backgroundColor: '#1e232c',
-    border: '1px solid #2d3544',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 3,
     fontSize: 10,
     fontFamily: 'ui-monospace, monospace',
-    color: '#6b7685',
+    color: devtoolsTheme.textFaint,
   },
   copiedBadge: {
     position: 'absolute' as const,
     top: -6,
     right: -6,
     padding: '2px 5px',
-    backgroundColor: '#166534',
-    color: '#86efac',
+    backgroundColor: devtoolsTheme.mintSoft,
+    color: devtoolsTheme.mint,
     fontSize: 9,
     fontWeight: 600,
     borderRadius: 4,
@@ -100,8 +101,8 @@ const styles = {
   },
   pulseKeyframes: `
     @keyframes grabPulse {
-      0%, 100% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1), 0 0 12px rgba(59, 130, 246, 0.2); }
-      50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.3); }
+      0%, 100% { box-shadow: 0 0 0 2px rgba(143, 172, 148, 0.16), 0 0 12px rgba(143, 172, 148, 0.28); }
+      50% { box-shadow: 0 0 0 4px rgba(143, 172, 148, 0.24), 0 0 22px rgba(143, 172, 148, 0.36); }
     }
   `,
 } as const

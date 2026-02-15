@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'motion/react'
-import { springs } from './motion'
+import { springs, useReducedMotion } from './motion'
 
 import { GrabberOverlay } from './components/GrabberOverlay'
 import { StepList } from './components/StepList'
@@ -14,36 +14,53 @@ import { useGrabMode } from './hooks/useGrabMode'
 import { useStepStore } from './hooks/useStepStore'
 import { useFlowsData } from './hooks/useFlowsData'
 import type { DevToolsTab } from './types'
+import { devtoolsTheme } from './theme'
+
+const PANEL_WIDTH = 336
+const PANEL_HEIGHT = 560
+const BUBBLE_SIZE = 52
 
 const styles = {
-  panel: {
+  shell: {
     position: 'fixed' as const,
-    width: 320,
+    zIndex: 99998,
+  },
+  surface: {
+    position: 'relative' as const,
     maxWidth: 'calc(100vw - 32px)',
     maxHeight: 'calc(100vh - 32px)',
     display: 'flex',
     flexDirection: 'column' as const,
-    zIndex: 99998,
     fontFamily:
       "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     fontSize: 13,
-    backgroundColor: 'hsl(222 47% 11%)',
-    borderRadius: 12,
-    border: '1px solid hsl(215 20% 25%)',
-    boxShadow:
-      '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+    background:
+      `radial-gradient(circle at 20% 0%, ${devtoolsTheme.primarySoft} 0%, transparent 35%), ${devtoolsTheme.bgPanel}`,
+    border: `1px solid ${devtoolsTheme.border}`,
+    borderRadius: 18,
+    boxShadow: devtoolsTheme.shadowPanel,
     overflow: 'hidden' as const,
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)',
+    willChange: 'width, height, border-radius',
   },
   header: {
+    position: 'relative' as const,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '10px 12px',
-    borderBottom: '1px solid hsl(215 20% 20%)',
-    backgroundColor: 'hsl(222 47% 9%)',
+    padding: '12px 12px',
+    borderBottom: `1px solid ${devtoolsTheme.borderSoft}`,
+    backgroundColor: devtoolsTheme.bgPanelAlt,
     cursor: 'grab',
     userSelect: 'none' as const,
     touchAction: 'none' as const,
+    minHeight: 52,
+  },
+  headerCollapsed: {
+    borderBottom: '1px solid transparent',
+    backgroundColor: devtoolsTheme.bgPanel,
+    cursor: 'default',
   },
   headerDragging: {
     cursor: 'grabbing',
@@ -57,23 +74,25 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    backgroundColor: 'hsl(217 91% 55% / 0.2)',
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    border: `1px solid ${devtoolsTheme.border}`,
+    flexShrink: 0,
   },
   title: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 600,
-    color: 'hsl(215 20% 75%)',
-    letterSpacing: '-0.01em',
-  },
-  headerButtons: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 2,
+    color: devtoolsTheme.textSecondary,
+    letterSpacing: '0.01em',
+    textTransform: 'uppercase' as const,
   },
   iconButton: {
+    position: 'absolute' as const,
+    top: 12,
+    right: 12,
+    zIndex: 9,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -81,12 +100,23 @@ const styles = {
     height: 26,
     backgroundColor: 'transparent',
     border: 'none',
-    color: 'hsl(215 20% 55%)',
     cursor: 'pointer',
     padding: 0,
-    borderRadius: 6,
-    transition: 'all 0.15s ease',
+    borderRadius: 8,
+    color: devtoolsTheme.primary,
     outline: 'none',
+  },
+  iconStack: {
+    position: 'relative' as const,
+    width: 26,
+    height: 26,
+  },
+  iconLayer: {
+    position: 'absolute' as const,
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   body: {
     flex: 1,
@@ -97,6 +127,15 @@ const styles = {
   },
 } as const
 
+function DevToolsGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill={devtoolsTheme.primary}>
+      <path d="M8 0L14.9 4v8L8 16 1.1 12V4L8 0zm0 2.3L3.1 5.2v5.6L8 13.7l4.9-2.9V5.2L8 2.3z" />
+      <path d="M8 5l3 1.7v3.4L8 11.8 5 10.1V6.7L8 5z" />
+    </svg>
+  )
+}
+
 export interface DevToolsProviderProps {
   children: ReactNode
   enabled?: boolean
@@ -106,7 +145,7 @@ export interface DevToolsProviderProps {
 export function DevToolsProvider(props: DevToolsProviderProps) {
   const { children, enabled = true, defaultTab = 'steps' } = props
 
-  // SSR safety - only render client-side components after mount
+  const reducedMotion = useReducedMotion()
   const [mounted, setMounted] = useState(false)
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null)
   const [activeTab, setActiveTab] = useState<DevToolsTab>(defaultTab)
@@ -114,15 +153,14 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
   useEffect(() => {
     setMounted(true)
 
-    // Create shadow DOM host
     const host = document.createElement('div')
     host.setAttribute('data-devtools-host', '')
-    host.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 99999; pointer-events: none;'
+    host.style.cssText =
+      'position: fixed; top: 0; left: 0; z-index: 99999; pointer-events: none;'
     document.body.appendChild(host)
 
     const shadow = host.attachShadow({ mode: 'open' })
 
-    // Reset styles in shadow root
     const style = document.createElement('style')
     style.textContent = `
       :host { all: initial; }
@@ -130,7 +168,6 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     `
     shadow.appendChild(style)
 
-    // Container for React content
     const container = document.createElement('div')
     container.style.cssText = 'pointer-events: auto;'
     shadow.appendChild(container)
@@ -156,23 +193,25 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
 
   const { flows } = useFlowsData()
 
-  // Panel position and collapse state
   const [collapsed, setCollapsed] = useState(false)
   const [position, setPosition] = useState({ x: 16, y: 16 })
   const [isPanelDragging, setIsPanelDragging] = useState(false)
-  const dragStartRef = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
 
-  // Handle click to select element
+  const dragStartRef = useRef<{
+    x: number
+    y: number
+    posX: number
+    posY: number
+  } | null>(null)
+
   const handleClick = useCallback(
     (e: MouseEvent) => {
       if (mode !== 'grabbing') return
 
-      // Check if clicking on devtools panel (including shadow DOM)
       const target = e.target as Element
       if (target.closest('[data-devtools-panel]')) return
       if (target.closest('[data-devtools-host]')) return
 
-      // Check if inside shadow DOM belonging to devtools
       const root = target.getRootNode()
       if (root instanceof ShadowRoot) {
         const host = root.host
@@ -187,10 +226,9 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
         addStep({ info })
       }
     },
-    [mode, selectCurrent, addStep]
+    [mode, selectCurrent, addStep],
   )
 
-  // Click handler
   useEffect(() => {
     if (mode !== 'grabbing') return
 
@@ -198,7 +236,6 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     return () => document.removeEventListener('click', handleClick, { capture: true })
   }, [mode, handleClick])
 
-  // Prevent default behaviors during grab mode
   useEffect(() => {
     if (mode !== 'grabbing') return
 
@@ -215,7 +252,6 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     }
   }, [mode])
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
@@ -227,9 +263,10 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Pointer-based drag for panel movement
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
+      if (collapsed) return
+
       const target = e.target as HTMLElement
       if (target.closest('button')) return
 
@@ -243,7 +280,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
       }
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
     },
-    [position]
+    [collapsed, position],
   )
 
   const handlePointerMove = useCallback(
@@ -258,7 +295,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
 
       setPosition({ x: newX, y: newY })
     },
-    [isPanelDragging]
+    [isPanelDragging],
   )
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
@@ -267,25 +304,53 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
   }, [])
 
-  // Don't render devtools if disabled or not mounted (SSR)
   if (!enabled || !mounted) {
     return <>{children}</>
   }
 
-  // Get the container element inside the shadow root
   const shadowContainer = shadowRoot?.lastElementChild ?? null
 
-  const panelStyle = {
-    ...styles.panel,
+  const shellStyle = {
+    ...styles.shell,
     right: position.x,
     top: position.y,
   }
 
   const headerStyle = {
     ...styles.header,
-    ...(isPanelDragging && styles.headerDragging),
-    ...(collapsed && { borderBottom: 'none' }),
+    ...(collapsed && styles.headerCollapsed),
+    ...(isPanelDragging && !collapsed && styles.headerDragging),
   }
+
+  const bodyStyle = {
+    ...styles.body,
+    pointerEvents: collapsed ? ('none' as const) : ('auto' as const),
+  }
+
+  const surfaceTransition = reducedMotion
+    ? { duration: 0 }
+    : ({
+        type: 'spring',
+        stiffness: 360,
+        damping: 35,
+        mass: 0.8,
+      } as const)
+
+  const surfaceAnimation = collapsed
+    ? {
+        width: BUBBLE_SIZE,
+        height: BUBBLE_SIZE,
+        borderRadius: BUBBLE_SIZE / 2,
+        boxShadow: '0 10px 24px rgba(0, 0, 0, 0.34)',
+        borderColor: devtoolsTheme.borderStrong,
+      }
+    : {
+        width: PANEL_WIDTH,
+        height: PANEL_HEIGHT,
+        borderRadius: 18,
+        boxShadow: devtoolsTheme.shadowPanel,
+        borderColor: devtoolsTheme.border,
+      }
 
   const portalContainer = shadowContainer ?? document.body
 
@@ -298,71 +363,101 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
         container={shadowContainer}
       />
       {createPortal(
-        <motion.div
-          style={panelStyle}
-          layoutRoot
-          layout="size"
-          initial={{ opacity: 0, x: 20, scale: 0.95 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          data-devtools-panel=""
-        >
-          <div
-            style={headerStyle}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
+        <div style={shellStyle} data-devtools-panel="">
+          <motion.div
+            style={styles.surface}
+            initial={false}
+            animate={surfaceAnimation}
+            transition={surfaceTransition}
           >
-            <div style={styles.titleGroup}>
-              <div style={styles.logo}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="hsl(217 91% 70%)">
-                  <path d="M8 0L14.9 4v8L8 16 1.1 12V4L8 0zm0 2.3L3.1 5.2v5.6L8 13.7l4.9-2.9V5.2L8 2.3z" />
-                  <path d="M8 5l3 1.7v3.4L8 11.8 5 10.1V6.7L8 5z" />
-                </svg>
-              </div>
-              <span style={styles.title}>DevTools</span>
-            </div>
-            <div style={styles.headerButtons}>
-              <button
+            <div
+              style={headerStyle}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+            >
+              <motion.div
+                style={styles.titleGroup}
+                animate={
+                  reducedMotion
+                    ? {}
+                    : {
+                        opacity: collapsed ? 0 : 1,
+                        x: collapsed ? -8 : 0,
+                        filter: collapsed ? 'blur(3px)' : 'blur(0px)',
+                      }
+                }
+                transition={reducedMotion ? { duration: 0 } : springs.smooth}
+              >
+                <div style={styles.logo}>
+                  <DevToolsGlyph />
+                </div>
+                <span style={styles.title}>Flowsterix DevTools</span>
+              </motion.div>
+
+              <motion.button
                 type="button"
                 style={styles.iconButton}
-                onClick={() => setCollapsed(!collapsed)}
                 title={
-                  collapsed ? 'Expand (Ctrl+Shift+M)' : 'Collapse (Ctrl+Shift+M)'
+                  collapsed ? 'Open DevTools (Ctrl+Shift+M)' : 'Collapse to bubble (Ctrl+Shift+M)'
                 }
+                onClick={() => setCollapsed((v) => !v)}
+                whileHover={reducedMotion ? {} : { scale: 1.03 }}
+                whileTap={reducedMotion ? {} : { scale: 0.97 }}
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  style={{
-                    transform: collapsed ? 'rotate(180deg)' : 'none',
-                    transition: 'transform 0.2s ease',
-                  }}
-                >
-                  <path d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z" />
-                </svg>
-              </button>
+                <span style={styles.iconStack}>
+                  <motion.span
+                    style={styles.iconLayer}
+                    animate={
+                      reducedMotion
+                        ? {}
+                        : {
+                            opacity: collapsed ? 1 : 0,
+                            filter: collapsed ? 'blur(0px)' : 'blur(4px)',
+                            scale: collapsed ? 1 : 0.92,
+                          }
+                    }
+                    transition={reducedMotion ? { duration: 0 } : springs.smooth}
+                  >
+                    <span style={styles.logo}>
+                      <DevToolsGlyph />
+                    </span>
+                  </motion.span>
+                  <motion.span
+                    style={styles.iconLayer}
+                    animate={
+                      reducedMotion
+                        ? {}
+                        : {
+                            opacity: collapsed ? 0 : 1,
+                            filter: collapsed ? 'blur(4px)' : 'blur(0px)',
+                            scale: collapsed ? 0.92 : 1,
+                          }
+                    }
+                    transition={reducedMotion ? { duration: 0 } : springs.smooth}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M2 8a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 8z" />
+                    </svg>
+                  </motion.span>
+                </span>
+              </motion.button>
             </div>
-          </div>
 
-          <motion.div
-            style={{
-              ...styles.body,
-              overflow: 'hidden',
-              flex: collapsed ? '0 0 auto' : '1 1 auto',
-            }}
-            initial={false}
-            animate={{ height: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
-            transition={{
-              height: springs.smooth,
-              opacity: { duration: 0.12 },
-            }}
-            aria-hidden={collapsed}
-          >
-            <div style={{ pointerEvents: collapsed ? 'none' : 'auto' }}>
+            <motion.div
+              style={bodyStyle}
+              animate={
+                reducedMotion
+                  ? {}
+                  : {
+                      opacity: collapsed ? 0 : 1,
+                      y: collapsed ? 8 : 0,
+                      filter: collapsed ? 'blur(2px)' : 'blur(0px)',
+                    }
+              }
+              transition={reducedMotion ? { duration: 0 } : springs.smooth}
+            >
               <TabNav
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -374,6 +469,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
                 <StepList
                   steps={steps}
                   mode={mode}
+                  overlayContainer={shadowContainer}
                   onToggleGrab={toggleGrabbing}
                   onDeleteStep={removeStep}
                   onUpdateStep={updateStep}
@@ -384,10 +480,10 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
               ) : (
                 <FlowsTab container={shadowContainer} />
               )}
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>,
-        portalContainer
+        </div>,
+        portalContainer,
       )}
     </>
   )

@@ -11,6 +11,7 @@ import {
   listItemVariants,
   useReducedMotion,
 } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   container: {
@@ -35,9 +36,9 @@ const styles = {
     gap: 6,
     padding: '6px 10px',
     backgroundColor: 'transparent',
-    border: '1px solid hsl(215 20% 25%)',
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 5,
-    color: 'hsl(215 20% 60%)',
+    color: devtoolsTheme.textMuted,
     fontSize: 11,
     fontWeight: 500,
     fontFamily: 'inherit',
@@ -58,13 +59,13 @@ const styles = {
     gap: 8,
     padding: '32px 16px',
     textAlign: 'center' as const,
-    color: 'hsl(215 20% 55%)',
+    color: devtoolsTheme.textMuted,
   },
   emptyIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: 'hsl(215 20% 18%)',
+    backgroundColor: devtoolsTheme.bgPanelAlt,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -77,7 +78,7 @@ const styles = {
   noContext: {
     padding: '20px 16px',
     textAlign: 'center' as const,
-    color: 'hsl(215 20% 50%)',
+    color: devtoolsTheme.textMuted,
     fontSize: 12,
   },
 } as const
@@ -138,14 +139,14 @@ export function FlowsTab(props: FlowsTabProps) {
               width="20"
               height="20"
               viewBox="0 0 16 16"
-              fill="hsl(215 20% 45%)"
+              fill={devtoolsTheme.textFaint}
             >
               <path d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1zm-3 8A1.5 1.5 0 0 1 4.5 10h1A1.5 1.5 0 0 1 7 11.5v1A1.5 1.5 0 0 1 5.5 14h-1A1.5 1.5 0 0 1 3 12.5v-1zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 9 12.5v-1z" />
             </svg>
           </div>
           <div style={styles.emptyText}>
             <div>No flows registered.</div>
-            <div style={{ marginTop: 6, fontSize: 11, color: 'hsl(215 20% 45%)' }}>
+            <div style={{ marginTop: 6, fontSize: 11, color: devtoolsTheme.textFaint }}>
               Add flows to TourProvider to see them here.
             </div>
           </div>
@@ -157,7 +158,7 @@ export function FlowsTab(props: FlowsTabProps) {
   return (
     <div style={styles.container}>
       <div style={styles.toolbar}>
-        <span style={{ fontSize: 11, color: 'hsl(215 20% 50%)' }}>
+        <span style={{ fontSize: 11, color: devtoolsTheme.textMuted }}>
           {flows.length} flow{flows.length !== 1 ? 's' : ''} registered
         </span>
         <motion.button

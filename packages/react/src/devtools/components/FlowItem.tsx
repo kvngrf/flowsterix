@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { FlowData } from '../hooks/useFlowsData'
 import { springs, useReducedMotion } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   card: {
@@ -12,20 +13,20 @@ const styles = {
     flexDirection: 'column' as const,
     gap: 8,
     padding: 12,
-    backgroundColor: 'hsl(215 20% 16%)',
+    backgroundColor: devtoolsTheme.bgPanelAlt,
     borderRadius: 8,
-    border: '1px solid hsl(215 20% 22%)',
+    border: `1px solid ${devtoolsTheme.border}`,
     fontSize: 12,
     fontFamily: 'inherit',
     transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
   },
   cardHover: {
-    borderColor: 'hsl(215 20% 28%)',
+    borderColor: devtoolsTheme.borderStrong,
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
   },
   cardActive: {
-    borderColor: 'hsl(217 91% 55% / 0.5)',
-    backgroundColor: 'hsl(217 91% 55% / 0.05)',
+    borderColor: devtoolsTheme.primaryStrong,
+    backgroundColor: devtoolsTheme.primarySoft,
   },
   header: {
     display: 'flex',
@@ -41,7 +42,7 @@ const styles = {
   },
   flowId: {
     fontWeight: 600,
-    color: 'hsl(215 20% 85%)',
+    color: devtoolsTheme.textPrimary,
     overflow: 'hidden' as const,
     textOverflow: 'ellipsis' as const,
     whiteSpace: 'nowrap' as const,
@@ -56,34 +57,34 @@ const styles = {
     flexShrink: 0,
   },
   statusIdle: {
-    backgroundColor: 'hsl(215 20% 22%)',
-    color: 'hsl(215 20% 60%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    color: devtoolsTheme.textMuted,
   },
   statusRunning: {
-    backgroundColor: 'hsl(142 71% 45% / 0.2)',
-    color: 'hsl(142 71% 60%)',
+    backgroundColor: devtoolsTheme.mintSoft,
+    color: devtoolsTheme.mint,
   },
   statusPaused: {
-    backgroundColor: 'hsl(45 93% 47% / 0.2)',
-    color: 'hsl(45 93% 60%)',
+    backgroundColor: devtoolsTheme.mustardSoft,
+    color: devtoolsTheme.mustard,
   },
   statusCompleted: {
-    backgroundColor: 'hsl(217 91% 55% / 0.2)',
-    color: 'hsl(217 91% 70%)',
+    backgroundColor: devtoolsTheme.primarySoft,
+    color: devtoolsTheme.primary,
   },
   statusCancelled: {
-    backgroundColor: 'hsl(0 70% 50% / 0.2)',
-    color: 'hsl(0 70% 65%)',
+    backgroundColor: devtoolsTheme.accentSoft,
+    color: devtoolsTheme.accent,
   },
   activeBadge: {
-    backgroundColor: 'hsl(142 71% 45% / 0.2)',
-    color: 'hsl(142 71% 60%)',
+    backgroundColor: devtoolsTheme.mintSoft,
+    color: devtoolsTheme.mint,
   },
   infoRow: {
     display: 'flex',
     alignItems: 'center',
     gap: 12,
-    color: 'hsl(215 20% 55%)',
+    color: devtoolsTheme.textMuted,
     fontSize: 11,
   },
   infoItem: {
@@ -92,11 +93,11 @@ const styles = {
     gap: 4,
   },
   label: {
-    color: 'hsl(215 20% 45%)',
+    color: devtoolsTheme.textFaint,
   },
   value: {
     fontFamily: 'ui-monospace, monospace',
-    color: 'hsl(215 20% 65%)',
+    color: devtoolsTheme.textSecondary,
   },
   actions: {
     display: 'flex',
@@ -110,9 +111,9 @@ const styles = {
     gap: 4,
     padding: '6px 10px',
     backgroundColor: 'transparent',
-    border: '1px solid hsl(215 20% 25%)',
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 5,
-    color: 'hsl(215 20% 60%)',
+    color: devtoolsTheme.textMuted,
     fontSize: 10,
     fontWeight: 500,
     fontFamily: 'inherit',
@@ -121,12 +122,12 @@ const styles = {
     outline: 'none',
   },
   actionButtonDanger: {
-    borderColor: 'hsl(0 70% 40%)',
-    color: 'hsl(0 70% 60%)',
+    borderColor: devtoolsTheme.accentStrong,
+    color: devtoolsTheme.accent,
   },
   noState: {
     padding: '8px 0',
-    color: 'hsl(215 20% 45%)',
+    color: devtoolsTheme.textFaint,
     fontSize: 11,
     fontStyle: 'italic' as const,
   },

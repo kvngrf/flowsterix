@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import type { FlowState } from '@flowsterix/core'
 import { springs, useReducedMotion } from '../motion'
+import { devtoolsTheme } from '../theme'
 
 const styles = {
   overlay: {
@@ -24,9 +25,9 @@ const styles = {
     width: '100%',
     maxWidth: 500,
     maxHeight: 'calc(100vh - 40px)',
-    backgroundColor: 'hsl(222 47% 11%)',
+    backgroundColor: devtoolsTheme.bgPanel,
     borderRadius: 12,
-    border: '1px solid hsl(215 20% 25%)',
+    border: `1px solid ${devtoolsTheme.border}`,
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -38,12 +39,12 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '14px 16px',
-    borderBottom: '1px solid hsl(215 20% 20%)',
+    borderBottom: `1px solid ${devtoolsTheme.borderSoft}`,
   },
   title: {
     fontSize: 14,
     fontWeight: 600,
-    color: 'hsl(215 20% 85%)',
+    color: devtoolsTheme.textPrimary,
   },
   closeButton: {
     display: 'flex',
@@ -53,7 +54,7 @@ const styles = {
     height: 28,
     backgroundColor: 'transparent',
     border: 'none',
-    color: 'hsl(215 20% 55%)',
+    color: devtoolsTheme.textMuted,
     cursor: 'pointer',
     borderRadius: 6,
     transition: 'all 0.15s ease',
@@ -68,10 +69,10 @@ const styles = {
     width: '100%',
     minHeight: 300,
     padding: 12,
-    backgroundColor: 'hsl(215 20% 8%)',
-    border: '1px solid hsl(215 20% 20%)',
+    backgroundColor: devtoolsTheme.bgPanelInsetStrong,
+    border: `1px solid ${devtoolsTheme.borderSoft}`,
     borderRadius: 8,
-    color: 'hsl(215 20% 85%)',
+    color: devtoolsTheme.textPrimary,
     fontSize: 12,
     fontFamily: 'ui-monospace, monospace',
     resize: 'vertical' as const,
@@ -80,15 +81,15 @@ const styles = {
     transition: 'border-color 0.15s ease',
   },
   textareaError: {
-    borderColor: 'hsl(0 70% 50%)',
+    borderColor: devtoolsTheme.accentStrong,
   },
   error: {
     marginTop: 8,
     padding: '8px 10px',
-    backgroundColor: 'hsl(0 70% 50% / 0.15)',
-    border: '1px solid hsl(0 70% 50% / 0.3)',
+    backgroundColor: devtoolsTheme.accentSoft,
+    border: `1px solid ${devtoolsTheme.accentStrong}`,
     borderRadius: 6,
-    color: 'hsl(0 70% 70%)',
+    color: devtoolsTheme.accent,
     fontSize: 11,
     fontFamily: 'ui-monospace, monospace',
   },
@@ -98,7 +99,7 @@ const styles = {
     justifyContent: 'flex-end',
     gap: 8,
     padding: '12px 16px',
-    borderTop: '1px solid hsl(215 20% 20%)',
+    borderTop: `1px solid ${devtoolsTheme.borderSoft}`,
   },
   button: {
     display: 'flex',
@@ -106,10 +107,10 @@ const styles = {
     justifyContent: 'center',
     gap: 6,
     padding: '8px 16px',
-    backgroundColor: 'hsl(215 20% 20%)',
-    border: '1px solid hsl(215 20% 28%)',
+    backgroundColor: devtoolsTheme.bgPanelAlt,
+    border: `1px solid ${devtoolsTheme.border}`,
     borderRadius: 6,
-    color: 'hsl(215 20% 75%)',
+    color: devtoolsTheme.textSecondary,
     fontSize: 12,
     fontWeight: 500,
     fontFamily: 'inherit',
@@ -118,9 +119,9 @@ const styles = {
     outline: 'none',
   },
   buttonPrimary: {
-    backgroundColor: 'hsl(217 91% 55%)',
-    borderColor: 'hsl(217 91% 60%)',
-    color: 'white',
+    background: devtoolsTheme.gradientMain,
+    borderColor: devtoolsTheme.primaryStrong,
+    color: devtoolsTheme.textPrimary,
   },
   buttonDisabled: {
     opacity: 0.5,

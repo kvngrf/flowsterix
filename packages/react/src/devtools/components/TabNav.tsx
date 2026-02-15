@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { springs, useReducedMotion } from '../motion'
 import type { DevToolsTab } from '../types'
+import { devtoolsTheme } from '../theme'
 
 // Note: Using CSS transitions for indicator instead of layoutId to avoid
 // expensive layout recalculations when parent panel is dragged
@@ -14,7 +15,7 @@ const styles = {
     display: 'flex',
     gap: 2,
     padding: '8px 10px 0',
-    borderBottom: '1px solid hsl(215 20% 20%)',
+    borderBottom: `1px solid ${devtoolsTheme.borderSoft}`,
     position: 'relative' as const,
   },
   tab: {
@@ -27,7 +28,7 @@ const styles = {
     backgroundColor: 'transparent',
     border: 'none',
     borderBottom: '2px solid transparent',
-    color: 'hsl(215 20% 55%)',
+    color: devtoolsTheme.textMuted,
     fontSize: 12,
     fontWeight: 500,
     fontFamily: 'inherit',
@@ -39,13 +40,13 @@ const styles = {
     zIndex: 1,
   },
   tabActive: {
-    color: 'hsl(217 91% 70%)',
+    color: devtoolsTheme.primary,
   },
   indicator: {
     position: 'absolute' as const,
     bottom: -1,
     height: 2,
-    backgroundColor: 'hsl(217 91% 60%)',
+    background: devtoolsTheme.gradientMain,
     borderRadius: 1,
   },
   badge: {
@@ -55,15 +56,15 @@ const styles = {
     minWidth: 18,
     height: 18,
     padding: '0 5px',
-    backgroundColor: 'hsl(215 20% 22%)',
-    color: 'hsl(215 20% 60%)',
+    backgroundColor: devtoolsTheme.bgPanelInset,
+    color: devtoolsTheme.textMuted,
     fontSize: 10,
     fontWeight: 600,
     borderRadius: 9,
   },
   badgeActive: {
-    backgroundColor: 'hsl(217 91% 55% / 0.2)',
-    color: 'hsl(217 91% 70%)',
+    backgroundColor: devtoolsTheme.primarySoft,
+    color: devtoolsTheme.primary,
   },
 } as const
 
