@@ -19,6 +19,22 @@ import { devtoolsTheme } from './theme'
 const PANEL_WIDTH = 336
 const PANEL_HEIGHT = 560
 const BUBBLE_SIZE = 52
+const VIEWPORT_PADDING = 8
+const DRAG_THRESHOLD_PX = 5
+
+function clampPanelPosition(
+  next: { x: number; y: number },
+  width: number,
+  height: number,
+): { x: number; y: number } {
+  const maxX = Math.max(VIEWPORT_PADDING, window.innerWidth - width - VIEWPORT_PADDING)
+  const maxY = Math.max(VIEWPORT_PADDING, window.innerHeight - height - VIEWPORT_PADDING)
+
+  return {
+    x: Math.min(maxX, Math.max(VIEWPORT_PADDING, next.x)),
+    y: Math.min(maxY, Math.max(VIEWPORT_PADDING, next.y)),
+  }
+}
 
 const styles = {
   shell: {
@@ -60,7 +76,7 @@ const styles = {
   headerCollapsed: {
     borderBottom: '1px solid transparent',
     backgroundColor: devtoolsTheme.bgPanel,
-    cursor: 'default',
+    cursor: 'grab',
   },
   headerDragging: {
     cursor: 'grabbing',
@@ -202,7 +218,16 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     y: number
     posX: number
     posY: number
+    wasCollapsed: boolean
+    hasMovedPastThreshold: boolean
   } | null>(null)
+  const suppressToggleClickRef = useRef(false)
+
+  const clearSuppressedToggleClick = useCallback(() => {
+    window.setTimeout(() => {
+      suppressToggleClickRef.current = false
+    }, 0)
+  }, [])
 
   const handleClick = useCallback(
     (e: MouseEvent) => {
@@ -263,46 +288,107 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) =>
+        clampPanelPosition(
+          prev,
+          collapsed ? BUBBLE_SIZE : PANEL_WIDTH,
+          collapsed ? BUBBLE_SIZE : PANEL_HEIGHT,
+        ),
+      )
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [collapsed])
+
+  const handleToggleCollapsed = useCallback(() => {
+    if (suppressToggleClickRef.current) {
+      suppressToggleClickRef.current = false
+      return
+    }
+    setCollapsed((v) => !v)
+  }, [])
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (collapsed) return
-
       const target = e.target as HTMLElement
-      if (target.closest('button')) return
+      if (!collapsed && target.closest('button')) return
 
       e.preventDefault()
-      setIsPanelDragging(true)
+      setIsPanelDragging(false)
       dragStartRef.current = {
         x: e.clientX,
         y: e.clientY,
         posX: position.x,
         posY: position.y,
+        wasCollapsed: collapsed,
+        hasMovedPastThreshold: false,
       }
-      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+      e.currentTarget.setPointerCapture?.(e.pointerId)
     },
     [collapsed, position],
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!dragStartRef.current || !isPanelDragging) return
+      if (!dragStartRef.current) return
 
       const dx = e.clientX - dragStartRef.current.x
       const dy = e.clientY - dragStartRef.current.y
+      const distance = Math.hypot(dx, dy)
 
-      const newX = Math.max(8, dragStartRef.current.posX - dx)
-      const newY = Math.max(8, dragStartRef.current.posY + dy)
+      if (!dragStartRef.current.hasMovedPastThreshold) {
+        if (distance < DRAG_THRESHOLD_PX) return
+        dragStartRef.current.hasMovedPastThreshold = true
+        setIsPanelDragging(true)
+      }
 
-      setPosition({ x: newX, y: newY })
+      const width = dragStartRef.current.wasCollapsed ? BUBBLE_SIZE : PANEL_WIDTH
+      const height = dragStartRef.current.wasCollapsed ? BUBBLE_SIZE : PANEL_HEIGHT
+
+      const nextPosition = clampPanelPosition(
+        {
+          x: dragStartRef.current.posX - dx,
+          y: dragStartRef.current.posY + dy,
+        },
+        width,
+        height,
+      )
+
+      setPosition(nextPosition)
     },
-    [isPanelDragging],
+    [],
   )
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    setIsPanelDragging(false)
-    dragStartRef.current = null
-    ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
-  }, [])
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      const dragSession = dragStartRef.current
+      if (!dragSession) return
+
+      setIsPanelDragging(false)
+      dragStartRef.current = null
+
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+        e.currentTarget.releasePointerCapture?.(e.pointerId)
+      }
+
+      if (dragSession.hasMovedPastThreshold) {
+        suppressToggleClickRef.current = true
+        clearSuppressedToggleClick()
+        return
+      }
+
+      if (dragSession.wasCollapsed) {
+        suppressToggleClickRef.current = true
+        clearSuppressedToggleClick()
+        setCollapsed(false)
+      }
+    },
+    [clearSuppressedToggleClick],
+  )
 
   if (!enabled || !mounted) {
     return <>{children}</>
@@ -319,7 +405,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
   const headerStyle = {
     ...styles.header,
     ...(collapsed && styles.headerCollapsed),
-    ...(isPanelDragging && !collapsed && styles.headerDragging),
+    ...(isPanelDragging && styles.headerDragging),
   }
 
   const bodyStyle = {
@@ -363,7 +449,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
         container={shadowContainer}
       />
       {createPortal(
-        <div style={shellStyle} data-devtools-panel="">
+        <div style={shellStyle} data-devtools-panel="" data-devtools-panel-shell="">
           <motion.div
             style={styles.surface}
             initial={false}
@@ -371,6 +457,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
             transition={surfaceTransition}
           >
             <div
+              data-devtools-header=""
               style={headerStyle}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
@@ -402,7 +489,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
                 title={
                   collapsed ? 'Open DevTools (Ctrl+Shift+M)' : 'Collapse to bubble (Ctrl+Shift+M)'
                 }
-                onClick={() => setCollapsed((v) => !v)}
+                onClick={handleToggleCollapsed}
                 whileHover={reducedMotion ? {} : { scale: 1.03 }}
                 whileTap={reducedMotion ? {} : { scale: 0.97 }}
               >

@@ -1,5 +1,13 @@
 # @flowsterix/react
 
+## 1.0.6
+
+### Patch Changes
+
+- Fix React runtime warnings in DevTools step cards and the Toolbar grab button by avoiding shorthand/non-shorthand border style mixing during rerenders.
+
+  Improve DevTools collapsed bubble interactions with drag-to-move support and tap-to-open behavior that avoids accidental toggles after dragging.
+
 ## 1.0.5
 
 ### Patch Changes
