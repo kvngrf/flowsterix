@@ -21,6 +21,7 @@ const PANEL_HEIGHT = 560
 const BUBBLE_SIZE = 52
 const VIEWPORT_PADDING = 8
 const DRAG_THRESHOLD_PX = 5
+const SUPPRESS_TOGGLE_CLICK_MS = 400
 
 function clampPanelPosition(
   next: { x: number; y: number },
@@ -226,7 +227,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
   const clearSuppressedToggleClick = useCallback(() => {
     window.setTimeout(() => {
       suppressToggleClickRef.current = false
-    }, 0)
+    }, SUPPRESS_TOGGLE_CLICK_MS)
   }, [])
 
   const handleClick = useCallback(
@@ -390,6 +391,10 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
     [clearSuppressedToggleClick],
   )
 
+  const handleIconButtonClick = useCallback(() => {
+    handleToggleCollapsed()
+  }, [handleToggleCollapsed])
+
   if (!enabled || !mounted) {
     return <>{children}</>
   }
@@ -489,7 +494,7 @@ export function DevToolsProvider(props: DevToolsProviderProps) {
                 title={
                   collapsed ? 'Open DevTools (Ctrl+Shift+M)' : 'Collapse to bubble (Ctrl+Shift+M)'
                 }
-                onClick={handleToggleCollapsed}
+                onClick={handleIconButtonClick}
                 whileHover={reducedMotion ? {} : { scale: 1.03 }}
                 whileTap={reducedMotion ? {} : { scale: 0.97 }}
               >

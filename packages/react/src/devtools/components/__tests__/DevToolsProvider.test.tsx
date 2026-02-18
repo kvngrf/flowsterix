@@ -55,11 +55,9 @@ describe('DevToolsProvider', () => {
       ).toBeTruthy()
     })
 
-    const openButton = shadow.querySelector(
-      'button[title="Open DevTools (Ctrl+Shift+M)"]',
-    ) as HTMLButtonElement
-
-    fireEvent.click(openButton)
+    const header = shadow.querySelector('[data-devtools-header]') as HTMLElement
+    fireEvent.pointerDown(header, { clientX: 120, clientY: 120, pointerId: 1 })
+    fireEvent.pointerUp(header, { clientX: 120, clientY: 120, pointerId: 1 })
 
     await waitFor(() => {
       expect(
@@ -106,6 +104,47 @@ describe('DevToolsProvider', () => {
     })
   })
 
+  it('does not immediately re-collapse when opening from the collapsed button', async () => {
+    render(
+      <DevToolsProvider enabled>
+        <div>app</div>
+      </DevToolsProvider>,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-devtools-host]')).toBeTruthy()
+    })
+
+    const host = document.querySelector('[data-devtools-host]') as HTMLElement
+    const shadow = host.shadowRoot as ShadowRoot
+
+    const collapseButton = shadow.querySelector(
+      'button[title="Collapse to bubble (Ctrl+Shift+M)"]',
+    ) as HTMLButtonElement
+
+    fireEvent.click(collapseButton)
+
+    await waitFor(() => {
+      expect(
+        shadow.querySelector('button[title="Open DevTools (Ctrl+Shift+M)"]'),
+      ).toBeTruthy()
+    })
+
+    const openButton = shadow.querySelector(
+      'button[title="Open DevTools (Ctrl+Shift+M)"]',
+    ) as HTMLButtonElement
+
+    fireEvent.pointerDown(openButton, { clientX: 120, clientY: 120, pointerId: 1 })
+    fireEvent.pointerUp(openButton, { clientX: 120, clientY: 120, pointerId: 1 })
+    fireEvent.click(openButton)
+
+    await waitFor(() => {
+      expect(
+        shadow.querySelector('button[title="Collapse to bubble (Ctrl+Shift+M)"]'),
+      ).toBeTruthy()
+    })
+  })
+
   it('drags the collapsed bubble without expanding the panel', async () => {
     render(
       <DevToolsProvider enabled>
@@ -138,6 +177,54 @@ describe('DevToolsProvider', () => {
     fireEvent.pointerDown(header, { clientX: 120, clientY: 120, pointerId: 1 })
     fireEvent.pointerMove(header, { clientX: 166, clientY: 150, pointerId: 1 })
     fireEvent.pointerUp(header, { clientX: 166, clientY: 150, pointerId: 1 })
+
+    await waitFor(() => {
+      expect(
+        shadow.querySelector('button[title="Open DevTools (Ctrl+Shift+M)"]'),
+      ).toBeTruthy()
+    })
+
+    await waitFor(() => {
+      const inlineStyle = shell.getAttribute('style') ?? ''
+      expect(inlineStyle).toContain('right: 8px')
+      expect(inlineStyle).toContain('top: 46px')
+    })
+  })
+
+  it('drags from the collapsed icon area without opening the panel', async () => {
+    render(
+      <DevToolsProvider enabled>
+        <div>app</div>
+      </DevToolsProvider>,
+    )
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-devtools-host]')).toBeTruthy()
+    })
+
+    const host = document.querySelector('[data-devtools-host]') as HTMLElement
+    const shadow = host.shadowRoot as ShadowRoot
+
+    const collapseButton = shadow.querySelector(
+      'button[title="Collapse to bubble (Ctrl+Shift+M)"]',
+    ) as HTMLButtonElement
+
+    fireEvent.click(collapseButton)
+
+    await waitFor(() => {
+      expect(
+        shadow.querySelector('button[title="Open DevTools (Ctrl+Shift+M)"]'),
+      ).toBeTruthy()
+    })
+
+    const openButton = shadow.querySelector(
+      'button[title="Open DevTools (Ctrl+Shift+M)"]',
+    ) as HTMLButtonElement
+    const shell = shadow.querySelector('[data-devtools-panel-shell]') as HTMLElement
+
+    fireEvent.pointerDown(openButton, { clientX: 120, clientY: 120, pointerId: 1 })
+    fireEvent.pointerMove(openButton, { clientX: 166, clientY: 150, pointerId: 1 })
+    fireEvent.pointerUp(openButton, { clientX: 166, clientY: 150, pointerId: 1 })
 
     await waitFor(() => {
       expect(

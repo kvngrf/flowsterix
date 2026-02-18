@@ -1,5 +1,23 @@
 # @flowsterix/react
 
+## 1.0.9
+
+### Patch Changes
+
+- Improve collapsed DevTools bubble opening reliability by extending toggle-click suppression after pointer interactions, preventing delayed mobile click events from immediately re-collapsing the panel.
+
+## 1.0.8
+
+### Patch Changes
+
+- Improve collapsed DevTools bubble interactions so dragging can start across the full bubble surface (including the icon area) without triggering immediate open/close toggle races.
+
+## 1.0.7
+
+### Patch Changes
+
+- Fix a DevTools collapsed-bubble interaction race where tapping the open button could briefly expand and re-collapse due to overlapping header pointer handling.
+
 ## 1.0.6
 
 ### Patch Changes

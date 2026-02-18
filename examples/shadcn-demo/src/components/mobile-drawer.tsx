@@ -5,6 +5,7 @@ import {
   AnimatePresence,
   motion,
   useAnimationControls,
+  useDragControls,
   useReducedMotion,
   type PanInfo,
 } from 'motion/react'
@@ -59,6 +60,7 @@ const PEEK_RATIO = 0.4
 const DEFAULT_MAX_HEIGHT_RATIO = 0.85
 const VELOCITY_THRESHOLD = 380
 const DRAG_ELASTIC = { top: 0.1, bottom: 0.3 }
+const SIGNIFICANT_VIEWPORT_HEIGHT_EXPANSION_PX = 160
 
 const springConfig = {
   type: 'spring' as const,
@@ -127,49 +129,100 @@ function useSafeAreaBottom() {
 
   React.useEffect(() => {
     const computeSafeArea = () => {
-      const computed = getComputedStyle(document.documentElement)
-      const value = computed.getPropertyValue('--sab') || '0'
-      setSafeAreaBottom(parseInt(value, 10) || 0)
+      const probe = document.createElement('div')
+      probe.style.position = 'fixed'
+      probe.style.bottom = '0'
+      probe.style.left = '0'
+      probe.style.paddingBottom = 'env(safe-area-inset-bottom, 0px)'
+      probe.style.pointerEvents = 'none'
+      probe.style.opacity = '0'
+
+      document.body.appendChild(probe)
+      const measured = parseFloat(getComputedStyle(probe).paddingBottom) || 0
+      document.body.removeChild(probe)
+
+      setSafeAreaBottom(Math.max(0, measured))
     }
 
-    // Set CSS variable for safe area
-    document.documentElement.style.setProperty(
-      '--sab',
-      'env(safe-area-inset-bottom, 0px)',
-    )
-
-    // Initial compute after a frame to ensure CSS is applied
-    requestAnimationFrame(computeSafeArea)
-
+    computeSafeArea()
     window.addEventListener('resize', computeSafeArea)
-    return () => window.removeEventListener('resize', computeSafeArea)
+    window.visualViewport?.addEventListener('resize', computeSafeArea)
+    window.addEventListener('orientationchange', computeSafeArea)
+
+    return () => {
+      window.removeEventListener('resize', computeSafeArea)
+      window.visualViewport?.removeEventListener('resize', computeSafeArea)
+      window.removeEventListener('orientationchange', computeSafeArea)
+    }
   }, [])
 
   return safeAreaBottom
 }
 
+const sanitizeViewportHeight = (value: number) => {
+  if (!Number.isFinite(value)) return 1
+  return Math.max(1, Math.round(value))
+}
+
+const resolveStableViewportHeight = ({
+  previousHeight,
+  nextHeight,
+}: {
+  previousHeight: number | null
+  nextHeight: number
+}) => {
+  const safeNextHeight = sanitizeViewportHeight(nextHeight)
+  const safePreviousHeight =
+    previousHeight === null ? null : sanitizeViewportHeight(previousHeight)
+
+  if (safePreviousHeight === null) return safeNextHeight
+  if (safeNextHeight <= safePreviousHeight) return safeNextHeight
+  if (
+    safeNextHeight - safePreviousHeight >=
+    SIGNIFICANT_VIEWPORT_HEIGHT_EXPANSION_PX
+  ) {
+    return safeNextHeight
+  }
+
+  // Ignore small viewport growth usually caused by URL/browser chrome show-hide.
+  return safePreviousHeight
+}
+
 function useViewportHeight() {
+  const readViewportHeight = React.useCallback(() => {
+    if (typeof window === 'undefined') return 800
+    return window.visualViewport?.height ?? window.innerHeight
+  }, [])
+
   const [height, setHeight] = React.useState(
-    typeof window !== 'undefined' ? window.innerHeight : 800,
+    sanitizeViewportHeight(readViewportHeight()),
   )
+  const stableHeightRef = React.useRef<number | null>(null)
 
   React.useEffect(() => {
     const updateHeight = () => {
-      // Use visualViewport for iOS Safari keyboard handling
-      const vh = window.visualViewport?.height ?? window.innerHeight
-      setHeight(vh)
+      const nextHeight = sanitizeViewportHeight(readViewportHeight())
+      const stableHeight = resolveStableViewportHeight({
+        previousHeight: stableHeightRef.current,
+        nextHeight,
+      })
+
+      stableHeightRef.current = stableHeight
+      setHeight((prev) => (prev === stableHeight ? prev : stableHeight))
     }
 
     updateHeight()
 
     window.addEventListener('resize', updateHeight)
     window.visualViewport?.addEventListener('resize', updateHeight)
+    window.addEventListener('orientationchange', updateHeight)
 
     return () => {
       window.removeEventListener('resize', updateHeight)
       window.visualViewport?.removeEventListener('resize', updateHeight)
+      window.removeEventListener('orientationchange', updateHeight)
     }
-  }, [])
+  }, [readViewportHeight])
 
   return height
 }
@@ -268,6 +321,7 @@ export function MobileDrawer({
   const [isDragging, setIsDragging] = React.useState(false)
 
   const controls_ = useAnimationControls()
+  const dragControls = useDragControls()
 
   // Drawer has fixed height (expandedHeight)
   // translateY pushes it down: 0 = expanded, (expanded - minimized) = minimized
@@ -410,6 +464,12 @@ export function MobileDrawer({
     }
   }
 
+  const handleHandlePointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    dragControls.start(event)
+  }
+
   return (
     <motion.div
       className={cn(
@@ -417,10 +477,11 @@ export function MobileDrawer({
         className,
       )}
       style={{
-        paddingBottom: `env(safe-area-inset-bottom, 0px)`,
         willChange: reducedMotion ? undefined : 'transform',
       }}
       drag="y"
+      dragControls={dragControls}
+      dragListener={false}
       dragConstraints={{ top: 0, bottom: maxTranslateY }}
       dragElastic={reducedMotion ? 0 : DRAG_ELASTIC}
       onDragStart={handleDragStart}
@@ -438,9 +499,18 @@ export function MobileDrawer({
           'shadow-[0_-8px_32px_rgba(0,0,0,0.15)]',
           'touch-none',
         )}
+        style={{ paddingBottom: `env(safe-area-inset-bottom, 0px)` }}
       >
         {/* Drag handle */}
-        <div onClick={handleHandleTap} className="cursor-pointer">
+        <div
+          onPointerDown={handleHandlePointerDown}
+          onClick={handleHandleTap}
+          className={cn(
+            'relative cursor-pointer touch-none select-none',
+            "before:absolute before:inset-x-0 before:-top-2 before:-bottom-2",
+            "before:content-[''] before:pointer-events-auto",
+          )}
+        >
           <MobileDrawerHandle isDragging={isDragging} />
         </div>
 
