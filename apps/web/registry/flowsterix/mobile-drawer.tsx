@@ -565,7 +565,15 @@ export function MobileDrawer({
 
         {/* Controls - always visible */}
         <div className="shrink-0">
-          <TourControls {...controls} />
+          <TourControls
+            {...controls}
+            className={cn(
+              '[&_button[data-slot=button]]:min-h-11',
+              '[&_button[data-slot=button]]:px-4',
+              '[&_button[data-slot=button]]:text-sm',
+              controls?.className,
+            )}
+          />
         </div>
       </motion.div>
     </motion.div>
