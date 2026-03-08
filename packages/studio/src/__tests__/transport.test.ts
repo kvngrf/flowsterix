@@ -6,7 +6,6 @@ const makeEvent = (overrides: Partial<StudioEvent> = {}): StudioEvent => ({
   type: 'flowStart',
   timestamp: Date.now(),
   sessionId: 'sess-1',
-  projectId: 'proj-1',
   flow: { id: 'tour-1', version: { major: 1, minor: 0 }, stepCount: 3 },
   state: { status: 'running', stepIndex: 0, version: '1.0', updatedAt: Date.now() },
   ...overrides,

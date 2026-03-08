@@ -23,7 +23,6 @@ const createMockTransport = (): Transport => ({
 
 const baseParams = {
   sessionId: 'sess-1',
-  projectId: 'proj-1',
 }
 
 describe('createStudioStorageAdapter', () => {

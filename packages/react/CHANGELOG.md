@@ -1,5 +1,16 @@
 # @flowsterix/react
 
+## 1.1.0
+
+### Minor Changes
+
+- Add `FlowIntegration` type and `integrations` prop to TourProvider for first-class plugin composition. Analytics handlers fan out to all integrations, storage adapters chain via `wrapStorage`, and `onVersionMismatch` callbacks fan out. User-provided `analytics`, `storageAdapter`, and `onVersionMismatch` props compose with integrations rather than overriding them. Add `studioIntegration()` factory to `@flowsterix/studio` so Studio can be wired without modifying the registry component.
+
+### Patch Changes
+
+- Updated dependencies
+  - @flowsterix/core@0.11.0
+
 ## 1.0.9
 
 ### Patch Changes

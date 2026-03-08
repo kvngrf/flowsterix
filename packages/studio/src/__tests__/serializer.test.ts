@@ -45,7 +45,6 @@ const makeState = (overrides: Partial<FlowState> = {}): FlowState => ({
 
 const baseParams = {
   sessionId: 'sess-123',
-  projectId: 'proj-456',
 }
 
 describe('serializeEvent', () => {
@@ -376,7 +375,7 @@ describe('serializeEvent', () => {
   })
 
   describe('metadata fields', () => {
-    it('includes sessionId, projectId, timestamp', () => {
+    it('includes sessionId and timestamp', () => {
       const before = Date.now()
       const result = serializeEvent({
         ...baseParams,
@@ -386,7 +385,6 @@ describe('serializeEvent', () => {
       const after = Date.now()
 
       expect(result.sessionId).toBe('sess-123')
-      expect(result.projectId).toBe('proj-456')
       expect(result.timestamp).toBeGreaterThanOrEqual(before)
       expect(result.timestamp).toBeLessThanOrEqual(after)
     })

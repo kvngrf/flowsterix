@@ -1,12 +1,18 @@
 import type {
   FlowAnalyticsHandlers,
   FlowEvents,
+  FlowIntegration,
   StorageAdapter,
 } from '@flowsterix/core'
 import { serializeEvent } from './serializer'
 import { createStudioStorageAdapter } from './storage'
 import { createTransport } from './transport'
-import type { StudioBridge, StudioBridgeOptions, UserContext } from './types'
+import type {
+  StudioBridge,
+  StudioBridgeOptions,
+  StudioIntegrationOptions,
+  UserContext,
+} from './types'
 
 const DEFAULT_ENDPOINT = 'https://ingest.flowsterix.studio'
 const DEFAULT_BATCH_SIZE = 20
@@ -31,7 +37,6 @@ export const createStudioBridge = (
   params: StudioBridgeOptions,
 ): StudioBridge => {
   const {
-    projectId,
     apiKey,
     endpoint = DEFAULT_ENDPOINT,
     debug = false,
@@ -71,7 +76,6 @@ export const createStudioBridge = (
         event: eventKey,
         payload,
         sessionId,
-        projectId,
         user,
         debug,
       })
@@ -84,7 +88,6 @@ export const createStudioBridge = (
       inner: storageParams.inner,
       transport,
       sessionId,
-      projectId,
     })
 
   const identify = (identifyParams: { user: UserContext }) => {
@@ -93,7 +96,6 @@ export const createStudioBridge = (
       type: 'identify',
       timestamp: Date.now(),
       sessionId,
-      projectId,
       user,
       flow: { id: '', version: { major: 0, minor: 0 }, stepCount: 0 },
       state: {
@@ -115,4 +117,30 @@ export const createStudioBridge = (
   }
 
   return { analytics, storage, identify, flush, shutdown }
+}
+
+let cachedIntegration: { options: StudioIntegrationOptions; value: FlowIntegration } | null = null
+
+export const studioIntegration = (
+  params: StudioIntegrationOptions,
+): FlowIntegration => {
+  // Return cached instance if options match (singleton per config)
+  if (
+    cachedIntegration &&
+    cachedIntegration.options.apiKey === params.apiKey &&
+    cachedIntegration.options.endpoint === params.endpoint
+  ) {
+    return cachedIntegration.value
+  }
+
+  const bridge = createStudioBridge(params)
+
+  const integration: FlowIntegration = {
+    name: 'studio',
+    analytics: bridge.analytics,
+    wrapStorage: bridge.storage,
+  }
+
+  cachedIntegration = { options: params, value: integration }
+  return integration
 }

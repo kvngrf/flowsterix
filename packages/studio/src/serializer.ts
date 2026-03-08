@@ -18,7 +18,6 @@ interface SerializeEventParams {
   event: string
   payload: FlowEvents[keyof FlowEvents]
   sessionId: string
-  projectId: string
   user?: UserContext
   debug?: boolean
 }
@@ -109,7 +108,7 @@ const serializeError = (params: {
 }
 
 export const serializeEvent = (params: SerializeEventParams): StudioEvent => {
-  const { event, payload, sessionId, projectId, user, debug } = params
+  const { event, payload, sessionId, user, debug } = params
 
   // Use Record for flexible property access; all analytics payloads include flow + state
   const p = payload as Record<string, unknown>
@@ -117,7 +116,6 @@ export const serializeEvent = (params: SerializeEventParams): StudioEvent => {
     type: event,
     timestamp: Date.now(),
     sessionId,
-    projectId,
     flow: serializeFlow(p.flow as FlowDefinition),
     state: p.state as FlowState,
   }

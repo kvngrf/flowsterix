@@ -2,11 +2,12 @@
 
 import { TourHUD } from '@/components/tour-hud'
 import { TourProvider, useTour } from '@/components/tour-provider'
+import { getStudioIntegration } from '@/lib/studio'
 import { DevToolsProvider } from '@flowsterix/react/devtools'
 import { landingTourFlow } from '@/lib/landing-tour'
 import { Play } from 'lucide-react'
 import { motion } from 'motion/react'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 
 // Context for DevTools toggle state
 const DevToolsToggleContext = createContext<{
@@ -44,6 +45,11 @@ function StartTourButton() {
 export function TourWrapper({ children }: { children: React.ReactNode }) {
   const [devToolsEnabled, setDevToolsEnabled] = useState(false)
 
+  const integrations = useMemo(() => {
+    const studio = getStudioIntegration()
+    return studio ? [studio] : []
+  }, [])
+
   return (
     <DevToolsToggleContext.Provider
       value={{ enabled: devToolsEnabled, setEnabled: setDevToolsEnabled }}
@@ -52,6 +58,7 @@ export function TourWrapper({ children }: { children: React.ReactNode }) {
         flows={[landingTourFlow]}
         storageNamespace="flowsterix-landing"
         useSpringAnimations={false}
+        integrations={integrations}
       >
         <DevToolsProvider enabled={devToolsEnabled}>
           {children}

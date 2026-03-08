@@ -1,4 +1,5 @@
 import type { EventBus } from './events'
+import type { StorageAdapter } from './storage'
 
 export type MaybePromise<T> = T | Promise<T>
 
@@ -391,6 +392,18 @@ export type FlowAnalyticsHandlers<TContent = unknown> = {
   > as AnalyticsHandlerName<TKey>]?: (
     payload: FlowEvents<TContent>[TKey],
   ) => void
+}
+
+/**
+ * Integration that composes with the TourProvider to add analytics,
+ * storage wrapping, and lifecycle hooks. Multiple integrations fan out
+ * analytics and onVersionMismatch, and chain storage wrappers.
+ */
+export interface FlowIntegration {
+  name: string
+  analytics?: FlowAnalyticsHandlers<unknown>
+  wrapStorage?: (params: { inner: StorageAdapter }) => StorageAdapter
+  onVersionMismatch?: (info: VersionMismatchInfo) => void
 }
 
 export interface StartFlowOptions {

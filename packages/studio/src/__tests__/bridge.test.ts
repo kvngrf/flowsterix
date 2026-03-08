@@ -13,7 +13,6 @@ describe('createStudioBridge', () => {
   })
 
   const defaultParams = {
-    projectId: 'proj-1',
     apiKey: 'key-1',
     endpoint: 'https://ingest.test.com',
     flushIntervalMs: 60000, // long interval to avoid auto-flush in tests
@@ -83,7 +82,6 @@ describe('createStudioBridge', () => {
     expect(mockFetch).toHaveBeenCalled()
     const body = JSON.parse(mockFetch.mock.calls[0][1].body)
     expect(body.events[0].type).toBe('flowStart')
-    expect(body.events[0].projectId).toBe('proj-1')
     expect(body.events[0].sessionId).toBe('mock-session-id')
 
     bridge.shutdown()

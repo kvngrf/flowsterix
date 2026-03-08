@@ -6,6 +6,7 @@ import type {
   FlowCancelReason,
   FlowDefinition,
   FlowEvents,
+  FlowIntegration,
   FlowState,
   FlowStore,
   MaybePromise,
@@ -93,6 +94,8 @@ export interface TourProviderProps {
   useSpringAnimations?: boolean
   /** Callback when a version mismatch is detected and resolved */
   onVersionMismatch?: (info: VersionMismatchInfo) => void
+  /** Integrations that compose analytics, storage, and lifecycle hooks */
+  integrations?: FlowIntegration[]
 }
 
 export interface TourContextValue {
@@ -130,6 +133,118 @@ export interface TourContextValue {
 const TourContext = createContext<TourContextValue | undefined>(undefined)
 const DEFAULT_STORAGE_PREFIX = 'tour'
 
+// ─── Integration merging helpers ─────────────────────────────────────────────
+
+const EVENT_KEYS: Array<Extract<keyof FlowEvents, string>> = [
+  'flowStart',
+  'flowResume',
+  'flowPause',
+  'flowCancel',
+  'flowComplete',
+  'stepChange',
+  'stateChange',
+  'stepEnter',
+  'stepExit',
+  'stepComplete',
+  'flowError',
+  'versionMismatch',
+]
+
+interface ResolvedIntegrations {
+  analytics: FlowAnalyticsHandlers<ReactNode> | undefined
+  storageAdapter: StorageAdapter | undefined
+  onVersionMismatch: ((info: VersionMismatchInfo) => void) | undefined
+}
+
+function resolveIntegrations(params: {
+  integrations: FlowIntegration[] | undefined
+  analytics: FlowAnalyticsHandlers<ReactNode> | undefined
+  storageAdapter: StorageAdapter | undefined
+  onVersionMismatch: ((info: VersionMismatchInfo) => void) | undefined
+}): ResolvedIntegrations {
+  const { integrations, analytics, storageAdapter, onVersionMismatch } = params
+
+  if (!integrations || integrations.length === 0) {
+    return { analytics, storageAdapter, onVersionMismatch }
+  }
+
+  // Fan-out analytics: collect all handler sources
+  const allAnalytics = [
+    ...integrations
+      .map((i) => i.analytics)
+      .filter(Boolean) as FlowAnalyticsHandlers<unknown>[],
+    ...(analytics ? [analytics] : []),
+  ]
+
+  let mergedAnalytics: FlowAnalyticsHandlers<ReactNode> | undefined
+  if (allAnalytics.length === 1) {
+    mergedAnalytics = allAnalytics[0] as FlowAnalyticsHandlers<ReactNode>
+  } else if (allAnalytics.length > 1) {
+    mergedAnalytics = {} as FlowAnalyticsHandlers<ReactNode>
+    for (const eventKey of EVENT_KEYS) {
+      const handlerName =
+        `on${eventKey.charAt(0).toUpperCase()}${eventKey.slice(1)}` as keyof FlowAnalyticsHandlers<ReactNode>
+      const handlers = allAnalytics
+        .map(
+          (a) =>
+            (a as Record<string, unknown>)[handlerName] as
+              | ((payload: unknown) => void)
+              | undefined,
+        )
+        .filter(Boolean) as Array<(payload: unknown) => void>
+      if (handlers.length > 0) {
+        ;(mergedAnalytics as Record<string, unknown>)[handlerName] = (
+          payload: unknown,
+        ) => {
+          for (const handler of handlers) {
+            handler(payload)
+          }
+        }
+      }
+    }
+  }
+
+  // Chain storage wrappers: integration1.wrap(integration2.wrap(base))
+  const wrappers = integrations
+    .map((i) => i.wrapStorage)
+    .filter(Boolean) as Array<
+    (p: { inner: StorageAdapter }) => StorageAdapter
+  >
+  let mergedStorage = storageAdapter
+  if (wrappers.length > 0 && mergedStorage) {
+    for (const wrap of wrappers) {
+      mergedStorage = wrap({ inner: mergedStorage })
+    }
+  }
+
+  // Fan-out onVersionMismatch
+  const allMismatchHandlers = [
+    ...integrations
+      .map((i) => i.onVersionMismatch)
+      .filter(Boolean) as Array<(info: VersionMismatchInfo) => void>,
+    ...(onVersionMismatch ? [onVersionMismatch] : []),
+  ]
+
+  let mergedOnVersionMismatch:
+    | ((info: VersionMismatchInfo) => void)
+    | undefined
+  if (allMismatchHandlers.length === 1) {
+    mergedOnVersionMismatch = allMismatchHandlers[0]
+  } else if (allMismatchHandlers.length > 1) {
+    mergedOnVersionMismatch = (info: VersionMismatchInfo) => {
+      for (const handler of allMismatchHandlers) {
+        handler(info)
+      }
+    }
+  }
+
+  return {
+    analytics: mergedAnalytics,
+    storageAdapter: mergedStorage,
+    onVersionMismatch: mergedOnVersionMismatch,
+  }
+}
+
 const useFlowMap = (flows: Array<FlowDefinition<ReactNode>>) => {
   return useMemo(() => {
     const map = new Map<string, FlowDefinition<ReactNode>>()
@@ -156,11 +271,24 @@ export const TourProvider = ({
   labels: labelsProp,
   useSpringAnimations: useSpringAnimationsProp = true,
   onVersionMismatch,
+  integrations,
 }: PropsWithChildren<TourProviderProps>) => {
   const mergedLabels = useMemo<TourLabels>(
     () => ({ ...defaultLabels, ...labelsProp }),
     [labelsProp],
   )
+
+  const resolved = useMemo(
+    () =>
+      resolveIntegrations({
+        integrations,
+        analytics,
+        storageAdapter,
+        onVersionMismatch,
+      }),
+    [integrations, analytics, storageAdapter, onVersionMismatch],
+  )
+
   const flowMap = useFlowMap(flows)
   const storeRef = useRef<FlowStore<ReactNode> | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
@@ -248,22 +376,22 @@ export const TourProvider = ({
         throw new Error(`Flow with id "${flowId}" is not registered.`)
       }
 
-      if (!storageAdapter && !fallbackStorageRef.current && isBrowser) {
+      if (!resolved.storageAdapter && !fallbackStorageRef.current && isBrowser) {
         fallbackStorageRef.current = createLocalStorageAdapter()
       }
 
-      const resolvedStorageAdapter = storageAdapter
-        ? storageAdapter
+      const effectiveStorageAdapter = resolved.storageAdapter
+        ? resolved.storageAdapter
         : fallbackStorageRef.current
 
       const store = createFlowStore(definition, {
-        storageAdapter: resolvedStorageAdapter,
+        storageAdapter: effectiveStorageAdapter,
         storageKey: storageNamespace
           ? `${storageNamespace}:${definition.id}`
           : undefined,
         persistOnChange,
-        analytics,
-        onVersionMismatch,
+        analytics: resolved.analytics,
+        onVersionMismatch: resolved.onVersionMismatch,
       })
 
       // Subscribe to step lifecycle events immediately (before start() is called)
@@ -298,11 +426,9 @@ export const TourProvider = ({
       return store
     },
     [
-      analytics,
+      resolved,
       flowMap,
-      onVersionMismatch,
       persistOnChange,
-      storageAdapter,
       storageNamespace,
       teardownStore,
     ],
@@ -464,14 +590,14 @@ export const TourProvider = ({
       return
     }
 
-    if (!storageAdapter && !fallbackStorageRef.current && isBrowser) {
+    if (!resolved.storageAdapter && !fallbackStorageRef.current && isBrowser) {
       fallbackStorageRef.current = createLocalStorageAdapter()
     }
 
-    const resolvedStorageAdapter = storageAdapter ?? fallbackStorageRef.current
+    const effectiveStorageAdapter = resolved.storageAdapter ?? fallbackStorageRef.current
 
     // No storage - all autoStart flows are eligible (fresh start)
-    if (!resolvedStorageAdapter) {
+    if (!effectiveStorageAdapter) {
       setEligibleFlows(
         autoStartFlows.map((flow) => ({
           flow,
@@ -493,7 +619,7 @@ export const TourProvider = ({
       )
       const snapshots = await Promise.all(
         storageKeys.map((key) =>
-          resolveMaybePromise(resolvedStorageAdapter.get(key)),
+          resolveMaybePromise(effectiveStorageAdapter.get(key)),
         ),
       )
 
@@ -557,7 +683,7 @@ export const TourProvider = ({
     return () => {
       cancelled = true
     }
-  }, [flows, storageAdapter, storageNamespace])
+  }, [flows, resolved.storageAdapter, storageNamespace])
 
   // Route-gated autostart: find first eligible flow whose route matches
   useEffect(() => {
@@ -693,9 +819,9 @@ export const TourProvider = ({
 
   // Resolve storage adapter (needed for devtools methods)
   const resolvedStorageAdapter = useMemo(() => {
-    if (storageAdapter) return storageAdapter
+    if (resolved.storageAdapter) return resolved.storageAdapter
     return fallbackStorageRef.current ?? null
-  }, [storageAdapter])
+  }, [resolved.storageAdapter])
 
   // Storage key helper
   const getStorageKey = useCallback(

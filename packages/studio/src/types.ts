@@ -18,7 +18,15 @@ export interface UserContext {
 }
 
 export interface StudioBridgeOptions {
-  projectId: string
+  apiKey: string
+  endpoint?: string
+  user?: UserContext
+  debug?: boolean
+  batchSize?: number
+  flushIntervalMs?: number
+}
+
+export interface StudioIntegrationOptions {
   apiKey: string
   endpoint?: string
   user?: UserContext
@@ -86,7 +94,6 @@ export interface StudioEvent {
   type: string
   timestamp: number
   sessionId: string
-  projectId: string
   user?: UserContext
   flow: SerializedFlow
   state: FlowState

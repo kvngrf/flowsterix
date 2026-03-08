@@ -5,13 +5,12 @@ interface CreateStudioStorageAdapterParams {
   inner: StorageAdapter
   transport: Transport
   sessionId: string
-  projectId: string
 }
 
 export const createStudioStorageAdapter = (
   params: CreateStudioStorageAdapterParams,
 ): StorageAdapter => {
-  const { inner, transport, sessionId, projectId } = params
+  const { inner, transport, sessionId } = params
 
   const get: StorageAdapter['get'] = (key) => inner.get(key)
 
@@ -22,7 +21,7 @@ export const createStudioStorageAdapter = (
         type: 'storage.set',
         timestamp: Date.now(),
         sessionId,
-        projectId,
+
         flow: { id: key, version: { major: 0, minor: 0 }, stepCount: 0 },
         state: {
           status: 'idle',
@@ -44,7 +43,7 @@ export const createStudioStorageAdapter = (
         type: 'storage.remove',
         timestamp: Date.now(),
         sessionId,
-        projectId,
+
         flow: { id: key, version: { major: 0, minor: 0 }, stepCount: 0 },
         state: {
           status: 'idle',
