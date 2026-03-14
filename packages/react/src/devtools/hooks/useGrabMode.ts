@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ElementInfo, GrabMode } from '../types'
 import { useElementInfo } from './useElementInfo'
 
@@ -35,8 +35,10 @@ function isDevToolsElement(element: Element): boolean {
 
 export function useGrabMode(): UseGrabModeResult {
   const [mode, setMode] = useState<GrabMode>('idle')
-  const [hoveredElement, setHoveredElement] = useState<HoveredElementState | null>(null)
+  const [hoveredElement, setHoveredElement] =
+    useState<HoveredElementState | null>(null)
   const { getElementInfo } = useElementInfo()
+  const latestTargetRef = useRef<Element | null>(null)
 
   const startGrabbing = useCallback(() => {
     setMode('grabbing')
@@ -65,25 +67,34 @@ export function useGrabMode(): UseGrabModeResult {
     const handleMouseMove = (e: MouseEvent) => {
       const target = document.elementFromPoint(e.clientX, e.clientY)
       if (!target) {
+        latestTargetRef.current = null
         setHoveredElement(null)
         return
       }
 
       // Skip devtools panel itself
       if (isDevToolsElement(target)) {
+        latestTargetRef.current = null
         setHoveredElement(null)
         return
       }
 
       // Skip html/body
       if (target.tagName === 'HTML' || target.tagName === 'BODY') {
+        latestTargetRef.current = null
         setHoveredElement(null)
         return
       }
 
-      setHoveredElement({
-        element: target,
-        info: getElementInfo({ element: target }),
+      // Skip if same element
+      if (target === latestTargetRef.current) return
+
+      latestTargetRef.current = target
+
+      getElementInfo({ element: target }).then((info) => {
+        // Only update if this target is still the latest
+        if (latestTargetRef.current !== target) return
+        setHoveredElement({ element: target, info })
       })
     }
 

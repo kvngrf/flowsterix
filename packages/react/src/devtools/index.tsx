@@ -35,7 +35,7 @@ export type { FlowData, UseFlowsDataResult } from './hooks/useFlowsData'
 
 // Utils
 export { generateSelector } from './utils/selectorGenerator'
-export { extractSource, extractComponentHierarchy, formatSourcePath, getVSCodeLink } from './utils/sourceExtractor'
+export { extractSource, formatSourcePath, getVSCodeLink } from './utils/sourceExtractor'
 export { loadSteps, saveSteps, clearSteps } from './utils/storage'
 
 // Types

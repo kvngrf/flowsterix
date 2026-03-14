@@ -79,7 +79,6 @@ export function useStepStore(): UseStepStoreResult {
       elementStyle: info.style,
       existingAttrs: info.existingAttrs,
       suggestedAttrName: info.suggestedAttrName,
-      componentHierarchy: info.componentHierarchy,
       rect: {
         top: info.rect.top,
         left: info.rect.left,
@@ -168,7 +167,6 @@ export function useStepStore(): UseStepStoreResult {
           url: step.url,
           selector: step.selector,
           element: elementStr,
-          componentTree: step.componentHierarchy,
           source: sourceStr,
         }
       }),

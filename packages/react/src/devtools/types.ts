@@ -16,7 +16,6 @@ export interface GrabbedStep {
   elementStyle?: string
   existingAttrs: string[]
   suggestedAttrName?: string
-  componentHierarchy: string[]
   rect: {
     top: number
     left: number
@@ -49,7 +48,6 @@ export interface DevToolsExport {
     url: string
     selector: string
     element: string // e.g. '<button class="btn">Click me</button>'
-    componentTree: string[] // e.g. ['h2', 'StepTitle', 'div', 'StepContent']
     source?: string // e.g. 'src/components/Button.tsx:45'
   }>
 }
@@ -65,7 +63,6 @@ export interface ElementInfo {
   className?: string
   style?: string
   existingAttrs: string[]
-  componentHierarchy: string[]
   rect: DOMRect
   source?: ElementSource
 }

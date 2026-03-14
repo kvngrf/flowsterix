@@ -1,6 +1,6 @@
 {
   "name": "@flowsterix/react",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "React bindings for Flowsterix - guided tours and onboarding flows",
   "license": "MIT",
   "repository": {
@@ -79,14 +79,15 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@floating-ui/dom": "^1.7.4",
-    "@flowsterix/core": "workspace:^"
+    "@flowsterix/core": "workspace:^",
+    "element-source": "^0.0.4"
   },
   "peerDependencies": {
+    "@tanstack/react-router": ">=1",
+    "motion": ">=11",
+    "next": ">=13",
     "react": ">=18",
     "react-dom": ">=18",
-    "motion": ">=11",
-    "@tanstack/react-router": ">=1",
-    "next": ">=13",
     "react-router-dom": ">=6"
   },
   "devDependencies": {

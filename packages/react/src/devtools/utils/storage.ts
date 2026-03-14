@@ -11,7 +11,6 @@ function migrateStep(step: Partial<GrabbedStep>): GrabbedStep {
     ...step,
     url: step.url ?? fallbackUrl,
     label: step.label ?? fallbackLabel,
-    componentHierarchy: step.componentHierarchy ?? [],
     existingAttrs: step.existingAttrs ?? [],
   } as GrabbedStep
 }

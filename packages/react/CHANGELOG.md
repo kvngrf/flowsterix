@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 1.2.0
+
+### Minor Changes
+
+- Replace custom React fiber traversal in DevTools with the `element-source` library, reducing bundle size and improving source location accuracy. `extractSource` is now async. Remove `componentHierarchy` from DevTools types.
+
 ## 1.1.0
 
 ### Minor Changes
