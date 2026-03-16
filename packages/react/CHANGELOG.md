@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 1.3.0
+
+### Minor Changes
+
+- Add `useStepTransitionPhase` coordinator hook for idempotent step-to-step transitions. The overlay and popover now share a single phase-based settle gate (`idle → scrolling → settling → ready`) instead of maintaining independent motion tracking. Settlement detection uses `scrollend` as a fast-path with a frame-count fallback (6 consecutive stable RAF frames). The auto-scroll retry loop is replaced by a simpler max-2-attempt model. Shared settle utilities are extracted into `settleUtils.ts`, removing ~140 lines of duplicated code between `useTourOverlay` and `TourPopoverPortal`.
+
 ## 1.2.0
 
 ### Minor Changes

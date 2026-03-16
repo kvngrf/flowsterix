@@ -136,7 +136,7 @@ export const useStepTransitionPhase = ({
       )
     }
 
-    const targets: EventTarget[] = [window]
+    const targets: Array<EventTarget> = [window]
     if (element) {
       const parents = getScrollParents(element)
       targets.push(...parents)
