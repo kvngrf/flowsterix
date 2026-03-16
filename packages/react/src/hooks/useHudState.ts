@@ -11,6 +11,8 @@ import { useTour } from '../context'
 import { useAdvanceRules } from './useAdvanceRules'
 import { useHiddenTargetFallback } from './useHiddenTargetFallback'
 import { useRouteMismatch } from './useRouteMismatch'
+import type { UseStepTransitionPhaseResult } from './useStepTransitionPhase'
+import { useStepTransitionPhase } from './useStepTransitionPhase'
 import type { TourTargetInfo } from './useTourTarget'
 import { useTourTarget } from './useTourTarget'
 import { useViewportRect } from './useViewportRect'
@@ -42,6 +44,10 @@ export interface UseHudStateResult {
    * Backdrop should show but popover should be hidden.
    */
   isInGracePeriod: boolean
+  /**
+   * Step transition coordinator phase and settled rect.
+   */
+  transitionPhase: UseStepTransitionPhaseResult
 }
 
 const EXIT_BUFFER_MS = 450
@@ -59,6 +65,7 @@ export const useHudState = (
   const { state, activeStep, activeFlowId, flows, next, complete, pause, resume } = useTour()
   const target = useTourTarget()
   const viewportRect = useViewportRect()
+  const transitionPhase = useStepTransitionPhase({ target, activeStep })
 
   useAdvanceRules(target)
 
@@ -194,5 +201,6 @@ export const useHudState = (
     matchesFlowFilter,
     activeFlowId,
     isInGracePeriod,
+    transitionPhase,
   }
 }

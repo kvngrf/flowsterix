@@ -270,6 +270,9 @@ export function TourHUD({
     overlay.ringShadow ??
     '0 0 0 2px hsl(var(--primary)), 0 0 20px hsl(var(--primary) / 0.5)'
 
+  // Step transition phase for coordinated overlay/popover promotion
+  const { phase: transitionPhase } = hud.transitionPhase
+
   // Compute overlay geometry
   const overlayGeometry = useTourOverlay({
     target: hudTarget,
@@ -277,6 +280,7 @@ export function TourHUD({
     radius: overlayRadius,
     interactionMode: overlayConfig.interactionMode,
     isInGracePeriod,
+    phase: transitionPhase,
   })
 
   // Popover configuration with defaults
@@ -394,6 +398,7 @@ export function TourHUD({
             contentComponent={MotionDiv}
             layoutId="popover"
             isInGracePeriod={isInGracePeriod}
+            phase={transitionPhase}
             transitionsOverride={{
               popoverEntrance: popoverEntranceTransition,
               popoverExit: popoverExitTransition,

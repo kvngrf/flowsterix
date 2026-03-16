@@ -97,6 +97,11 @@ const createHudState = (
     matchesFlowFilter: true,
     activeFlowId: 'flow-1',
     isInGracePeriod: false,
+    transitionPhase: {
+      phase: 'ready',
+      settledRect: null,
+      isTransitioning: false,
+    },
     ...overrides,
   }
 }

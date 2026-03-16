@@ -14,6 +14,7 @@ import type { UseHudStateResult } from './useHudState'
 import { useHudState } from './useHudState'
 import type { UseHudTargetIssueResult } from './useHudTargetIssue'
 import { useHudTargetIssue } from './useHudTargetIssue'
+import type { UseStepTransitionPhaseResult } from './useStepTransitionPhase'
 import type { TourTargetInfo } from './useTourTarget'
 
 export interface UseTourHudOptions {
@@ -81,6 +82,8 @@ export interface UseTourHudResult {
   shortcutsEnabled: boolean
   /** Whether constrained scroll mode is active (target taller than viewport). */
   isConstrainedScrollActive: boolean
+  /** Step transition coordinator phase and settled rect. */
+  transitionPhase: UseStepTransitionPhaseResult
 }
 
 const DEFAULT_SHORTCUTS = true
@@ -199,5 +202,6 @@ export const useTourHud = (
     shouldLockBodyScroll,
     shortcutsEnabled,
     isConstrainedScrollActive,
+    transitionPhase: hudState.transitionPhase,
   }
 }

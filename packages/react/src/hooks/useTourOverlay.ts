@@ -1,8 +1,13 @@
 import type { BackdropInteractionMode } from '@flowsterix/core'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import type { ClientRectLike } from '../utils/dom'
 import { expandRect, getViewportRect, isBrowser } from '../utils/dom'
+import {
+  hasStableVisibilityForStepTransition,
+  rectIntersectsViewport,
+} from './settleUtils'
+import type { StepTransitionPhase } from './useStepTransitionPhase'
 import type { TourTargetInfo } from './useTourTarget'
 
 export interface TourOverlayRect {
@@ -32,6 +37,11 @@ export interface UseTourOverlayOptions {
    * The backdrop will show but without a highlight cutout.
    */
   isInGracePeriod?: boolean
+  /**
+   * Current phase of the step transition coordinator.
+   * When provided, rect promotion is gated behind `phase === 'ready'`.
+   */
+  phase?: StepTransitionPhase
 }
 
 export interface UseTourOverlayResult {
@@ -66,61 +76,6 @@ export interface UseTourOverlayResult {
 const DEFAULT_PADDING = 12
 const DEFAULT_RADIUS = 12
 const DEFAULT_EDGE_BUFFER = 0
-const STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD = 0.9
-const STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD = 0.9
-const STEP_TRANSITION_SCROLL_SETTLE_MS = 90
-const STEP_TRANSITION_MOVEMENT_THRESHOLD = 0.6
-const STEP_TRANSITION_PROMOTE_SPEED_THRESHOLD = 0.5
-const SPEED_SMOOTHING_FACTOR = 0.3
-
-const rectIntersectsViewport = (
-  rect: ClientRectLike,
-  viewport: ClientRectLike,
-) =>
-  rect.bottom > 0 &&
-  rect.right > 0 &&
-  rect.top < viewport.height &&
-  rect.left < viewport.width
-
-const visibleSpan = (start: number, end: number, boundary: number) =>
-  Math.max(0, Math.min(end, boundary) - Math.max(start, 0))
-
-const hasStableVisibilityForStepTransition = (
-  rect: ClientRectLike,
-  viewport: ClientRectLike,
-) => {
-  if (rect.width <= 0 || rect.height <= 0) return false
-
-  const visibleWidth = visibleSpan(rect.left, rect.right, viewport.width)
-  const visibleHeight = visibleSpan(rect.top, rect.bottom, viewport.height)
-  const oversizedWidth = rect.width > viewport.width
-  const oversizedHeight = rect.height > viewport.height
-
-  const widthStable = oversizedWidth
-    ? visibleWidth >=
-      viewport.width * STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD
-    : visibleWidth / rect.width >= STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
-
-  const heightStable = oversizedHeight
-    ? visibleHeight >=
-      viewport.height * STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD
-    : visibleHeight / rect.height >= STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
-
-  return widthStable && heightStable
-}
-
-const rectMoved = (
-  previous: ClientRectLike,
-  current: ClientRectLike,
-  threshold = STEP_TRANSITION_MOVEMENT_THRESHOLD,
-) =>
-  Math.abs(previous.top - current.top) > threshold ||
-  Math.abs(previous.left - current.left) > threshold ||
-  Math.abs(previous.width - current.width) > threshold ||
-  Math.abs(previous.height - current.height) > threshold
-
-const rectPositionDistance = (previous: ClientRectLike, current: ClientRectLike) =>
-  Math.hypot(previous.left - current.left, previous.top - current.top)
 
 export const useTourOverlay = (
   options: UseTourOverlayOptions,
@@ -132,24 +87,11 @@ export const useTourOverlay = (
     edgeBuffer = DEFAULT_EDGE_BUFFER,
     interactionMode = 'passthrough',
     isInGracePeriod = false,
+    phase,
   } = options
 
   const hasShownRef = useRef(false)
   const lastReadyTargetRef = useRef<TourTargetInfo | null>(null)
-  const [, forceSettleCheck] = useState(0)
-  const incomingMotionRef = useRef<{
-    stepId: string | null
-    lastRect: ClientRectLike | null
-    lastMovedAt: number
-    lastSampleAt: number
-    speedPxPerMs: number
-  }>({
-    stepId: null,
-    lastRect: null,
-    lastMovedAt: 0,
-    lastSampleAt: 0,
-    speedPxPerMs: Number.POSITIVE_INFINITY,
-  })
   const viewport = getViewportRect()
   const previousCachedTarget = lastReadyTargetRef.current
   const isTransitioningBetweenSteps = Boolean(
@@ -158,83 +100,16 @@ export const useTourOverlay = (
       previousCachedTarget.stepId &&
       previousCachedTarget.stepId !== target.stepId,
   )
-  const motion = incomingMotionRef.current
-  const currentStepId = target.stepId ?? null
-  const now = Date.now()
-  if (motion.stepId !== currentStepId) {
-    motion.stepId = currentStepId
-    motion.lastRect = target.rect ? { ...target.rect } : null
-    motion.lastMovedAt = now
-    motion.lastSampleAt = now
-    motion.speedPxPerMs = Number.POSITIVE_INFINITY
-  } else if (!target.rect) {
-    motion.lastRect = null
-    motion.lastMovedAt = now
-    motion.lastSampleAt = now
-    motion.speedPxPerMs = Number.POSITIVE_INFINITY
-  } else if (!motion.lastRect) {
-    motion.lastRect = { ...target.rect }
-    motion.lastMovedAt = now
-    motion.lastSampleAt = now
-    motion.speedPxPerMs = Number.POSITIVE_INFINITY
-  } else {
-    const elapsedMs = Math.max(1, now - motion.lastSampleAt)
-    const sampleSpeedPxPerMs =
-      rectPositionDistance(motion.lastRect, target.rect) / elapsedMs
-    const previousSpeed =
-      Number.isFinite(motion.speedPxPerMs)
-        ? motion.speedPxPerMs
-        : sampleSpeedPxPerMs
-    motion.speedPxPerMs =
-      previousSpeed * (1 - SPEED_SMOOTHING_FACTOR) +
-      sampleSpeedPxPerMs * SPEED_SMOOTHING_FACTOR
-    motion.lastSampleAt = now
 
-    if (rectMoved(motion.lastRect, target.rect)) {
-      motion.lastMovedAt = now
-    }
-    motion.lastRect = { ...target.rect }
-  }
-  const incomingRectSettledByTime =
-    !target.rect || now - motion.lastMovedAt >= STEP_TRANSITION_SCROLL_SETTLE_MS
-  const incomingRectSlowEnough =
-    Number.isFinite(motion.speedPxPerMs) &&
-    motion.speedPxPerMs <= STEP_TRANSITION_PROMOTE_SPEED_THRESHOLD
-  const incomingRectSettled = incomingRectSettledByTime || incomingRectSlowEnough
-  const requiresSettleBeforePromote = Boolean(
-    isTransitioningBetweenSteps && target.rectSource === 'live' && target.rect,
-  )
-  const settleRemainingMs = Math.max(
-    0,
-    STEP_TRANSITION_SCROLL_SETTLE_MS - (now - motion.lastMovedAt),
-  )
-
-  useEffect(() => {
-    if (!isBrowser) return
-    if (!requiresSettleBeforePromote) return
-    if (incomingRectSettled) return
-
-    const timeoutId = window.setTimeout(() => {
-      forceSettleCheck((value) => value + 1)
-    }, settleRemainingMs)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-    }
-  }, [
-    forceSettleCheck,
-    incomingRectSettled,
-    requiresSettleBeforePromote,
-    settleRemainingMs,
-  ])
-
+  // Rect promotion: gated by coordinator phase when available
   const liveRectCanPromote = Boolean(
     target.isScreen ||
       (target.rect &&
         rectIntersectsViewport(target.rect, viewport) &&
+        // When coordinator phase is provided, gate on 'ready'
+        (phase === undefined || phase === 'ready') &&
         (!isTransitioningBetweenSteps ||
-          hasStableVisibilityForStepTransition(target.rect, viewport)) &&
-        (!requiresSettleBeforePromote || incomingRectSettled)),
+          hasStableVisibilityForStepTransition(target.rect, viewport))),
   )
 
   const promotedTarget =

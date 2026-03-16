@@ -50,10 +50,6 @@ const INITIAL_TARGET_INFO: TourTargetInfo = {
 
 const DEFAULT_SCROLL_MODE: StepScrollMode = 'center'
 
-const MAX_AUTO_SCROLL_CHECKS = 10
-const STALLED_CHECKS_BEFORE_AUTO = 4
-const RECT_PROGRESS_THRESHOLD = 0.5
-
 const lastResolvedRectByStep = new Map<string, ClientRectLike>()
 
 type ScrollBehaviorSetting = ScrollBehavior | undefined
@@ -129,9 +125,16 @@ const setWindowScrollY = (value: number) => {
   document.body.scrollTop = value
 }
 
-const animateWindowScrollBy = (topDelta: number, durationMs: number) => {
+const animateWindowScrollBy = (
+  topDelta: number,
+  durationMs: number,
+  onComplete?: () => void,
+) => {
   if (!isBrowser) return
-  if (!Number.isFinite(topDelta) || Math.abs(topDelta) < 0.5) return
+  if (!Number.isFinite(topDelta) || Math.abs(topDelta) < 0.5) {
+    onComplete?.()
+    return
+  }
 
   const startY = getWindowScrollY()
   const targetY = startY + topDelta
@@ -142,7 +145,10 @@ const animateWindowScrollBy = (topDelta: number, durationMs: number) => {
   )
   const clampedTargetY = Math.max(0, Math.min(targetY, maxScrollY))
   const distance = clampedTargetY - startY
-  if (Math.abs(distance) < 0.5) return
+  if (Math.abs(distance) < 0.5) {
+    onComplete?.()
+    return
+  }
 
   const duration = Math.max(0, durationMs)
   const startTime = performance.now()
@@ -157,6 +163,8 @@ const animateWindowScrollBy = (topDelta: number, durationMs: number) => {
     setWindowScrollY(nextY)
     if (progress < 1) {
       window.requestAnimationFrame(tick)
+    } else {
+      onComplete?.()
     }
   }
 
@@ -251,7 +259,7 @@ const alignWithinViewport = (
   })
 }
 
-const ensureElementInView = (
+export const ensureElementInView = (
   element: Element,
   margin: ScrollMargin,
   options?: EnsureInViewOptions,
@@ -366,37 +374,8 @@ export const useTourTarget = (): TourTargetInfo => {
   const { activeStep, state, activeFlowId, flows } = useTour()
   const [targetInfo, setTargetInfo] =
     useState<TourTargetInfo>(INITIAL_TARGET_INFO)
-  const autoScrollStateRef = useRef<{
-    stepId: string | null
-    checks: number
-    stalledChecks: number
-    done: boolean
-    lastRect: ClientRectLike | null
-  }>({
-    stepId: null,
-    checks: 0,
-    stalledChecks: 0,
-    done: false,
-    lastRect: null,
-  })
-  const autoScrollRafRef = useRef<number | null>(null)
-  const autoScrollTimeoutRef = useRef<ReturnType<
-    typeof globalThis.setTimeout
-  > | null>(null)
   const lastRectRef = useRef<ClientRectLike | null>(null)
   const initialScrollStepRef = useRef<string | null>(null)
-
-  const cancelAutoScrollLoop = () => {
-    if (!isBrowser) return
-    if (autoScrollTimeoutRef.current !== null) {
-      globalThis.clearTimeout(autoScrollTimeoutRef.current)
-      autoScrollTimeoutRef.current = null
-    }
-    if (autoScrollRafRef.current !== null) {
-      window.cancelAnimationFrame(autoScrollRafRef.current)
-      autoScrollRafRef.current = null
-    }
-  }
 
   useEffect(() => {
     if (!activeStep) {
@@ -487,14 +466,6 @@ export const useTourTarget = (): TourTargetInfo => {
   useEffect(() => {
     if (!activeStep || !state || state.status !== 'running') {
       setTargetInfo(INITIAL_TARGET_INFO)
-      autoScrollStateRef.current = {
-        stepId: null,
-        checks: 0,
-        stalledChecks: 0,
-        done: false,
-        lastRect: null,
-      }
-      cancelAutoScrollLoop()
       return
     }
 
@@ -891,147 +862,6 @@ export const useTourTarget = (): TourTargetInfo => {
       waitForPredicateController = null
     }
   }, [activeStep, activeFlowId, flows, state])
-
-  useEffect(() => {
-    if (!isBrowser) return
-    if (!activeStep) {
-      cancelAutoScrollLoop()
-      return
-    }
-    if (targetInfo.status !== 'ready') {
-      cancelAutoScrollLoop()
-      return
-    }
-    if (targetInfo.isScreen) {
-      cancelAutoScrollLoop()
-      return
-    }
-    if (!targetInfo.element) {
-      cancelAutoScrollLoop()
-      return
-    }
-
-    const autoState = autoScrollStateRef.current
-    if (autoState.stepId !== activeStep.id) {
-      autoState.stepId = activeStep.id
-      autoState.checks = 0
-      autoState.stalledChecks = 0
-      autoState.done = false
-      autoState.lastRect = null
-      cancelAutoScrollLoop()
-    } else if (autoState.done) {
-      cancelAutoScrollLoop()
-      return
-    }
-
-    const { element } = targetInfo
-    const scrollMode: ScrollMode =
-      activeStep.targetBehavior?.scrollMode ?? 'center'
-    const scrollDurationMs = activeStep.targetBehavior?.scrollDurationMs
-
-    const runCheck = () => {
-      autoScrollRafRef.current = null
-
-      if (!isBrowser) return
-      if (autoState.stepId !== activeStep.id) return
-      if (!element.isConnected) return
-
-      const rect = getClientRect(element)
-      const viewport = getViewportRect()
-      const margin = resolveScrollMargin(
-        activeStep.targetBehavior?.scrollMargin,
-        DEFAULT_SCROLL_MARGIN,
-      )
-
-      const fitsHeight =
-        rect.height <= viewport.height - (margin.top + margin.bottom)
-      const fitsWidth =
-        rect.width <= viewport.width - (margin.left + margin.right)
-
-      const verticalSatisfied = fitsHeight
-        ? rect.top >= margin.top &&
-          rect.bottom <= viewport.height - margin.bottom
-        : rect.top <= margin.top &&
-          rect.bottom >= viewport.height - margin.bottom
-
-      const horizontalSatisfied = fitsWidth
-        ? rect.left >= margin.left &&
-          rect.right <= viewport.width - margin.right
-        : rect.left <= margin.left &&
-          rect.right >= viewport.width - margin.right
-
-      if (verticalSatisfied && horizontalSatisfied) {
-        autoState.done = true
-        return
-      }
-
-      autoState.checks += 1
-      if (autoState.checks >= MAX_AUTO_SCROLL_CHECKS) {
-        autoState.done = true
-        return
-      }
-
-      const previousRect = autoState.lastRect
-      const hasProgress =
-        !previousRect ||
-        Math.abs(previousRect.top - rect.top) > RECT_PROGRESS_THRESHOLD ||
-        Math.abs(previousRect.left - rect.left) > RECT_PROGRESS_THRESHOLD ||
-        Math.abs(previousRect.bottom - rect.bottom) > RECT_PROGRESS_THRESHOLD ||
-        Math.abs(previousRect.right - rect.right) > RECT_PROGRESS_THRESHOLD
-
-      autoState.lastRect = rect
-
-      if (hasProgress) {
-        autoState.stalledChecks = 0
-      } else {
-        autoState.stalledChecks += 1
-      }
-
-      const oversizedTarget = !fitsHeight || !fitsWidth
-
-      const behavior: ScrollBehaviorSetting =
-        autoState.stalledChecks >= STALLED_CHECKS_BEFORE_AUTO
-          ? 'auto'
-          : 'smooth'
-
-      // For oversized targets, the initial step-enter scroll is enough in practice.
-      // Additional auto-loop dispatches can fight constrained scroll lock and cause
-      // small up/down jitter when the target re-enters viewport.
-      if (oversizedTarget) {
-        autoState.done = true
-      }
-
-      const shouldDispatchScroll = !oversizedTarget &&
-        (behavior === 'auto' || !hasProgress || autoState.checks <= 1)
-
-      if (shouldDispatchScroll) {
-        ensureElementInView(element, margin, {
-          behavior,
-          durationMs:
-            behavior === 'smooth' ? scrollDurationMs : undefined,
-          mode: oversizedTarget ? 'preserve' : scrollMode,
-        })
-      }
-
-      if (autoState.done) {
-        return
-      }
-
-      autoScrollTimeoutRef.current = globalThis.setTimeout(() => {
-        autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
-      }, 120)
-    }
-
-    cancelAutoScrollLoop()
-    autoScrollRafRef.current = window.requestAnimationFrame(runCheck)
-
-    return cancelAutoScrollLoop
-  }, [
-    activeStep,
-    activeStep?.targetBehavior?.scrollMode,
-    activeStep?.targetBehavior?.scrollDurationMs,
-    targetInfo,
-  ])
 
   return targetInfo
 }

@@ -233,4 +233,4 @@ These hooks keep the HUD in "Looking for target" mode until your data grid genui
 - **HUD opens on the wrong page:** ensure an adapter calls `notifyRouteChange` and that `onResume` handlers navigate using your router instead of `window.location`.
 - **Step never resolves:** confirm the `waitFor.selector` matches the rendered markup and that it does not sit inside a portal the tour cannot observe yet.
 - **Route-based rule fires early:** verify you normalize custom paths the same way as `createPathString` (leading slash, prefixed search/hash segments).
-- **Delayed auto-scroll:** the target auto-scroll logic retries up to six times; if your content animates in later, combine `waitFor` with a post-animation predicate rule.
+- **Delayed auto-scroll:** the step transition coordinator retries scroll-into-view up to twice after settlement; if your content animates in later, combine `waitFor` with a post-animation predicate rule.

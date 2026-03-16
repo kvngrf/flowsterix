@@ -55,9 +55,12 @@ flowchart TD
   A["TourProvider<br/>(src/context.tsx)"] --> B["useTourTarget<br/>(resolve rect, scroll, source)"]
   A --> C["useHudState<br/>(step render state, fallback)"]
   B --> C
+  B --> I["useStepTransitionPhase<br/>(scroll settle coordinator)"]
+  I --> C
   C --> D["useTourHud<br/>(HUD behavior + lock)"]
-  C --> E["useTourOverlay<br/>(overlay geometry + handoff gate)"]
-  D --> F["TourPopoverPortal<br/>(position + handoff gate)"]
+  I -->|phase| E["useTourOverlay<br/>(overlay geometry)"]
+  I -->|phase| F["TourPopoverPortal<br/>(position)"]
+  D --> F
   E --> G["OverlayBackdrop"]
   D --> H["TourFocusManager"]
 ```
@@ -81,35 +84,52 @@ flowchart TD
 - popover config
 - body scroll lock + constrained mode
 
-### 2. Overlay and Popover Handoff Gate
+### 2. Step Transition Coordinator
 
 Problem:
 
 - During cross-step smooth scroll, live rect can be in transient positions.
 - Immediate promotion causes visual jumps or settle artifacts.
+- Previously, overlay and popover each ran independent motion tracking (duplicated ~70 lines), settling at different times.
 
-Solution:
+Solution — `useStepTransitionPhase` coordinator:
 
-- Keep cached previous rect during handoff.
-- Promote to live when:
-  - visibility gate passes (fitted vs oversized thresholds)
-  - and motion gate passes:
-    - settle-by-time, or
-    - settle-by-speed
+- Single source of truth for the transition lifecycle: `idle → scrolling → settling → ready`.
+- Both `useTourOverlay` and `TourPopoverPortal` read `phase` from the coordinator instead of tracking motion independently.
+- Rect promotion is gated behind `phase === 'ready'`; overlay and popover freeze on cached position until then.
 
-Current handoff logic is implemented in:
+Phase model:
 
-- `src/hooks/useTourOverlay.ts`
-- `src/components/TourPopoverPortal.tsx`
+```
+idle ──► scrolling ──► settling ──► ready
+                                      │
+          (step change resets) ◄──────┘
+```
 
-Both should stay aligned unless divergence is deliberate.
+Settlement detection:
+
+- Primary: `scrollend` event (Chrome 114+, Firefox 109+, Safari 17.4+) as fast-path.
+- Fallback: 6 consecutive RAF frames where rect delta < 0.5px (deterministic per frame delivery, not wall-clock).
+- Both paths converge on `settling → ready`.
+
+Scroll retry:
+
+- Max 2 total scroll-into-view attempts (down from 10 polling iterations).
+- After settling, if target is not in viewport, one retry scroll is dispatched.
+
+Implementation:
+
+- `src/hooks/useStepTransitionPhase.ts` — coordinator hook
+- `src/hooks/settleUtils.ts` — shared constants and pure functions (extracted from overlay + popover)
+- Overlay and popover consume `phase` via options/props; no internal motion tracking.
 
 ### 3. Scroll and Lock Behavior
 
 - Normal lock path: `useBodyScrollLock`
 - Oversized target path: `useConstrainedScrollLock`
 - Margin semantics: `scrollMargin.ts`
-- Target auto-scroll entry + redispatch safeguards: `useTourTarget.ts`
+- Target initial scroll on step entry: `useTourTarget.ts` (`ensureElementInView` in useLayoutEffect)
+- Scroll retry and settle coordination: `useStepTransitionPhase.ts`
 
 ## Capability Coverage Matrix
 
@@ -120,6 +140,7 @@ Both should stay aligned unless divergence is deliberate.
 | Target acquisition and rect provenance | `useTourTarget` | `src/hooks/useTourTarget.ts` |
 | HUD state derivation | `useHudState`, `useTourHud` | `src/hooks/useHudState.ts`, `src/hooks/useTourHud.ts` |
 | Hidden/missing fallback handling | `useHiddenTargetFallback` | `src/hooks/useHiddenTargetFallback.ts` |
+| Step transition coordination | `useStepTransitionPhase` | `src/hooks/useStepTransitionPhase.ts`, `src/hooks/settleUtils.ts` |
 | Unified overlay geometry and state | `useTourOverlay`, `OverlayBackdrop` | `src/hooks/useTourOverlay.ts`, `src/components/OverlayBackdrop.tsx` |
 | Popover positioning modes and persistence | `TourPopoverPortal` | `src/components/TourPopoverPortal.tsx` |
 | Focus dominance and trap management | `useTourFocusDominance`, `TourFocusManager` | `src/hooks/useTourFocusDominance.ts`, `src/components/TourFocusManager.tsx` |
@@ -178,6 +199,8 @@ This section is intended to cover every exported identifier in source.
   - `useAnimationAdapter`
   - `usePreferredAnimationAdapter`
   - `useHudMotion`
+- Step transition:
+  - `useStepTransitionPhase`
 - Low-level hooks/utilities:
   - `useAdvanceRules`
   - `useBodyScrollLock`
@@ -201,6 +224,10 @@ This section is intended to cover every exported identifier in source.
   - `TourLabels`
 - Target:
   - `TourTargetInfo`
+- Step transition:
+  - `StepTransitionPhase`
+  - `UseStepTransitionPhaseOptions`
+  - `UseStepTransitionPhaseResult`
 - HUD state and hooks:
   - `UseHudStateOptions`
   - `UseHudStateResult`
@@ -383,6 +410,9 @@ DevTools export payload contract (`DevToolsExport`):
   - `src/components/OverlayBackdrop.tsx`
   - `src/components/TourPopoverPortal.tsx`
   - `src/components/TourFocusManager.tsx`
+- Step transition coordination:
+  - `src/hooks/useStepTransitionPhase.ts`
+  - `src/hooks/settleUtils.ts`
 - Target and scroll mechanics:
   - `src/hooks/useTourTarget.ts`
   - `src/hooks/useBodyScrollLock.ts`
@@ -431,10 +461,10 @@ Important constraints:
 - `rectSource`
 - `lastResolvedRect`
 
-3. Confirm handoff behavior:
-- cached anchor existence
-- live rect visibility gate
-- settle-by-time or settle-by-speed gate status
+3. Confirm step transition phase:
+- `transitionPhase.phase` (`idle|scrolling|settling|ready`)
+- `transitionPhase.settledRect` (set on `ready`)
+- cached anchor existence in overlay/popover
 
 4. Confirm motion mode:
 - spring/tween setting
@@ -446,12 +476,20 @@ Important constraints:
 
 ## Current Tests
 
+- `src/hooks/__tests__/settleUtils.test.ts`
 - `src/hooks/__tests__/scrollMargin.test.ts`
 - `src/hooks/__tests__/useBodyScrollLock.test.tsx`
 - `src/hooks/__tests__/useConstrainedScrollLock.test.ts`
 - `src/hooks/__tests__/useHiddenTargetFallback.test.tsx`
+- `src/hooks/__tests__/useTourHud.test.tsx`
+- `src/hooks/__tests__/useTourOverlay.test.tsx`
 - `src/hooks/__tests__/waitForPredicate.test.ts`
 - `src/components/__tests__/TourFocusManager.test.tsx`
+- `src/components/__tests__/TourPopoverPortal.test.ts`
+- `src/components/__tests__/OverlayBackdrop.test.tsx`
+- `src/components/__tests__/overlayPath.test.ts`
+- `src/motion/__tests__/animationAdapter.test.ts`
+- `src/motion/__tests__/useHudMotion.test.tsx`
 
 When changing behavior:
 

@@ -33,6 +33,13 @@ export type {
   UseTourHudResult,
 } from './hooks/useTourHud'
 
+export { useStepTransitionPhase } from './hooks/useStepTransitionPhase'
+export type {
+  StepTransitionPhase,
+  UseStepTransitionPhaseOptions,
+  UseStepTransitionPhaseResult,
+} from './hooks/useStepTransitionPhase'
+
 export { useTourOverlay } from './hooks/useTourOverlay'
 export type {
   TourOverlayRect,
