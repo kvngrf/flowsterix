@@ -140,13 +140,12 @@ function useIsMobile(breakpoint: number = MOBILE_BREAKPOINT) {
   const [isMobile, setIsMobile] = React.useState(false)
 
   React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= breakpoint)
-    }
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`)
+    setIsMobile(mql.matches)
 
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
   }, [breakpoint])
 
   return isMobile
@@ -356,7 +355,7 @@ export function TourHUD({
             {/* Target issue warning */}
             {targetIssue.issue && (
               <div
-                className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
+                className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive"
                 role="status"
                 aria-live="polite"
               >
@@ -423,7 +422,7 @@ export function TourHUD({
                   {targetIssue.issue && (
                     <motion.div
                       layout={reducedMotion ? undefined : 'position'}
-                      className="mt-3 p-3 rounded-lg bg-red-50 border border-red-300 text-red-700"
+                      className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive"
                       role="status"
                       aria-live="polite"
                     >

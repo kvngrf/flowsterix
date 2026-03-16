@@ -63,7 +63,7 @@ export function TourProgress({
           <span
             key={index}
             className={cn(
-              'rounded-full transition-all duration-200',
+              'rounded-full transition-[background-color,transform] duration-200',
               sizeClasses[size],
               index === currentIndex
                 ? 'bg-primary scale-125'
@@ -98,7 +98,7 @@ export function TourProgress({
         >
           <div
             className={cn(
-              'h-full rounded-full bg-primary transition-all duration-300 ease-out',
+              'h-full rounded-full bg-primary transition-[width] duration-300 ease-out',
             )}
             style={{ width: `${progress}%` }}
           />
@@ -110,7 +110,7 @@ export function TourProgress({
   if (variant === 'fraction') {
     return (
       <div
-        className={cn('text-sm font-medium text-muted-foreground', className)}
+        className={cn('text-sm font-medium text-muted-foreground tabular-nums', className)}
         role="status"
         aria-label={formatAriaLabel({ current: currentIndex + 1, total: totalSteps })}
       >

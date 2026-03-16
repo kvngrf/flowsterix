@@ -67,7 +67,7 @@ export function DelayProgressBar({
       {showCountdown ? (
         <span
           className={cn(
-            'text-xs font-medium text-muted-foreground',
+            'text-xs font-medium text-muted-foreground tabular-nums',
             labelClassName,
           )}
         >

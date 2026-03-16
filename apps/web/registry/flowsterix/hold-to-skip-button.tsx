@@ -179,8 +179,8 @@ export function HoldToSkipButton({
           className={cn(
             'absolute inset-0 flex shrink-0 items-center justify-center rounded-md',
             'border bg-background shadow-xs',
-            'hover:bg-accent hover:text-accent-foreground',
-            'dark:bg-popover dark:border-input dark:hover:bg-accent',
+            'dark:bg-popover dark:border-input',
+            '[@media(hover:hover)]:hover:bg-accent [@media(hover:hover)]:hover:text-accent-foreground',
           )}
         >
           {resolvedLabel}
