@@ -381,6 +381,21 @@ export const TourPopoverPortal = ({
     height: number
   } | null>(null)
 
+  // On page reload / cold start, the popover has no cached position and the
+  // coordinator hasn't settled yet (element targets) or floatingSize hasn't
+  // been measured (screen targets). Forcing opacity 0 keeps the popover
+  // invisible until the correct position is computed, then it fades in.
+  const isPositionUninitialized = Boolean(
+    // Element targets: no cached position from a previous step, coordinator
+    // still working through scrolling/settling
+    (coordinatorPhase !== undefined &&
+      coordinatorPhase !== 'ready' &&
+      coordinatorPhase !== 'idle' &&
+      !cachedTarget) ||
+      // Screen targets: popover size not yet measured for correct centering
+      (resolvedIsScreen && !floatingSize)
+  )
+
   const clampVertical = (value: number) =>
     Math.min(viewport.height - 24, Math.max(24, value))
   const clampHorizontal = (value: number) =>
@@ -758,7 +773,20 @@ export const TourPopoverPortal = ({
       return
     }
     appliedFloatingCacheRef.current = stepId
-    if ((target.status !== 'ready' || target.isScreen) && hasAnchor) {
+    // During coordinator-managed step transitions, keep the popover frozen at
+    // its current position. The fallbackPosition is calculated from the cached
+    // (previous step) rect with a simple formula that differs from the
+    // floating-ui computed position — applying it would cause a visible jump.
+    const coordinatorIsTransitioning =
+      coordinatorPhase !== undefined &&
+      coordinatorPhase !== 'ready' &&
+      coordinatorPhase !== 'idle'
+    if (coordinatorIsTransitioning && isTransitioningBetweenSteps) {
+      logPopoverDebug('fallback-position-skipped-coordinator', {
+        stepId,
+        coordinatorPhase,
+      })
+    } else if ((target.status !== 'ready' || target.isScreen) && hasAnchor) {
       setFloatingPositionWithDebug(
         fallbackPosition,
         'fallback-position-applied',
@@ -774,8 +802,10 @@ export const TourPopoverPortal = ({
       })
     }
   }, [
+    coordinatorPhase,
     fallbackPosition,
     hasAnchor,
+    isTransitioningBetweenSteps,
     layoutMode,
     liveTargetUsable,
     target.isScreen,
@@ -802,10 +832,18 @@ export const TourPopoverPortal = ({
     if (target.status === 'ready' && !target.isScreen) return
     if (shouldDeferScreenSnap) return
     if (!hasAnchor) return
+    // Skip during coordinator-managed transitions (same reason as above)
+    const coordinatorIsTransitioning =
+      coordinatorPhase !== undefined &&
+      coordinatorPhase !== 'ready' &&
+      coordinatorPhase !== 'idle'
+    if (coordinatorIsTransitioning && isTransitioningBetweenSteps) return
     setFloatingPositionWithDebug(fallbackPosition, 'screen-fallback-immediate')
   }, [
+    coordinatorPhase,
     fallbackPosition,
     hasAnchor,
+    isTransitioningBetweenSteps,
     layoutMode,
     shouldDeferScreenSnap,
     target.isScreen,
@@ -1413,8 +1451,8 @@ export const TourPopoverPortal = ({
       transform: initialTransform,
     },
     animate: {
-      filter: 'blur(0px)',
-      opacity: 1,
+      filter: isPositionUninitialized ? 'blur(4px)' : 'blur(0px)',
+      opacity: isPositionUninitialized ? 0 : 1,
       top: floatingPosition.top,
       left: floatingPosition.left,
       transform: floatingPosition.transform,

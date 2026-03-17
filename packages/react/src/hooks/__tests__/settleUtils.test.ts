@@ -1,15 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { ClientRectLike } from '../../utils/dom'
 import {
+  getElementVisibleRatio,
   hasStableVisibilityForStepTransition,
   isRectInViewport,
   isScrollendSupported,
+  MAX_VISIBILITY_WAIT_MS,
   rectIntersectsViewport,
   rectMoved,
   rectPositionDistance,
   SETTLE_FRAME_COUNT,
   SETTLE_RECT_THRESHOLD,
+  SETTLE_VISIBILITY_THRESHOLD,
   visibleSpan,
 } from '../settleUtils'
 
@@ -159,5 +162,144 @@ describe('isRectInViewport', () => {
 describe('isScrollendSupported', () => {
   it('returns a boolean', () => {
     expect(typeof isScrollendSupported()).toBe('boolean')
+  })
+})
+
+describe('visibility-aware settlement constants', () => {
+  it('has expected visibility threshold', () => {
+    expect(SETTLE_VISIBILITY_THRESHOLD).toBe(0.85)
+  })
+
+  it('has expected max visibility wait', () => {
+    expect(MAX_VISIBILITY_WAIT_MS).toBe(3000)
+  })
+})
+
+describe('getElementVisibleRatio', () => {
+  const createMockElement = (
+    elementRect: { top: number; left: number; width: number; height: number },
+    ancestors: Array<{
+      rect: { top: number; left: number; width: number; height: number }
+      overflowX?: string
+      overflowY?: string
+    }> = [],
+  ): Element => {
+    // Build ancestor chain: innermost parent first
+    const parentElements: Array<Partial<Element>> = []
+
+    for (let i = 0; i < ancestors.length; i++) {
+      const ancestor = ancestors[i]
+      const el: Partial<Element> = {
+        getBoundingClientRect: () => ({
+          top: ancestor.rect.top,
+          left: ancestor.rect.left,
+          width: ancestor.rect.width,
+          height: ancestor.rect.height,
+          right: ancestor.rect.left + ancestor.rect.width,
+          bottom: ancestor.rect.top + ancestor.rect.height,
+          x: ancestor.rect.left,
+          y: ancestor.rect.top,
+          toJSON: () => ({}),
+        }),
+        parentElement: (i < ancestors.length - 1 ? parentElements[i + 1] : null) as HTMLElement | null,
+      }
+      parentElements.push(el)
+    }
+
+    const element: Partial<Element> = {
+      getBoundingClientRect: () => ({
+        top: elementRect.top,
+        left: elementRect.left,
+        width: elementRect.width,
+        height: elementRect.height,
+        right: elementRect.left + elementRect.width,
+        bottom: elementRect.top + elementRect.height,
+        x: elementRect.left,
+        y: elementRect.top,
+        toJSON: () => ({}),
+      }),
+      parentElement: (parentElements.length > 0 ? parentElements[0] : null) as HTMLElement | null,
+    }
+
+    // Mock getComputedStyle for each ancestor
+    const originalGetComputedStyle = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+      for (let i = 0; i < parentElements.length; i++) {
+        if (el === parentElements[i]) {
+          return {
+            overflowX: ancestors[i].overflowX ?? 'visible',
+            overflowY: ancestors[i].overflowY ?? 'visible',
+          } as CSSStyleDeclaration
+        }
+      }
+      return originalGetComputedStyle(el)
+    })
+
+    return element as Element
+  }
+
+  it('returns 1 for element with no clipping ancestors', () => {
+    const el = createMockElement(
+      { top: 100, left: 100, width: 200, height: 100 },
+    )
+    expect(getElementVisibleRatio(el)).toBe(1)
+    vi.restoreAllMocks()
+  })
+
+  it('returns 1 when ancestors have overflow: visible', () => {
+    const el = createMockElement(
+      { top: 100, left: 100, width: 200, height: 100 },
+      [{ rect: { top: 0, left: 0, width: 1024, height: 768 }, overflowX: 'visible', overflowY: 'visible' }],
+    )
+    expect(getElementVisibleRatio(el)).toBe(1)
+    vi.restoreAllMocks()
+  })
+
+  it('returns ~0.5 when element is half-clipped by parent overflow:hidden', () => {
+    // Parent is 100px wide with overflow:hidden, element is 200px wide at same left
+    const el = createMockElement(
+      { top: 100, left: 0, width: 200, height: 100 },
+      [{ rect: { top: 0, left: 0, width: 100, height: 768 }, overflowX: 'hidden', overflowY: 'visible' }],
+    )
+    const ratio = getElementVisibleRatio(el)
+    expect(ratio).toBeCloseTo(0.5)
+    vi.restoreAllMocks()
+  })
+
+  it('returns 0 when element is fully clipped', () => {
+    // Parent has 0 width with overflow:hidden
+    const el = createMockElement(
+      { top: 100, left: 0, width: 200, height: 100 },
+      [{ rect: { top: 0, left: 0, width: 0, height: 768 }, overflowX: 'hidden', overflowY: 'visible' }],
+    )
+    expect(getElementVisibleRatio(el)).toBe(0)
+    vi.restoreAllMocks()
+  })
+
+  it('returns 0 for zero-size element', () => {
+    const el = createMockElement({ top: 100, left: 100, width: 0, height: 100 })
+    expect(getElementVisibleRatio(el)).toBe(0)
+    vi.restoreAllMocks()
+  })
+
+  it('handles vertical clipping by overflow:hidden parent', () => {
+    // Parent is 50px tall with overflow:hidden, element is 100px tall
+    const el = createMockElement(
+      { top: 0, left: 100, width: 200, height: 100 },
+      [{ rect: { top: 0, left: 0, width: 1024, height: 50 }, overflowX: 'visible', overflowY: 'hidden' }],
+    )
+    const ratio = getElementVisibleRatio(el)
+    expect(ratio).toBeCloseTo(0.5)
+    vi.restoreAllMocks()
+  })
+
+  it('handles overflow:auto the same as overflow:hidden', () => {
+    const el = createMockElement(
+      { top: 100, left: 0, width: 200, height: 100 },
+      [{ rect: { top: 0, left: 0, width: 100, height: 768 }, overflowX: 'auto', overflowY: 'visible' }],
+    )
+    const ratio = getElementVisibleRatio(el)
+    expect(ratio).toBeCloseTo(0.5)
+    vi.restoreAllMocks()
   })
 })

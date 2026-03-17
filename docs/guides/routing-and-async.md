@@ -228,6 +228,35 @@ waitFor: {
 
 These hooks keep the HUD in "Looking for target" mode until your data grid genuinely paints the row, eliminating jarring jumps for virtualized UIs.
 
+## Animated Container Targets
+
+When a step targets an element inside an expanding container (sidebar, accordion, collapsible panel), the step transition coordinator automatically waits for the element to become fully visible before promoting the highlight and popover. No explicit `waitFor` configuration is needed.
+
+**How it works:**
+
+After the element's bounding rect settles (6 stable RAF frames), the coordinator computes a *visibility ratio* — the fraction of the element's area that is not clipped by ancestor `overflow` containers. If less than 85% is visible, the coordinator resets its settle counter and continues monitoring. The overlay and popover remain frozen at the previous step's position until the target is sufficiently revealed.
+
+A 3-second safety timeout prevents the coordinator from waiting indefinitely if a parent never fully expands.
+
+**Example — sidebar that opens on step entry:**
+
+```tsx
+{
+  id: 'sidebar-nav',
+  target: { selector: '[data-tour-target="nav-settings"]' },
+  onEnter: () => setSidebarOpen(true),
+  content: <p>Open Settings to manage your account.</p>,
+}
+```
+
+The highlight appears only after the sidebar expansion animation finishes and the target becomes visible.
+
+**When to combine with `waitFor`:**
+
+- The visibility gate handles clipping by animated containers.
+- Use `waitFor` when the target element doesn't exist in the DOM yet (e.g., lazy-loaded content, virtualized rows).
+- Both mechanisms work independently and can be combined: `waitFor` blocks target resolution, visibility gating blocks settlement.
+
 ## Troubleshooting Checklist
 
 - **HUD opens on the wrong page:** ensure an adapter calls `notifyRouteChange` and that `onResume` handlers navigate using your router instead of `window.location`.

@@ -1,4 +1,5 @@
 import type { ClientRectLike } from '../utils/dom'
+import { isBrowser } from '../utils/dom'
 
 // =============================================================================
 // Constants
@@ -19,6 +20,19 @@ export const SETTLE_RECT_THRESHOLD = 0.5
 
 /** Maximum number of scroll-into-view retry attempts. */
 export const MAX_SCROLL_ATTEMPTS = 2
+
+/**
+ * Minimum visible-area ratio (0–1) for an element to be considered "fully shown".
+ * Accounts for ancestor overflow clipping (e.g. expanding sidebar/accordion).
+ */
+export const SETTLE_VISIBILITY_THRESHOLD = 0.85
+
+/**
+ * Maximum time (ms) to wait for an element to become fully visible after its
+ * rect has settled. Safety valve so the coordinator doesn't wait forever if a
+ * parent never fully reveals the element.
+ */
+export const MAX_VISIBILITY_WAIT_MS = 3000
 
 // =============================================================================
 // Functions
@@ -117,4 +131,58 @@ export const isRectInViewport = (
       rect.right >= viewport.width - margin.right
 
   return verticalOk && horizontalOk
+}
+
+/**
+ * Compute the ratio (0–1) of the element's area that is actually visible,
+ * accounting for ancestor elements with overflow clipping.
+ *
+ * Walks up the DOM tree and intersects the element's bounding rect with each
+ * ancestor that creates a clipping context (`overflow` !== `visible`).
+ * Returns 0 when the element is fully clipped, 1 when fully visible.
+ *
+ * Only called after the coordinator confirms rect stability (not every frame),
+ * so the per-frame cost of `getComputedStyle` is bounded.
+ */
+export const getElementVisibleRatio = (element: Element): number => {
+  if (!isBrowser) return 1
+  const rect = element.getBoundingClientRect()
+  if (rect.width <= 0 || rect.height <= 0) return 0
+
+  let top = rect.top
+  let left = rect.left
+  let right = rect.right
+  let bottom = rect.bottom
+
+  let current = element.parentElement
+  while (
+    current &&
+    current !== document.body &&
+    current !== document.documentElement
+  ) {
+    const style = window.getComputedStyle(current)
+    const clipX = style.overflowX !== 'visible'
+    const clipY = style.overflowY !== 'visible'
+
+    if (clipX || clipY) {
+      const pr = current.getBoundingClientRect()
+      if (clipX) {
+        left = Math.max(left, pr.left)
+        right = Math.min(right, pr.right)
+      }
+      if (clipY) {
+        top = Math.max(top, pr.top)
+        bottom = Math.min(bottom, pr.bottom)
+      }
+    }
+
+    current = current.parentElement
+  }
+
+  const visibleWidth = Math.max(0, right - left)
+  const visibleHeight = Math.max(0, bottom - top)
+  const visibleArea = visibleWidth * visibleHeight
+  const totalArea = rect.width * rect.height
+
+  return visibleArea / totalArea
 }

@@ -143,6 +143,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
+      waitFor: {
+        selector: '[data-tour-target="ssr-submenu"]',
+        timeout: 200,
+      },
       onResume: () => {
         ensureMenuOpen()
       },

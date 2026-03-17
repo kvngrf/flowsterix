@@ -11,11 +11,14 @@ import {
 } from '../utils/dom'
 import { DEFAULT_SCROLL_MARGIN, resolveScrollMargin } from './scrollMargin'
 import {
+  getElementVisibleRatio,
   isRectInViewport,
   isScrollendSupported,
   MAX_SCROLL_ATTEMPTS,
+  MAX_VISIBILITY_WAIT_MS,
   SETTLE_FRAME_COUNT,
   SETTLE_RECT_THRESHOLD,
+  SETTLE_VISIBILITY_THRESHOLD,
 } from './settleUtils'
 import type { TourTargetInfo } from './useTourTarget'
 import { ensureElementInView } from './useTourTarget'
@@ -68,6 +71,9 @@ const rectDeltaWithinThreshold = (
  * Settlement detection:
  * - Primary: `scrollend` event (fast-path on supported browsers)
  * - Fallback: 6 consecutive RAF frames with < 0.5px rect movement
+ * - Visibility gate: after settling, element must be ≥85% visible (not clipped
+ *   by ancestor overflow). Handles targets inside expanding sidebars/accordions.
+ *   Safety timeout: 3s.
  *
  * Scroll retry: max 2 attempts if target is not in viewport after settling.
  */
@@ -87,6 +93,7 @@ export const useStepTransitionPhase = ({
   const rafIdRef = useRef<number | null>(null)
   const scrollendFiredRef = useRef(false)
   const scrollendCleanupRef = useRef<(() => void) | null>(null)
+  const visibilityWaitStartRef = useRef<number | null>(null)
 
   const commitPhase = (nextPhase: StepTransitionPhase, rect?: ClientRectLike | null) => {
     phaseRef.current = nextPhase
@@ -118,6 +125,7 @@ export const useStepTransitionPhase = ({
     scrollAttemptRef.current = 0
     lastRectRef.current = null
     scrollendFiredRef.current = false
+    visibilityWaitStartRef.current = null
   }
 
   // -------------------------------------------------------------------------
@@ -243,7 +251,34 @@ export const useStepTransitionPhase = ({
         const inView = isRectInViewport(currentRect, vp, margin)
 
         if (inView || isOversized()) {
-          // Settled and in view (or oversized — best effort)
+          // Check ancestor-clip visibility before promoting.
+          // Targets inside expanding containers (sidebar, accordion) may have
+          // a stable rect that is in the viewport but visually clipped by a
+          // parent with overflow != visible. Wait until sufficiently revealed.
+          if (!isOversized()) {
+            const visRatio = getElementVisibleRatio(element)
+            if (visRatio < SETTLE_VISIBILITY_THRESHOLD) {
+              // Element is stable but still clipped — keep waiting
+              stableFrameCountRef.current = 0
+              if (visibilityWaitStartRef.current === null) {
+                visibilityWaitStartRef.current = performance.now()
+              } else if (
+                performance.now() - visibilityWaitStartRef.current >
+                MAX_VISIBILITY_WAIT_MS
+              ) {
+                // Safety valve: accept after timeout
+                visibilityWaitStartRef.current = null
+                cleanupScrollend()
+                commitPhase('ready', currentRect)
+                return
+              }
+              rafIdRef.current = window.requestAnimationFrame(tick)
+              return
+            }
+          }
+
+          // Settled, in view, and fully visible (or oversized — best effort)
+          visibilityWaitStartRef.current = null
           cleanupScrollend()
           commitPhase('ready', currentRect)
           // Don't schedule another frame — we're done

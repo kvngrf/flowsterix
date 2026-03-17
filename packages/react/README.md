@@ -110,6 +110,7 @@ Settlement detection:
 
 - Primary: `scrollend` event (Chrome 114+, Firefox 109+, Safari 17.4+) as fast-path.
 - Fallback: 6 consecutive RAF frames where rect delta < 0.5px (deterministic per frame delivery, not wall-clock).
+- Visibility gate: after rect settles and is in viewport, the element must be ≥85% visible (not clipped by ancestor `overflow`). Handles targets inside expanding sidebars, accordions, or collapsible panels without requiring `waitFor`. Safety timeout: 3 s — after which the coordinator accepts the current position.
 - Both paths converge on `settling → ready`.
 
 Scroll retry:

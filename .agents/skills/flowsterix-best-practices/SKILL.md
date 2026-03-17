@@ -355,6 +355,28 @@ Guidelines:
 - During long jumps, overlay highlight and popover stay anchored to the previous on-screen position until the next target enters the viewport, then transition to the new target.
 - Use `scrollMode: 'preserve'` for minimal movement, `center` for guided storytelling, or `start` when sticky headers need strict top alignment.
 
+## Animated Container Targets (Sidebar, Accordion, Collapsible)
+
+When a step targets an element inside a container that expands or collapses (sidebar, accordion panel, collapsible section), the coordinator **automatically waits** until the target is fully visible before showing the highlight and popover. No `waitFor` is needed for this case — ancestor-clip visibility detection is built into the settlement logic.
+
+How it works:
+- After the element's rect settles, the coordinator checks what fraction of the element is visible (accounting for ancestor `overflow` clipping).
+- If less than 85% is visible, the coordinator keeps the overlay and popover frozen at the previous position and retries each frame.
+- A 3-second safety timeout ensures the coordinator doesn't wait forever if a parent never fully reveals the element.
+
+Typical pattern — open a sidebar via `onEnter`, then target an item inside it:
+
+```tsx
+{
+  id: 'sidebar-item',
+  target: { selector: '[data-tour-target="sidebar-settings"]' },
+  onEnter: () => setSidebarOpen(true),
+  content: <p>Click Settings to continue.</p>,
+}
+```
+
+The highlight and popover appear only after the sidebar finishes expanding.
+
 ## Shadcn Components
 
 The shadcn registry provides preconfigured, polished components. **Always prefer these over custom implementations.**
