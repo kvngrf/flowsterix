@@ -1,13 +1,11 @@
 import type { BackdropInteractionMode } from '@flowsterix/core'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 
 import type { ClientRectLike } from '../utils/dom'
-import { expandRect, getViewportRect, isBrowser } from '../utils/dom'
-import {
-  hasStableVisibilityForStepTransition,
-  rectIntersectsViewport,
-} from './settleUtils'
+import { expandRect, getViewportRect } from '../utils/dom'
 import type { StepTransitionPhase } from './useStepTransitionPhase'
+import { useTargetPromotion } from './useTargetPromotion'
+import type { CachedTarget } from './useTargetPromotion'
 import type { TourTargetInfo } from './useTourTarget'
 
 export interface TourOverlayRect {
@@ -56,7 +54,7 @@ export interface UseTourOverlayResult {
     rect: TourOverlayRect | null
     centerX: number
     centerY: number
-    target: TourTargetInfo | null
+    target: TourTargetInfo | CachedTarget | null
     isScreen: boolean
   }
   /**
@@ -90,51 +88,10 @@ export const useTourOverlay = (
     phase,
   } = options
 
-  const hasShownRef = useRef(false)
-  const lastReadyTargetRef = useRef<TourTargetInfo | null>(null)
   const viewport = getViewportRect()
-  const previousCachedTarget = lastReadyTargetRef.current
-  const isTransitioningBetweenSteps = Boolean(
-    previousCachedTarget &&
-      target.stepId &&
-      previousCachedTarget.stepId &&
-      previousCachedTarget.stepId !== target.stepId,
-  )
 
-  // Rect promotion: gated by coordinator phase when available
-  const liveRectCanPromote = Boolean(
-    target.isScreen ||
-      (target.rect &&
-        rectIntersectsViewport(target.rect, viewport) &&
-        // When coordinator phase is provided, gate on 'ready'
-        (phase === undefined || phase === 'ready') &&
-        (!isTransitioningBetweenSteps ||
-          hasStableVisibilityForStepTransition(target.rect, viewport))),
-  )
-
-  const promotedTarget =
-    target.status === 'ready' && liveRectCanPromote
-      ? {
-          ...target,
-          rect: target.rect ? { ...target.rect } : null,
-        }
-      : null
-
-  if (promotedTarget) {
-    hasShownRef.current = true
-    lastReadyTargetRef.current = promotedTarget
-  }
-
-  const cachedTarget = promotedTarget ?? previousCachedTarget
-
-  useEffect(() => {
-    if (!isBrowser) return
-    // Only clear when truly idle (no step), not during step transitions.
-    if (target.status === 'idle' && !isInGracePeriod) {
-      hasShownRef.current = false
-      lastReadyTargetRef.current = null
-    }
-  }, [isInGracePeriod, target.status])
+  const { liveRectCanPromote, cachedTarget } =
+    useTargetPromotion({ target, viewport, phase, isInGracePeriod })
 
   const highlightTarget =
     target.status === 'ready' && liveRectCanPromote ? target : cachedTarget

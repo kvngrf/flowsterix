@@ -45,10 +45,8 @@ const DEFAULT_POPOVER_CONTENT_TRANSITION: Transition = {
   ease: [0.25, 1, 0.5, 1],
 }
 import type { StepTransitionPhase } from '../hooks/useStepTransitionPhase'
-import {
-  hasStableVisibilityForStepTransition,
-  rectIntersectsViewport,
-} from '../hooks/settleUtils'
+import { isCoordinatorTransitioning } from '../hooks/settleUtils'
+import { useTargetPromotion } from '../hooks/useTargetPromotion'
 
 type MotionElementProps = MotionProps &
   Omit<HTMLAttributes<HTMLElement>, 'style'> & {
@@ -287,59 +285,20 @@ export const TourPopoverPortal = ({
     DEFAULT_POPOVER_CONTENT_TRANSITION
 
   const viewport = useViewportRect()
-  const lastReadyTargetRef = useRef<{
-    rect: ClientRectLike
-    isScreen: boolean
-    stepId: string | null
-  } | null>(null)
-  const previousCachedTarget = lastReadyTargetRef.current
-  const isTransitioningBetweenSteps = Boolean(
-    previousCachedTarget &&
-      target.stepId &&
-      previousCachedTarget.stepId &&
-      previousCachedTarget.stepId !== target.stepId,
-  )
-
-  // Rect promotion: gated by coordinator phase when available
-  const liveRectCanPromote = Boolean(
-    target.isScreen ||
-      (target.rect &&
-        rectIntersectsViewport(target.rect, viewport) &&
-        (coordinatorPhase === undefined || coordinatorPhase === 'ready') &&
-        (!isTransitioningBetweenSteps ||
-          hasStableVisibilityForStepTransition(target.rect, viewport))),
-  )
+  const { liveTargetUsable, cachedTarget, isTransitioningBetweenSteps } =
+    useTargetPromotion({
+      target,
+      viewport,
+      phase: coordinatorPhase,
+      isInGracePeriod,
+    })
   const prefersMobileLayout =
     viewport.width <= MOBILE_BREAKPOINT ||
     viewport.height <= MOBILE_HEIGHT_BREAKPOINT
-  const liveTargetUsable = Boolean(
-    target.status === 'ready' && liveRectCanPromote,
-  )
-
-  const promotedTarget = liveTargetUsable && target.rect
-    ? {
-        rect: { ...target.rect },
-        isScreen: target.isScreen,
-        stepId: target.stepId ?? null,
-      }
-    : null
-
-  if (promotedTarget) {
-    lastReadyTargetRef.current = promotedTarget
-  }
-
-  const cachedTarget = promotedTarget ?? previousCachedTarget
   const prefersMobileRef = useRef(prefersMobileLayout)
   useEffect(() => {
     prefersMobileRef.current = prefersMobileLayout
   }, [prefersMobileLayout])
-
-  useEffect(() => {
-    if (target.status === 'idle' && !isInGracePeriod) {
-      // Only clear when truly idle, not during step transitions.
-      lastReadyTargetRef.current = null
-    }
-  }, [isInGracePeriod, target.status])
 
   const resolvedRect =
     liveTargetUsable
@@ -388,10 +347,7 @@ export const TourPopoverPortal = ({
   const isPositionUninitialized = Boolean(
     // Element targets: no cached position from a previous step, coordinator
     // still working through scrolling/settling
-    (coordinatorPhase !== undefined &&
-      coordinatorPhase !== 'ready' &&
-      coordinatorPhase !== 'idle' &&
-      !cachedTarget) ||
+    (isCoordinatorTransitioning(coordinatorPhase) && !cachedTarget) ||
       // Screen targets: popover size not yet measured for correct centering
       (resolvedIsScreen && !floatingSize)
   )
@@ -777,11 +733,7 @@ export const TourPopoverPortal = ({
     // its current position. The fallbackPosition is calculated from the cached
     // (previous step) rect with a simple formula that differs from the
     // floating-ui computed position — applying it would cause a visible jump.
-    const coordinatorIsTransitioning =
-      coordinatorPhase !== undefined &&
-      coordinatorPhase !== 'ready' &&
-      coordinatorPhase !== 'idle'
-    if (coordinatorIsTransitioning && isTransitioningBetweenSteps) {
+    if (isCoordinatorTransitioning(coordinatorPhase) && isTransitioningBetweenSteps) {
       logPopoverDebug('fallback-position-skipped-coordinator', {
         stepId,
         coordinatorPhase,
@@ -833,11 +785,7 @@ export const TourPopoverPortal = ({
     if (shouldDeferScreenSnap) return
     if (!hasAnchor) return
     // Skip during coordinator-managed transitions (same reason as above)
-    const coordinatorIsTransitioning =
-      coordinatorPhase !== undefined &&
-      coordinatorPhase !== 'ready' &&
-      coordinatorPhase !== 'idle'
-    if (coordinatorIsTransitioning && isTransitioningBetweenSteps) return
+    if (isCoordinatorTransitioning(coordinatorPhase) && isTransitioningBetweenSteps) return
     setFloatingPositionWithDebug(fallbackPosition, 'screen-fallback-immediate')
   }, [
     coordinatorPhase,

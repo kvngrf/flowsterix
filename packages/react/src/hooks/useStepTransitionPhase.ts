@@ -16,6 +16,7 @@ import {
   isScrollendSupported,
   MAX_SCROLL_ATTEMPTS,
   MAX_VISIBILITY_WAIT_MS,
+  rectDeltaWithinThreshold,
   SETTLE_FRAME_COUNT,
   SETTLE_RECT_THRESHOLD,
   SETTLE_VISIBILITY_THRESHOLD,
@@ -39,20 +40,6 @@ export interface UseStepTransitionPhaseResult {
   settledRect: ClientRectLike | null
   isTransitioning: boolean
 }
-
-// =============================================================================
-// Helpers
-// =============================================================================
-
-const rectDeltaWithinThreshold = (
-  a: ClientRectLike,
-  b: ClientRectLike,
-  threshold: number,
-) =>
-  Math.abs(a.top - b.top) <= threshold &&
-  Math.abs(a.left - b.left) <= threshold &&
-  Math.abs(a.width - b.width) <= threshold &&
-  Math.abs(a.height - b.height) <= threshold
 
 // =============================================================================
 // Hook

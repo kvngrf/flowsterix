@@ -15,6 +15,22 @@ export const SPEED_SMOOTHING_FACTOR = 0.3
 /** Number of consecutive RAF frames with < 0.5px rect movement to confirm settle. */
 export const SETTLE_FRAME_COUNT = 6
 
+/**
+ * Rect-delta thresholds — each serves a different detection purpose:
+ *
+ * - `RAF_RECT_THRESHOLD` (0.25px): RAF monitor sensitivity in useTourTarget.
+ *   Catches sub-pixel layout shifts so the overlay/popover stay locked to the
+ *   target element between coordinator cycles.
+ *
+ * - `SETTLE_RECT_THRESHOLD` (0.5px): Settle detection in the coordinator.
+ *   Confirms scrolling has stopped — slightly coarser than the RAF monitor to
+ *   avoid false negatives from sub-pixel rounding during smooth scroll.
+ *
+ * - `STEP_TRANSITION_MOVEMENT_THRESHOLD` (0.6px): Movement/drift detection in
+ *   rectMoved. Used for speed calculations and coordinator phase transitions.
+ */
+export const RAF_RECT_THRESHOLD = 0.25
+
 /** Threshold in px for rect movement between frames. */
 export const SETTLE_RECT_THRESHOLD = 0.5
 
@@ -37,6 +53,25 @@ export const MAX_VISIBILITY_WAIT_MS = 3000
 // =============================================================================
 // Functions
 // =============================================================================
+
+import type { StepTransitionPhase } from './useStepTransitionPhase'
+
+/** Whether the coordinator is actively transitioning (not idle or ready). */
+export const isCoordinatorTransitioning = (
+  phase: StepTransitionPhase | undefined,
+): boolean =>
+  phase !== undefined && phase !== 'ready' && phase !== 'idle'
+
+/** Whether two rects are within a given threshold on all edges. */
+export const rectDeltaWithinThreshold = (
+  a: ClientRectLike,
+  b: ClientRectLike,
+  threshold: number,
+): boolean =>
+  Math.abs(a.top - b.top) <= threshold &&
+  Math.abs(a.left - b.left) <= threshold &&
+  Math.abs(a.width - b.width) <= threshold &&
+  Math.abs(a.height - b.height) <= threshold
 
 export const rectIntersectsViewport = (
   rect: ClientRectLike,

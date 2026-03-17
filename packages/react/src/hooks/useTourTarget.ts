@@ -12,6 +12,7 @@ import {
 } from '../utils/dom'
 import type { ScrollMargin } from './scrollMargin'
 import { DEFAULT_SCROLL_MARGIN, resolveScrollMargin } from './scrollMargin'
+import { RAF_RECT_THRESHOLD, rectDeltaWithinThreshold } from './settleUtils'
 import type { WaitForPredicateController } from './waitForPredicate'
 import { createWaitForPredicateController } from './waitForPredicate'
 
@@ -543,13 +544,7 @@ export const useTourTarget = (): TourTargetInfo => {
       if (!previous || !nextRect) {
         return previous !== nextRect
       }
-      const threshold = 0.25
-      return (
-        Math.abs(previous.top - nextRect.top) > threshold ||
-        Math.abs(previous.left - nextRect.left) > threshold ||
-        Math.abs(previous.width - nextRect.width) > threshold ||
-        Math.abs(previous.height - nextRect.height) > threshold
-      )
+      return !rectDeltaWithinThreshold(previous, nextRect, RAF_RECT_THRESHOLD)
     }
 
     const isWaitForSelectorSatisfied = () => {
