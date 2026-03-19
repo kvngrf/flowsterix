@@ -91,6 +91,35 @@ const ensureSsrGroupExpanded = () => {
   }
 }
 
+const ensureSsrGroupCollapsed = () => {
+  if (typeof document === 'undefined') return
+  const submenu = document.querySelector('[data-tour-target="ssr-submenu"]')
+  if (!submenu) return
+  const toggle = document.querySelector('[data-tour-target="ssr-toggle"]')
+  if (toggle instanceof HTMLElement) {
+    toggle.click()
+  }
+}
+
+const ensureOnRoute = async ({ path }: { path: string }) => {
+  const router = getTourRouter()
+  if (router) {
+    if (router.state.location.pathname === path) return
+    await router.navigate({ to: path }).catch((error: unknown) => {
+      console.warn('[tour][demo] failed to navigate', error)
+    })
+    return
+  }
+  if (typeof window === 'undefined') return
+  if (window.location.pathname === path) return
+  window.location.assign(path)
+}
+
+const idempotent = (setup: () => void | Promise<void>) => ({
+  onEnter: setup,
+  onResume: setup,
+})
+
 export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
   id: 'demo-onboarding',
   // hud: {
@@ -123,7 +152,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
       },
       placement: 'right',
       advance: [{ type: 'event', event: 'click', on: 'target' }],
-      onResume: () => ensureMenuClosed(),
+      ...idempotent(() => ensureMenuClosed()),
       content: (
         <StepContent>
           <StepTitle>Navigation Drawer</StepTitle>
@@ -147,8 +176,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         selector: '[data-tour-target="ssr-submenu"]',
         timeout: 200,
       },
+      onEnter: () => ensureMenuOpen(),
       onResume: () => {
         ensureMenuOpen()
+        ensureSsrGroupCollapsed()
       },
       content: (
         <StepContent>
@@ -167,10 +198,11 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         selector: '[data-tour-target="ssr-submenu"]',
         description: 'SSR examples submenu links',
       },
-      onResume: () => {
+      ...idempotent(() => {
         ensureMenuOpen()
         ensureSsrGroupExpanded()
-      },
+      }),
+      onExit: () => ensureSsrGroupCollapsed(),
       placement: 'right',
       advance: [{ type: 'manual' }],
       content: (
@@ -189,14 +221,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         selector: '[data-tour-target="ssr-submenu"]',
         description: 'SSR examples submenu links',
       },
-      onResume: () => {
+      ...idempotent(() => {
         ensureMenuOpen()
         ensureSsrGroupExpanded()
-      },
-      onEnter: () => {
-        ensureMenuOpen()
-        ensureSsrGroupExpanded()
-      },
+      }),
       placement: 'right',
       advance: [{ type: 'delay', ms: 2000 }],
       content: <DelayDemoContent />,
@@ -211,10 +239,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         scrollMargin: { top: STICKY_HEADER_OFFSET },
         scrollMode: 'center',
       },
-      onEnter: () => {
-        setTimeout(() => ensureMenuClosed(), 0)
-      },
-      onResume: () => ensureMenuClosed(),
+      ...idempotent(() => ensureMenuClosed()),
       placement: 'top',
       advance: [{ type: 'manual' }],
       content: (
@@ -238,6 +263,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         scrollMargin: { top: STICKY_HEADER_OFFSET + 16 },
         scrollMode: 'start',
       },
+      ...idempotent(() => ensureMenuClosed()),
       placement: 'top',
       advance: [{ type: 'manual' }],
       content: (
@@ -262,8 +288,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         description: 'Link to the API request demo route',
       },
       placement: 'right',
-      onEnter: () => ensureMenuOpen(),
-      onResume: () => ensureMenuOpen(),
+      ...idempotent(async () => {
+        await ensureOnRoute({ path: '/' })
+        ensureMenuOpen()
+      }),
       onExit: () => ensureMenuClosed(),
       advance: [{ type: 'route', to: '/demo/start/api-request' }],
       content: (
@@ -290,29 +318,7 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         selector: '[data-tour-target="api-name-item"]',
         timeout: 8000,
       },
-      onResume: () => {
-        const targetPath = '/demo/start/api-request'
-        const router = getTourRouter()
-
-        if (router) {
-          const currentPath = router.state.location.pathname
-          if (currentPath === targetPath) {
-            return
-          }
-          router.navigate({ to: targetPath }).catch((error: unknown) => {
-            console.warn('[tour][demo] failed to navigate', error)
-          })
-          return
-        }
-
-        if (typeof window === 'undefined') {
-          return
-        }
-        if (window.location.pathname === targetPath) {
-          return
-        }
-        window.location.assign(targetPath)
-      },
+      ...idempotent(() => ensureOnRoute({ path: '/demo/start/api-request' })),
       placement: 'bottom',
       advance: [{ type: 'manual' }],
       content: (
@@ -335,6 +341,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
     {
       id: 'finish',
       target: 'screen',
+      ...idempotent(async () => {
+        await ensureOnRoute({ path: '/' })
+        ensureMenuClosed()
+      }),
       controls: { back: 'hidden' },
       placement: 'bottom',
       advance: [{ type: 'manual' }],

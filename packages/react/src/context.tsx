@@ -30,6 +30,13 @@ import type { DevToolsContextValue } from './devtools/DevToolsContext'
 import { DevToolsContext } from './devtools/DevToolsContext'
 // Use window directly to avoid module bundling issues with Vite
 const DEVTOOLS_BRIDGE_KEY = '__FLOWSTERIX_DEVTOOLS_BRIDGE__'
+
+// Schedule a callback after React has committed pending state updates.
+// Double-setTimeout ensures we fire after React's MessageChannel-based scheduler,
+// which may process its macrotask before a single setTimeout(0).
+const afterReactCommit = (fn: () => void) => {
+  setTimeout(() => setTimeout(fn, 0), 0)
+}
 import type {
   Dispatch,
   PropsWithChildren,
@@ -394,17 +401,25 @@ export const TourProvider = ({
         onVersionMismatch: resolved.onVersionMismatch,
       })
 
-      // Subscribe to step lifecycle events immediately (before start() is called)
+      // Subscribe to step lifecycle events immediately (before start() is called).
+      // Hooks are deferred so they run after React commits pending state updates
+      // from the same browser event. This prevents stale DOM reads and avoids
+      // races with advance listeners (attached in useEffect).
       const unsubscribeEnter = store.events.on('stepEnter', (payload) => {
         const step = payload.currentStep
         if (!step.onEnter) return
-        invokeStepHookSync(
-          step.onEnter,
-          { flow: definition, state: payload.state, step },
-          'enter',
-        )
+        afterReactCommit(() => {
+          invokeStepHookSync(
+            step.onEnter,
+            { flow: definition, state: payload.state, step },
+            'enter',
+          )
+        })
       })
 
+      // onExit runs synchronously (not deferred) because it performs cleanup
+      // for the EXITING step, before the new step's advance listeners are
+      // attached in useEffect. This makes programmatic clicks safe in onExit.
       const unsubscribeExit = store.events.on('stepExit', (payload) => {
         const step = payload.previousStep
         if (!step.onExit) return
@@ -563,7 +578,9 @@ export const TourProvider = ({
             ? nextState.stepIndex >= 0
             : nextState.stepIndex > 0
         if (shouldRunResumeHooks) {
-          void runResumeHooks(store.definition, nextState, resumeStrategy)
+          afterReactCommit(() => {
+            void runResumeHooks(store.definition, nextState, resumeStrategy)
+          })
         }
       } else if (nextState.status !== 'idle' && nextState.stepIndex <= 0) {
         pendingResumeRef.current.delete(flowId)
@@ -760,7 +777,9 @@ export const TourProvider = ({
       const shouldRunResumeHooks =
         resumeStrategy === 'current' ? true : nextState.stepIndex > 0
       if (shouldRunResumeHooks) {
-        void runResumeHooks(store.definition, nextState, resumeStrategy)
+        afterReactCommit(() => {
+          void runResumeHooks(store.definition, nextState, resumeStrategy)
+        })
       }
     }
 
@@ -814,7 +833,9 @@ export const TourProvider = ({
     }
 
     pendingResumeRef.current.delete(activeFlowId)
-    void runResumeHooks(definition, state, resumeStrategy)
+    afterReactCommit(() => {
+      void runResumeHooks(definition, state, resumeStrategy)
+    })
   }, [activeFlowId, flowMap, resolveResumeStrategy, runResumeHooks, state])
 
   // Resolve storage adapter (needed for devtools methods)

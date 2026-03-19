@@ -1,5 +1,11 @@
 # @flowsterix/react
 
+## 1.4.0
+
+### Minor Changes
+
+- Defer `onEnter` and `onResume` step hook invocation until after React commits pending state updates. Previously, these hooks ran synchronously inside the store's `stepEnter` event during `commit()`, before React had flushed batched state changes. This caused hooks that read or manipulate the DOM (e.g. toggling an accordion, opening a menu) to see stale state and race with advance rule listeners, leading to flaky flow pauses. Hooks now run via `afterReactCommit` (double-setTimeout), guaranteeing the DOM reflects committed React state. `onExit` remains synchronous since it performs cleanup for the exiting step before the new step's advance listeners are attached.
+
 ## 1.3.0
 
 ### Minor Changes
