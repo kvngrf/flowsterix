@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { Transition } from 'motion/react'
@@ -55,12 +55,6 @@ const DEFAULT_HIGHLIGHT_TRANSITION: Transition = {
   mass: 0.7,
 }
 
-const DEFAULT_HIGHLIGHT_COLLAPSE_TRANSITION: Transition = {
-  duration: 0.18,
-  ease: [0.25, 1, 0.5, 1],
-  type: 'tween',
-}
-
 const DEFAULT_OVERLAY_TRANSITION: Transition = {
   duration: 0.35,
   ease: [0.25, 1, 0.5, 1],
@@ -115,9 +109,7 @@ const getFauxGlowBackground = ({
 export interface OverlayBackdropTransitionsOverride
   extends Partial<
     Pick<AnimationAdapterTransitions, 'overlayHighlight' | 'overlayFade'>
-  > {
-  overlayHighlightCollapse?: Transition
-}
+  > {}
 
 export interface OverlayBackdropProps {
   overlay: UseTourOverlayResult
@@ -163,15 +155,14 @@ export const OverlayBackdrop = ({
   const { highlight, blockerSegments, showBaseOverlay, isActive, viewport } = overlay
   const hasHighlightBounds = Boolean(highlight.rect)
 
-  const prevScreenTargetRef = useRef<boolean | null>(null)
-  const shouldSnapHighlight =
-    prevScreenTargetRef.current === true &&
-    !highlight.isScreen &&
-    hasHighlightBounds
-
-  useEffect(() => {
-    prevScreenTargetRef.current = highlight.isScreen
-  }, [highlight.isScreen])
+  // Track the step ID that owns the current highlight so the SVG key changes
+  // between steps. This ensures AnimatePresence properly exits the old cutout
+  // and enters the new one instead of morphing the path.
+  const highlightStepIdRef = useRef<string | null>(null)
+  if (highlight.target && 'stepId' in highlight.target && highlight.target.stepId) {
+    highlightStepIdRef.current = highlight.target.stepId
+  }
+  const highlightKeySuffix = highlightStepIdRef.current ?? 'default'
 
   const defaultInsetShadow =
     'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
@@ -186,23 +177,10 @@ export const OverlayBackdrop = ({
     transitionsOverride?.overlayHighlight ??
     adapter.transitions.overlayHighlight ??
     DEFAULT_HIGHLIGHT_TRANSITION
-  const snapTransition: Transition = { type: 'tween', duration: 0 }
-  const resolvedHighlightTransition = shouldSnapHighlight
-    ? snapTransition
-    : highlightTransition
   const overlayTransition =
     transitionsOverride?.overlayFade ??
     adapter.transitions.overlayFade ??
     DEFAULT_OVERLAY_TRANSITION
-
-  const highlightCollapseTransition = highlight.isScreen
-    ? snapTransition
-    : (transitionsOverride?.overlayHighlightCollapse ??
-      DEFAULT_HIGHLIGHT_COLLAPSE_TRANSITION)
-
-  const highlightRectTransition = hasHighlightBounds
-    ? resolvedHighlightTransition
-    : highlightCollapseTransition
 
   const highlightRingAnimation = hasHighlightBounds
     ? {
@@ -280,7 +258,7 @@ export const OverlayBackdrop = ({
       <AnimatePresence mode="popLayout">
         {uniformGlowBackground ? (
           <MotionDiv
-            key="tour-overlay-uniform-glow"
+            key={`tour-overlay-uniform-glow-${highlightKeySuffix}`}
             style={{
               ...styles.uniformGlow,
               zIndex,
@@ -297,7 +275,7 @@ export const OverlayBackdrop = ({
       <AnimatePresence mode="popLayout">
         {hasCutout && cutoutPath ? (
           <MotionSvg
-            key="tour-overlay-svg"
+            key={`tour-overlay-svg-${highlightKeySuffix}`}
             width={viewport.width}
             height={viewport.height}
             viewBox={`0 0 ${viewport.width} ${viewport.height}`}
@@ -314,7 +292,7 @@ export const OverlayBackdrop = ({
             <MotionPath
               initial={false}
               animate={{ d: cutoutPath }}
-              transition={highlightRectTransition}
+              transition={highlightTransition}
               fill={color ?? 'rgba(0, 0, 0, 0.5)'}
               fillRule="evenodd"
               clipRule="evenodd"
@@ -345,7 +323,7 @@ export const OverlayBackdrop = ({
       <AnimatePresence mode="popLayout">
         {showHighlightRing && isActive && hasHighlightBounds ? (
           <MotionDiv
-            key="tour-ring"
+            key={`tour-ring-${highlightKeySuffix}`}
             className={ringClassName}
             style={{
               ...styles.highlightRing,
@@ -353,7 +331,7 @@ export const OverlayBackdrop = ({
               ...highlightAppearance,
             }}
             data-tour-overlay-layer="highlight-ring"
-            initial={false}
+            initial={{ ...highlightRingAnimation, opacity: 0 }}
             animate={highlightRingAnimation}
             exit={{
               opacity: 0,
@@ -362,7 +340,7 @@ export const OverlayBackdrop = ({
                 ease: [0.25, 1, 0.5, 1],
               },
             }}
-            transition={resolvedHighlightTransition}
+            transition={highlightTransition}
           />
         ) : null}
       </AnimatePresence>

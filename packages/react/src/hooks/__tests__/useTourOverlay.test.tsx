@@ -20,14 +20,18 @@ const createTarget = (
   ...overrides,
 })
 
+import type { StepTransitionPhase } from '../useStepTransitionPhase'
+
 const Harness = ({
   target,
   onUpdate,
+  phase,
 }: {
   target: TourTargetInfo
   onUpdate: (value: ReturnType<typeof useTourOverlay>) => void
+  phase?: StepTransitionPhase
 }) => {
-  const result = useTourOverlay({ target })
+  const result = useTourOverlay({ target, phase })
 
   useEffect(() => {
     onUpdate(result)
@@ -38,8 +42,8 @@ const Harness = ({
 
 let latestSyncResult: ReturnType<typeof useTourOverlay> | null = null
 
-const SyncHarness = ({ target }: { target: TourTargetInfo }) => {
-  const result = useTourOverlay({ target })
+const SyncHarness = ({ target, phase }: { target: TourTargetInfo; phase?: StepTransitionPhase }) => {
+  const result = useTourOverlay({ target, phase })
   latestSyncResult = result
   return null
 }
@@ -55,7 +59,7 @@ describe('useTourOverlay', () => {
     latestSyncResult = null
   })
 
-  it('retains previous highlight on immediate step switch before effects settle', () => {
+  it('suppresses highlight on immediate step switch (fade-out before new position)', () => {
     const initialTarget = createTarget({
       stepId: 'step-a',
       rect: {
@@ -86,11 +90,14 @@ describe('useTourOverlay', () => {
       rerender(<SyncHarness target={offscreenOversizedTarget} />)
     })
 
-    expect(latestSyncResult?.highlight.target?.stepId).toBe('step-a')
-    expect(latestSyncResult?.highlight.rect).not.toBeNull()
+    // Highlight is suppressed during step transitions — the overlay fades out
+    // rather than morphing to the new position.
+    expect(latestSyncResult?.highlight.rect).toBeNull()
+    expect(latestSyncResult?.isStepTransitionActive).toBe(true)
+    expect(latestSyncResult?.showBaseOverlay).toBe(true)
   })
 
-  it('keeps previous highlight while oversized incoming target has weak viewport coverage', () => {
+  it('suppresses highlight during step transition even when new target intersects viewport', () => {
     const onUpdate = vi.fn()
     const initialTarget = createTarget({
       stepId: 'step-a',
@@ -129,53 +136,13 @@ describe('useTourOverlay', () => {
       )
     })
 
-    act(() => {
-      vi.setSystemTime(new Date('2026-02-12T09:00:00.300Z'))
-      rerender(
-        <Harness
-          target={partiallyVisibleOversizedTarget}
-          onUpdate={onUpdate}
-        />,
-      )
-    })
-
-    const retained = onUpdate.mock.calls.at(-1)?.[0] as
+    const result = onUpdate.mock.calls.at(-1)?.[0] as
       | ReturnType<typeof useTourOverlay>
       | undefined
-    expect(retained?.highlight.target?.stepId).toBe('step-a')
-    expect(retained?.highlight.rect).not.toBeNull()
-
-    const viewportAnchoredOversizedTarget = createTarget({
-      stepId: 'step-b',
-      rect: {
-        top: -120,
-        left: 80,
-        width: 320,
-        height: 1000,
-        right: 400,
-        bottom: 880,
-      },
-    })
-
-    act(() => {
-      vi.setSystemTime(new Date('2026-02-12T09:00:00.500Z'))
-      rerender(
-        <Harness target={viewportAnchoredOversizedTarget} onUpdate={onUpdate} />,
-      )
-    })
-
-    act(() => {
-      vi.setSystemTime(new Date('2026-02-12T09:00:00.800Z'))
-      rerender(
-        <Harness target={viewportAnchoredOversizedTarget} onUpdate={onUpdate} />,
-      )
-    })
-
-    const promoted = onUpdate.mock.calls.at(-1)?.[0] as
-      | ReturnType<typeof useTourOverlay>
-      | undefined
-    expect(promoted?.highlight.target?.stepId).toBe('step-b')
-    expect(promoted?.highlight.rect).not.toBeNull()
+    // Even though the new target intersects the viewport, the highlight is
+    // suppressed during the step transition (isTransitioningBetweenSteps).
+    expect(result?.highlight.rect).toBeNull()
+    expect(result?.isStepTransitionActive).toBe(true)
   })
 
   it('returns unified overlay payload with blocker segments', () => {
@@ -220,5 +187,51 @@ describe('useTourOverlay', () => {
     )
 
     expect(latestSyncResult?.blockerSegments?.length).toBeGreaterThan(0)
+  })
+
+  it('suppresses highlight rect when phase is scrolling (step transition active)', () => {
+    render(
+      <SyncHarness
+        target={createTarget({
+          stepId: 'step-a',
+          rect: {
+            top: 120,
+            left: 100,
+            width: 220,
+            height: 120,
+            right: 320,
+            bottom: 240,
+          },
+        })}
+        phase="scrolling"
+      />,
+    )
+
+    expect(latestSyncResult?.highlight.rect).toBeNull()
+    expect(latestSyncResult?.isStepTransitionActive).toBe(true)
+    expect(latestSyncResult?.showBaseOverlay).toBe(true)
+  })
+
+  it('shows highlight rect when phase is ready', () => {
+    render(
+      <SyncHarness
+        target={createTarget({
+          stepId: 'step-a',
+          rect: {
+            top: 120,
+            left: 100,
+            width: 220,
+            height: 120,
+            right: 320,
+            bottom: 240,
+          },
+        })}
+        phase="ready"
+      />,
+    )
+
+    expect(latestSyncResult?.highlight.rect).not.toBeNull()
+    expect(latestSyncResult?.isStepTransitionActive).toBe(false)
+    expect(latestSyncResult?.showBaseOverlay).toBe(false)
   })
 })

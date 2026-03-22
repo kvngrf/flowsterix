@@ -193,7 +193,7 @@ targetBehavior: {
 
 - `scrollDurationMs` keeps viewport movement aligned with HUD transitions for large step jumps.
 - When set, Flowsterix temporarily bypasses global CSS smooth scrolling to keep timing predictable.
-- Overlay and popover remain at the previous on-screen position while the new target is still offscreen.
+- Overlay highlight and popover fade out at the current position while the new target is still offscreen, then fade in at the new position once the coordinator settles.
 
 ### Hidden Target Handling
 

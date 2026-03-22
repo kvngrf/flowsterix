@@ -1,5 +1,21 @@
 # @flowsterix/react
 
+## 1.5.0
+
+### Minor Changes
+
+- Replace spring/tween position morphing between steps with a fade-out → work → fade-in transition model. On step change the highlight cutout and popover fade out at their current position, the coordinator scrolls and settles the new target, then both fade in at the new position. The backdrop overlay stays visible throughout. This removes frozen highlights during long scrolls, highlight/popover arrival-time mismatches, bouncy overshoot on small distances, and the double blur cycle on the popover.
+
+  New `AnimationAdapterTransitions` fields: `stepTransitionFadeOut` (default 180 ms) and `stepTransitionFadeIn` (default 220 ms). Both are honoured by the `reducedMotionAnimationAdapter` (0.001 s).
+
+  Removed from `OverlayBackdrop`: screen→element snap transition, element→screen collapse transition (`overlayHighlightCollapse`), and the `prevScreenTargetRef` tracking.
+
+  Removed from `TourPopoverPortal`: shared layout freeze logic (`sharedLayoutDisabledForStep`, DOM drift detection), content key 120 ms commit delay, and the `layoutId` prop pass-through. The `shouldDisableSharedPopoverLayoutForHandoff` export now always returns `false` (kept for compatibility).
+
+  Removed from `settleUtils`: `hasStableVisibilityForStepTransition` (the coordinator's visibility gate is sufficient).
+
+  Within-step rect changes (target resize) still use the existing spring/tween `overlayHighlight` animation — only step-to-step transitions use the fade.
+
 ## 1.4.0
 
 ### Minor Changes

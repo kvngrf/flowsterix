@@ -96,7 +96,18 @@ Solution — `useStepTransitionPhase` coordinator:
 
 - Single source of truth for the transition lifecycle: `idle → scrolling → settling → ready`.
 - Both `useTourOverlay` and `TourPopoverPortal` read `phase` from the coordinator instead of tracking motion independently.
-- Rect promotion is gated behind `phase === 'ready'`; overlay and popover freeze on cached position until then.
+- Rect promotion is gated behind `phase === 'ready'`.
+
+Step transition visual model — **fade-out → work → fade-in**:
+
+```
+next() → fade out highlight + popover → scroll + settle → phase="ready" → fade in at new position
+```
+
+- On step change the highlight cutout is suppressed (no SVG rendered) and the popover fades to opacity 0.
+- The backdrop overlay stays visible throughout — only the cutout and popover disappear.
+- Suppression is held for at least the `stepTransitionFadeOut` duration (default 180 ms) so the fade-out completes even when the coordinator settles quickly (element already in viewport).
+- Within-step rect changes (e.g. target resize) still use the spring/tween `overlayHighlight` transition — no fade for same-step updates.
 
 Phase model:
 
@@ -123,6 +134,7 @@ Implementation:
 - `src/hooks/useStepTransitionPhase.ts` — coordinator hook
 - `src/hooks/settleUtils.ts` — shared constants and pure functions (extracted from overlay + popover)
 - Overlay and popover consume `phase` via options/props; no internal motion tracking.
+- `AnimationAdapterTransitions` exposes `stepTransitionFadeOut` (default 180 ms) and `stepTransitionFadeIn` (default 220 ms) for controlling the fade timing. The `reducedMotionAnimationAdapter` sets both to 0.001 s.
 
 ### 3. Scroll and Lock Behavior
 

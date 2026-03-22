@@ -32,10 +32,6 @@ const DOCKED_MARGIN = 24
 const MOBILE_BREAKPOINT = 640
 const MOBILE_HEIGHT_BREAKPOINT = 560
 const MOBILE_HORIZONTAL_GUTTER = 12
-const DEFAULT_POPOVER_ENTRANCE_TRANSITION: Transition = {
-  duration: 0.25,
-  ease: [0.25, 1, 0.5, 1],
-}
 const DEFAULT_POPOVER_EXIT_TRANSITION: Transition = {
   duration: 0.2,
   ease: [0.25, 1, 0.5, 1],
@@ -159,10 +155,10 @@ export const shouldAttemptPopoverPositioning = (options: {
   options.layoutMode !== 'mobile' &&
   options.layoutMode !== 'manual'
 
-export const shouldDisableSharedPopoverLayoutForHandoff = (options: {
+export const shouldDisableSharedPopoverLayoutForHandoff = (_options: {
   isTransitioningBetweenSteps: boolean
   liveTargetUsable: boolean
-}) => options.isTransitioningBetweenSteps && !options.liveTargetUsable
+}) => false
 
 export const shouldClearDisplayedStepKey = (options: {
   nextStepId: string | null
@@ -271,10 +267,6 @@ export const TourPopoverPortal = ({
   const Container = containerComponent ?? adapter.components.MotionDiv
   const Content = contentComponent ?? adapter.components.MotionDiv
 
-  const popoverEntranceTransition =
-    transitionsOverride?.popoverEntrance ??
-    adapter.transitions.popoverEntrance ??
-    DEFAULT_POPOVER_ENTRANCE_TRANSITION
   const popoverExitTransition =
     transitionsOverride?.popoverExit ??
     adapter.transitions.popoverExit ??
@@ -284,6 +276,11 @@ export const TourPopoverPortal = ({
     adapter.transitions.popoverContent ??
     DEFAULT_POPOVER_CONTENT_TRANSITION
 
+  const stepTransitionFadeOutTransition =
+    adapter.transitions.stepTransitionFadeOut ?? { duration: 0.18, ease: [0.25, 1, 0.5, 1] }
+  const stepTransitionFadeInTransition =
+    adapter.transitions.stepTransitionFadeIn ?? { duration: 0.22, ease: [0.25, 1, 0.5, 1] }
+
   const viewport = useViewportRect()
   const { liveTargetUsable, cachedTarget, isTransitioningBetweenSteps } =
     useTargetPromotion({
@@ -292,6 +289,42 @@ export const TourPopoverPortal = ({
       phase: coordinatorPhase,
       isInGracePeriod,
     })
+
+  const rawIsStepTransitionActive =
+    isCoordinatorTransitioning(coordinatorPhase) || isTransitioningBetweenSteps
+
+  // Hold the suppression for at least the fade-out duration so the popover
+  // fully fades out before fading back in at the new position.
+  const fadeOutDuration = adapter.transitions.stepTransitionFadeOut
+  const popoverFadeOutMs =
+    fadeOutDuration && 'duration' in fadeOutDuration
+      ? (fadeOutDuration as { duration: number }).duration * 1000
+      : 180
+  const [popoverFadeHoldActive, setPopoverFadeHoldActive] = useState(false)
+  const popoverFadeHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!rawIsStepTransitionActive) return
+    setPopoverFadeHoldActive(true)
+    if (popoverFadeHoldTimerRef.current !== null) {
+      clearTimeout(popoverFadeHoldTimerRef.current)
+    }
+    popoverFadeHoldTimerRef.current = setTimeout(() => {
+      setPopoverFadeHoldActive(false)
+      popoverFadeHoldTimerRef.current = null
+    }, popoverFadeOutMs)
+  }, [rawIsStepTransitionActive, popoverFadeOutMs])
+
+  useEffect(() => {
+    return () => {
+      if (popoverFadeHoldTimerRef.current !== null) {
+        clearTimeout(popoverFadeHoldTimerRef.current)
+      }
+    }
+  }, [])
+
+  const isStepTransitionActive =
+    rawIsStepTransitionActive || popoverFadeHoldActive
   const prefersMobileLayout =
     viewport.width <= MOBILE_BREAKPOINT ||
     viewport.height <= MOBILE_HEIGHT_BREAKPOINT
@@ -326,8 +359,6 @@ export const TourPopoverPortal = ({
   const anchoredIsScreen =
     resolvedIsScreen || Boolean(stableAnchor?.isScreen)
   const hasAnchor = Boolean(anchoredRect || anchoredIsScreen)
-  const hasLiveStableAnchor = target.status === 'ready' && liveTargetUsable
-
   // Hide popover when there's no valid rect to position against
   // (screen fallback sets target.isScreen=true and provides viewport rect)
   const shouldHidePopover = !hasAnchor
@@ -340,16 +371,10 @@ export const TourPopoverPortal = ({
     height: number
   } | null>(null)
 
-  // On page reload / cold start, the popover has no cached position and the
-  // coordinator hasn't settled yet (element targets) or floatingSize hasn't
-  // been measured (screen targets). Forcing opacity 0 keeps the popover
-  // invisible until the correct position is computed, then it fades in.
+  // Screen targets: popover size not yet measured for correct centering.
+  // Step-transition hiding is handled by isStepTransitionActive in animate.
   const isPositionUninitialized = Boolean(
-    // Element targets: no cached position from a previous step, coordinator
-    // still working through scrolling/settling
-    (isCoordinatorTransitioning(coordinatorPhase) && !cachedTarget) ||
-      // Screen targets: popover size not yet measured for correct centering
-      (resolvedIsScreen && !floatingSize)
+    resolvedIsScreen && !floatingSize
   )
 
   const clampVertical = (value: number) =>
@@ -401,8 +426,6 @@ export const TourPopoverPortal = ({
   )
   const [floatingPosition, setFloatingPosition] =
     useState<FloatingPositionState>(fallbackPosition)
-  const [sharedLayoutDisabledForStep, setSharedLayoutDisabledForStep] =
-    useState(false)
   const [dragPosition, setDragPosition] = useState<{
     top: number
     left: number
@@ -420,8 +443,7 @@ export const TourPopoverPortal = ({
   const overflowRetryTimeoutRef = useRef<number | null>(null)
   const lastHandoffSignatureRef = useRef<string | null>(null)
   const lastPositionSkipSignatureRef = useRef<string | null>(null)
-  const lastDomDriftSignatureRef = useRef<string | null>(null)
-  const sharedLayoutDisableReasonRef = useRef<string | null>(null)
+  const stepTransitionFrozenPositionRef = useRef<FloatingPositionState | null>(null)
 
   const setLayoutModeWithDebug = (
     nextLayoutMode: TourPopoverLayoutMode,
@@ -486,11 +508,6 @@ export const TourPopoverPortal = ({
       cachedStepId: cachedTarget?.stepId ?? null,
       cachedRect: summarizeRect(cachedTarget?.rect ?? null),
       requestedLayoutId: layoutId ?? null,
-      effectiveLayoutId: sharedLayoutDisabledForStep
-        ? null
-        : (layoutId ?? null),
-      sharedLayoutDisabledForStep,
-      sharedLayoutDisableReason: sharedLayoutDisableReasonRef.current,
     })
   }, [
     cachedTarget?.rect,
@@ -501,7 +518,6 @@ export const TourPopoverPortal = ({
     liveTargetUsable,
     resolvedIsScreen,
     resolvedRect,
-    sharedLayoutDisabledForStep,
     layoutId,
     target.rectSource,
     target.status,
@@ -588,34 +604,8 @@ export const TourPopoverPortal = ({
       }
       return next
     })
-    setSharedLayoutDisabledForStep(false)
-    sharedLayoutDisableReasonRef.current = null
     appliedFloatingCacheRef.current = null
   }, [target.isScreen, target.stepId])
-
-  useEffect(() => {
-    const shouldDisableSharedLayout = shouldDisableSharedPopoverLayoutForHandoff(
-      {
-        isTransitioningBetweenSteps,
-        liveTargetUsable,
-      },
-    )
-    if (!shouldDisableSharedLayout) return
-    if (sharedLayoutDisabledForStep) return
-    setSharedLayoutDisabledForStep(true)
-    sharedLayoutDisableReasonRef.current = 'handoff-freeze'
-    logPopoverDebug('shared-layout-disabled', {
-      stepId: target.stepId,
-      reason: 'handoff-freeze',
-      isTransitioningBetweenSteps,
-      liveTargetUsable,
-    })
-  }, [
-    isTransitioningBetweenSteps,
-    liveTargetUsable,
-    sharedLayoutDisabledForStep,
-    target.stepId,
-  ])
 
   useEffect(() => {
     if (layoutMode !== 'manual') {
@@ -729,16 +719,7 @@ export const TourPopoverPortal = ({
       return
     }
     appliedFloatingCacheRef.current = stepId
-    // During coordinator-managed step transitions, keep the popover frozen at
-    // its current position. The fallbackPosition is calculated from the cached
-    // (previous step) rect with a simple formula that differs from the
-    // floating-ui computed position — applying it would cause a visible jump.
-    if (isCoordinatorTransitioning(coordinatorPhase) && isTransitioningBetweenSteps) {
-      logPopoverDebug('fallback-position-skipped-coordinator', {
-        stepId,
-        coordinatorPhase,
-      })
-    } else if ((target.status !== 'ready' || target.isScreen) && hasAnchor) {
+    if ((target.status !== 'ready' || target.isScreen) && hasAnchor) {
       setFloatingPositionWithDebug(
         fallbackPosition,
         'fallback-position-applied',
@@ -765,10 +746,8 @@ export const TourPopoverPortal = ({
     target.stepId,
   ])
 
-  const resolvedLayoutId = sharedLayoutDisabledForStep ? undefined : layoutId
-
   const shouldDeferScreenSnap =
-    layoutMode === 'floating' && target.isScreen && Boolean(resolvedLayoutId)
+    layoutMode === 'floating' && target.isScreen && Boolean(layoutId)
 
   useEffect(() => {
     return () => {
@@ -784,14 +763,10 @@ export const TourPopoverPortal = ({
     if (target.status === 'ready' && !target.isScreen) return
     if (shouldDeferScreenSnap) return
     if (!hasAnchor) return
-    // Skip during coordinator-managed transitions (same reason as above)
-    if (isCoordinatorTransitioning(coordinatorPhase) && isTransitioningBetweenSteps) return
     setFloatingPositionWithDebug(fallbackPosition, 'screen-fallback-immediate')
   }, [
-    coordinatorPhase,
     fallbackPosition,
     hasAnchor,
-    isTransitioningBetweenSteps,
     layoutMode,
     shouldDeferScreenSnap,
     target.isScreen,
@@ -1228,9 +1203,6 @@ export const TourPopoverPortal = ({
       },
       layoutMode,
       requestedLayoutId: layoutId ?? null,
-      effectiveLayoutId: resolvedLayoutId ?? null,
-      sharedLayoutDisabledForStep,
-      sharedLayoutDisableReason: sharedLayoutDisableReasonRef.current,
     })
   }, [
     cachedTarget?.rect,
@@ -1242,78 +1214,11 @@ export const TourPopoverPortal = ({
     layoutId,
     liveTargetUsable,
     resolvedIsScreen,
-    resolvedLayoutId,
     resolvedRect,
-    sharedLayoutDisabledForStep,
     target.rectSource,
     target.status,
     target.stepId,
     target.visibility,
-  ])
-
-  useLayoutEffect(() => {
-    const node = floatingRef.current
-    if (!node) return
-    const rect = node.getBoundingClientRect()
-    const deltaTop = rect.top - floatingPosition.top
-    const deltaLeft = rect.left - floatingPosition.left
-    const driftSignature = [
-      target.stepId ?? 'null',
-      layoutMode,
-      Math.round(deltaTop),
-      Math.round(deltaLeft),
-      isTransitioningBetweenSteps ? '1' : '0',
-      liveTargetUsable ? '1' : '0',
-    ].join('|')
-    const hasDrift =
-      Math.abs(deltaTop) > POSITION_EPSILON ||
-      Math.abs(deltaLeft) > POSITION_EPSILON
-    if (!hasDrift) {
-      lastDomDriftSignatureRef.current = null
-      return
-    }
-    if (lastDomDriftSignatureRef.current === driftSignature) return
-    lastDomDriftSignatureRef.current = driftSignature
-    if (layoutId && !sharedLayoutDisabledForStep) {
-      setSharedLayoutDisabledForStep(true)
-      sharedLayoutDisableReasonRef.current = 'dom-drift-detected'
-      logPopoverDebug('shared-layout-disabled', {
-        stepId: target.stepId,
-        reason: 'dom-drift-detected',
-        delta: {
-          top: Math.round(deltaTop * 10) / 10,
-          left: Math.round(deltaLeft * 10) / 10,
-        },
-      })
-    }
-    logPopoverDebug('dom-position-drift', {
-      stepId: target.stepId,
-      layoutMode,
-      transitioning: isTransitioningBetweenSteps,
-      liveTargetUsable,
-      intended: summarizePosition(floatingPosition),
-      rendered: {
-        top: Math.round(rect.top),
-        left: Math.round(rect.left),
-      },
-      delta: {
-        top: Math.round(deltaTop * 10) / 10,
-        left: Math.round(deltaLeft * 10) / 10,
-      },
-      requestedLayoutId: layoutId ?? null,
-      effectiveLayoutId: resolvedLayoutId ?? null,
-      sharedLayoutDisabledForStep,
-      sharedLayoutDisableReason: sharedLayoutDisableReasonRef.current,
-    })
-  }, [
-    floatingPosition,
-    isTransitioningBetweenSteps,
-    layoutId,
-    resolvedLayoutId,
-    layoutMode,
-    liveTargetUsable,
-    sharedLayoutDisabledForStep,
-    target.stepId,
   ])
 
   const shouldUseFallbackInitial =
@@ -1378,6 +1283,22 @@ export const TourPopoverPortal = ({
     onContainerChange?.(node as HTMLDivElement | null)
   }
 
+  // Freeze position when step transition starts so the popover fades out
+  // in place. Position updates land while invisible and the popover fades
+  // in at the new position.
+  if (isStepTransitionActive && !stepTransitionFrozenPositionRef.current) {
+    stepTransitionFrozenPositionRef.current = {
+      top: floatingPosition.top,
+      left: floatingPosition.left,
+      transform: floatingPosition.transform,
+    }
+  }
+  if (!isStepTransitionActive) {
+    stepTransitionFrozenPositionRef.current = null
+  }
+
+  const animatePosition = stepTransitionFrozenPositionRef.current ?? floatingPosition
+
   const containerProps = {
     ref: setFloatingNode,
     role: role ?? 'dialog',
@@ -1399,87 +1320,31 @@ export const TourPopoverPortal = ({
       transform: initialTransform,
     },
     animate: {
-      filter: isPositionUninitialized ? 'blur(4px)' : 'blur(0px)',
-      opacity: isPositionUninitialized ? 0 : 1,
-      top: floatingPosition.top,
-      left: floatingPosition.left,
-      transform: floatingPosition.transform,
+      filter: (isPositionUninitialized || isStepTransitionActive) ? 'blur(4px)' : 'blur(0px)',
+      opacity: (isPositionUninitialized || isStepTransitionActive) ? 0 : 1,
+      top: animatePosition.top,
+      left: animatePosition.left,
+      transform: animatePosition.transform,
     },
     exit: {
       filter: 'blur(4px)',
       opacity: 0,
       transition: popoverExitTransition,
     },
-    transition: popoverEntranceTransition,
-    ...(resolvedLayoutId ? { layoutId: resolvedLayoutId } : {}),
+    transition: isStepTransitionActive
+      ? {
+          opacity: stepTransitionFadeOutTransition,
+          filter: stepTransitionFadeOutTransition,
+          default: { duration: 0 },
+        }
+      : {
+          opacity: stepTransitionFadeInTransition,
+          filter: stepTransitionFadeInTransition,
+          default: { duration: 0 },
+        },
   } satisfies TourPopoverPortalRenderProps['containerProps']
 
-  const contentKeyCommitTimeoutRef = useRef<number | null>(null)
-  const [displayedStepKey, setDisplayedStepKey] = useState<string | null>(
-    target.stepId ?? null,
-  )
-
-  useEffect(() => {
-    return () => {
-      if (contentKeyCommitTimeoutRef.current !== null) {
-        window.clearTimeout(contentKeyCommitTimeoutRef.current)
-        contentKeyCommitTimeoutRef.current = null
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    const nextStepKey = target.stepId ?? null
-    if (nextStepKey === null) {
-      if (contentKeyCommitTimeoutRef.current !== null) {
-        window.clearTimeout(contentKeyCommitTimeoutRef.current)
-        contentKeyCommitTimeoutRef.current = null
-      }
-      if (
-        shouldClearDisplayedStepKey({
-          nextStepId: null,
-          hasAnchor,
-          shouldPersistWhileResolving,
-        })
-      ) {
-        setDisplayedStepKey(null)
-      }
-      return
-    }
-    if (displayedStepKey === nextStepKey) return
-    if (contentKeyCommitTimeoutRef.current !== null) {
-      window.clearTimeout(contentKeyCommitTimeoutRef.current)
-      contentKeyCommitTimeoutRef.current = null
-    }
-    if (displayedStepKey === null) {
-      setDisplayedStepKey(nextStepKey)
-      return
-    }
-    if (!hasLiveStableAnchor) return
-    contentKeyCommitTimeoutRef.current = window.setTimeout(() => {
-      setDisplayedStepKey(nextStepKey)
-      contentKeyCommitTimeoutRef.current = null
-    }, 120)
-  }, [
-    displayedStepKey,
-    hasAnchor,
-    hasLiveStableAnchor,
-    shouldPersistWhileResolving,
-    target.stepId,
-  ])
-
-  useEffect(() => {
-    if (displayedStepKey !== null) return
-    if (target.stepId === null) return
-    if (hasAnchor) {
-      setDisplayedStepKey(target.stepId)
-    }
-  }, [displayedStepKey, hasAnchor, target.stepId])
-
-  const contentKey = resolveDisplayedPopoverContentKey({
-    displayedStepKey,
-    targetStepId: target.stepId ?? null,
-  })
+  const contentKey = target.stepId ?? undefined
 
   const contentProps = {
     key: contentKey ?? undefined,

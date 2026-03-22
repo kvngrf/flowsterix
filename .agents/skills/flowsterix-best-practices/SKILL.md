@@ -352,7 +352,7 @@ When consecutive steps are far apart on the page, set a fixed `scrollDurationMs`
 Guidelines:
 - Use `250-450ms` for most landing pages. Start with `350ms`.
 - Keep page-level CSS smooth scroll if you want; when `scrollDurationMs` is set, Flowsterix temporarily bypasses global CSS smooth scrolling so timing stays deterministic.
-- During long jumps, overlay highlight and popover stay anchored to the previous on-screen position until the next target enters the viewport, then transition to the new target.
+- During long jumps, the overlay highlight and popover **fade out** at the current position, the coordinator scrolls and settles the new target, then both **fade in** at the new position. The backdrop stays visible throughout.
 - Use `scrollMode: 'preserve'` for minimal movement, `center` for guided storytelling, or `start` when sticky headers need strict top alignment.
 
 ## Animated Container Targets (Sidebar, Accordion, Collapsible)
@@ -361,7 +361,7 @@ When a step targets an element inside a container that expands or collapses (sid
 
 How it works:
 - After the element's rect settles, the coordinator checks what fraction of the element is visible (accounting for ancestor `overflow` clipping).
-- If less than 85% is visible, the coordinator keeps the overlay and popover frozen at the previous position and retries each frame.
+- If less than 85% is visible, the coordinator keeps the highlight and popover suppressed (faded out) and retries each frame.
 - A 3-second safety timeout ensures the coordinator doesn't wait forever if a parent never fully reveals the element.
 
 Typical pattern — open a sidebar via `onEnter`, then target an item inside it:

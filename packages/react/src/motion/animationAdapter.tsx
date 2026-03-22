@@ -15,6 +15,8 @@ export interface AnimationAdapterComponents {
 export interface AnimationAdapterTransitions {
   overlayHighlight?: Transition
   overlayFade?: Transition
+  stepTransitionFadeOut?: Transition
+  stepTransitionFadeIn?: Transition
   popoverEntrance?: Transition
   popoverExit?: Transition
   popoverContent?: Transition
@@ -44,6 +46,14 @@ const defaultAdapter: AnimationAdapter = {
     },
     overlayFade: {
       duration: 0.35,
+      ease: [0.25, 1, 0.5, 1],
+    },
+    stepTransitionFadeOut: {
+      duration: 0.18,
+      ease: [0.25, 1, 0.5, 1],
+    },
+    stepTransitionFadeIn: {
+      duration: 0.22,
       ease: [0.25, 1, 0.5, 1],
     },
     popoverEntrance: {
@@ -99,6 +109,8 @@ export const tweenAnimationAdapter: AnimationAdapter = {
       ease: [0.25, 1, 0.5, 1],
     },
     overlayFade: defaultAdapter.transitions.overlayFade,
+    stepTransitionFadeOut: defaultAdapter.transitions.stepTransitionFadeOut,
+    stepTransitionFadeIn: defaultAdapter.transitions.stepTransitionFadeIn,
     popoverEntrance: defaultAdapter.transitions.popoverEntrance,
     popoverExit: defaultAdapter.transitions.popoverExit,
     popoverContent: defaultAdapter.transitions.popoverContent,
@@ -115,6 +127,14 @@ export const reducedMotionAnimationAdapter: AnimationAdapter = {
       type: 'tween',
     },
     overlayFade: {
+      duration: 0.001,
+      ease: 'linear',
+    },
+    stepTransitionFadeOut: {
+      duration: 0.001,
+      ease: 'linear',
+    },
+    stepTransitionFadeIn: {
       duration: 0.001,
       ease: 'linear',
     },

@@ -2,10 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import type { ClientRectLike } from '../utils/dom'
 import { isBrowser } from '../utils/dom'
-import {
-  hasStableVisibilityForStepTransition,
-  rectIntersectsViewport,
-} from './settleUtils'
+import { rectIntersectsViewport } from './settleUtils'
 import type { StepTransitionPhase } from './useStepTransitionPhase'
 import type { TourTargetInfo } from './useTourTarget'
 
@@ -61,9 +58,7 @@ export const useTargetPromotion = ({
     target.isScreen ||
       (target.rect &&
         rectIntersectsViewport(target.rect, viewport) &&
-        (phase === undefined || phase === 'ready') &&
-        (!isTransitioningBetweenSteps ||
-          hasStableVisibilityForStepTransition(target.rect, viewport))),
+        (phase === undefined || phase === 'ready')),
   )
 
   const liveTargetUsable = Boolean(

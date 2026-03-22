@@ -397,7 +397,6 @@ export function TourHUD({
             onContainerChange={focusManager.setPopoverNode}
             containerComponent={MotionSection}
             contentComponent={MotionDiv}
-            layoutId="popover"
             isInGracePeriod={isInGracePeriod}
             phase={transitionPhase}
             transitionsOverride={{

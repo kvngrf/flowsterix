@@ -1,8 +1,10 @@
 import type { BackdropInteractionMode } from '@flowsterix/core'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { ClientRectLike } from '../utils/dom'
 import { expandRect, getViewportRect } from '../utils/dom'
+import { useAnimationAdapter } from '../motion/animationAdapter'
+import { isCoordinatorTransitioning } from './settleUtils'
 import type { StepTransitionPhase } from './useStepTransitionPhase'
 import { useTargetPromotion } from './useTargetPromotion'
 import type { CachedTarget } from './useTargetPromotion'
@@ -66,6 +68,11 @@ export interface UseTourOverlayResult {
    */
   showBaseOverlay: boolean
   /**
+   * Whether the coordinator is actively transitioning between steps.
+   * When true, the highlight cutout is suppressed (fade-out/fade-in).
+   */
+  isStepTransitionActive: boolean
+  /**
    * Cached viewport metrics for downstream calculations.
    */
   viewport: ClientRectLike
@@ -89,12 +96,55 @@ export const useTourOverlay = (
   } = options
 
   const viewport = getViewportRect()
+  const adapter = useAnimationAdapter()
 
-  const { liveRectCanPromote, cachedTarget } =
+  const { liveRectCanPromote, cachedTarget, isTransitioningBetweenSteps } =
     useTargetPromotion({ target, viewport, phase, isInGracePeriod })
 
-  const highlightTarget =
-    target.status === 'ready' && liveRectCanPromote ? target : cachedTarget
+  // Suppress highlight during step transitions. isTransitioningBetweenSteps is
+  // synchronous (detects step change on the first render), while the coordinator
+  // phase lags by one render because it updates via useEffect.
+  const rawIsStepTransitionActive =
+    isCoordinatorTransitioning(phase) || isTransitioningBetweenSteps
+
+  // Hold the suppression for at least the fade-out duration so the overlay
+  // fully fades out before the new highlight fades in. Without this, quick
+  // transitions (element already in viewport, coordinator settles in ~100ms)
+  // would show a partial dip instead of a complete fade-out/fade-in.
+  const fadeOutDuration = adapter.transitions.stepTransitionFadeOut
+  const fadeOutMs =
+    fadeOutDuration && 'duration' in fadeOutDuration
+      ? (fadeOutDuration as { duration: number }).duration * 1000
+      : 180
+  const [fadeHoldActive, setFadeHoldActive] = useState(false)
+  const fadeHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!rawIsStepTransitionActive) return
+    setFadeHoldActive(true)
+    if (fadeHoldTimerRef.current !== null) {
+      clearTimeout(fadeHoldTimerRef.current)
+    }
+    fadeHoldTimerRef.current = setTimeout(() => {
+      setFadeHoldActive(false)
+      fadeHoldTimerRef.current = null
+    }, fadeOutMs)
+  }, [rawIsStepTransitionActive, fadeOutMs])
+
+  useEffect(() => {
+    return () => {
+      if (fadeHoldTimerRef.current !== null) {
+        clearTimeout(fadeHoldTimerRef.current)
+      }
+    }
+  }, [])
+
+  const isStepTransitionActive =
+    rawIsStepTransitionActive || fadeHoldActive
+
+  const highlightTarget = isStepTransitionActive
+    ? null
+    : target.status === 'ready' && liveRectCanPromote ? target : cachedTarget
 
   const resolvedRect =
     highlightTarget?.rect ?? (cachedTarget ? null : (target.rect ?? null))
@@ -239,6 +289,7 @@ export const useTourOverlay = (
     },
     blockerSegments,
     showBaseOverlay,
+    isStepTransitionActive,
     viewport,
   }
 }

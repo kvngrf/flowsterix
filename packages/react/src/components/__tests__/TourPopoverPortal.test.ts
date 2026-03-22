@@ -190,16 +190,14 @@ describe('shouldAttemptPopoverPositioning', () => {
 })
 
 describe('shouldDisableSharedPopoverLayoutForHandoff', () => {
-  it('disables shared layout while handoff is freezing on previous anchor', () => {
+  it('always returns false (shared layout freeze removed in favor of fade transitions)', () => {
     expect(
       shouldDisableSharedPopoverLayoutForHandoff({
         isTransitioningBetweenSteps: true,
         liveTargetUsable: false,
       }),
-    ).toBe(true)
-  })
+    ).toBe(false)
 
-  it('keeps shared layout when not in frozen handoff', () => {
     expect(
       shouldDisableSharedPopoverLayoutForHandoff({
         isTransitioningBetweenSteps: false,

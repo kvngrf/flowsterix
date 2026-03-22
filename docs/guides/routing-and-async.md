@@ -234,7 +234,7 @@ When a step targets an element inside an expanding container (sidebar, accordion
 
 **How it works:**
 
-After the element's bounding rect settles (6 stable RAF frames), the coordinator computes a *visibility ratio* — the fraction of the element's area that is not clipped by ancestor `overflow` containers. If less than 85% is visible, the coordinator resets its settle counter and continues monitoring. The overlay and popover remain frozen at the previous step's position until the target is sufficiently revealed.
+After the element's bounding rect settles (6 stable RAF frames), the coordinator computes a *visibility ratio* — the fraction of the element's area that is not clipped by ancestor `overflow` containers. If less than 85% is visible, the coordinator resets its settle counter and continues monitoring. The overlay highlight and popover stay faded out until the target is sufficiently revealed, then fade in at the final position.
 
 A 3-second safety timeout prevents the coordinator from waiting indefinitely if a parent never fully expands.
 

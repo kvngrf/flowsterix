@@ -5,8 +5,6 @@ import { isBrowser } from '../utils/dom'
 // Constants
 // =============================================================================
 
-export const STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD = 0.9
-export const STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD = 0.9
 export const STEP_TRANSITION_SCROLL_SETTLE_MS = 90
 export const STEP_TRANSITION_MOVEMENT_THRESHOLD = 0.6
 export const STEP_TRANSITION_PROMOTE_SPEED_THRESHOLD = 0.5
@@ -84,30 +82,6 @@ export const rectIntersectsViewport = (
 
 export const visibleSpan = (start: number, end: number, boundary: number) =>
   Math.max(0, Math.min(end, boundary) - Math.max(start, 0))
-
-export const hasStableVisibilityForStepTransition = (
-  rect: ClientRectLike,
-  viewport: ClientRectLike,
-) => {
-  if (rect.width <= 0 || rect.height <= 0) return false
-
-  const visibleWidth = visibleSpan(rect.left, rect.right, viewport.width)
-  const visibleHeight = visibleSpan(rect.top, rect.bottom, viewport.height)
-  const oversizedWidth = rect.width > viewport.width
-  const oversizedHeight = rect.height > viewport.height
-
-  const widthStable = oversizedWidth
-    ? visibleWidth >=
-      viewport.width * STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD
-    : visibleWidth / rect.width >= STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
-
-  const heightStable = oversizedHeight
-    ? visibleHeight >=
-      viewport.height * STEP_TRANSITION_OVERSIZED_VIEWPORT_COVERAGE_THRESHOLD
-    : visibleHeight / rect.height >= STEP_TRANSITION_FITTED_VISIBILITY_THRESHOLD
-
-  return widthStable && heightStable
-}
 
 export const rectMoved = (
   previous: ClientRectLike,

@@ -23,6 +23,7 @@ const createOverlay = (
   },
   blockerSegments: null,
   showBaseOverlay: false,
+  isStepTransitionActive: false,
   viewport: {
     top: 0,
     left: 0,

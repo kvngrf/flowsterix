@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import type { ClientRectLike } from '../../utils/dom'
 import {
   getElementVisibleRatio,
-  hasStableVisibilityForStepTransition,
   isRectInViewport,
   isScrollendSupported,
   MAX_VISIBILITY_WAIT_MS,
@@ -75,34 +74,6 @@ describe('visibleSpan', () => {
 
   it('returns 0 when fully outside', () => {
     expect(visibleSpan(-200, -100, 1024)).toBe(0)
-  })
-})
-
-describe('hasStableVisibilityForStepTransition', () => {
-  it('returns true for fully visible rect', () => {
-    expect(
-      hasStableVisibilityForStepTransition(rect(100, 100, 200, 200), viewport),
-    ).toBe(true)
-  })
-
-  it('returns false for zero-size rect', () => {
-    expect(
-      hasStableVisibilityForStepTransition(rect(100, 100, 0, 200), viewport),
-    ).toBe(false)
-  })
-
-  it('returns false when less than 90% is visible', () => {
-    // Only ~5% visible (top 10 of 200 height)
-    expect(
-      hasStableVisibilityForStepTransition(rect(-190, 100, 200, 200), viewport),
-    ).toBe(false)
-  })
-
-  it('handles oversized rects checking viewport coverage', () => {
-    // Rect taller than viewport, covering 90%+
-    expect(
-      hasStableVisibilityForStepTransition(rect(-100, 0, 1024, 2000), viewport),
-    ).toBe(true)
   })
 })
 
