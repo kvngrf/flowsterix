@@ -712,10 +712,12 @@ export const TourProvider = ({
 
     // Find first eligible flow that matches current route
     const findMatchingFlow = (path: string) => {
-      for (const { flow, stepIndex } of eligibleFlows) {
+      for (const { flow, stepIndex, resolvedState } of eligibleFlows) {
         const step = flow.steps[stepIndex]
-        // No route constraint or route matches
-        if (!step.route || matchRoute({ pattern: step.route, path })) {
+        // Resume: always eligible — onResume navigates to correct route
+        // Fresh start: route must match or step has no route constraint
+        const isResume = resolvedState !== null
+        if (isResume || !step.route || matchRoute({ pattern: step.route, path })) {
           return flow
         }
       }

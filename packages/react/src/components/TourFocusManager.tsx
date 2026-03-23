@@ -26,8 +26,8 @@ export interface TourFocusManagerProps {
   guardElementFocusRing?: { boxShadow: string }
 }
 
-const DEFAULT_BOX_SHADOW =
-  '0 0 0 2px var(--primary), 0 0 8px 2px color-mix(in srgb, var(--primary) 40%, transparent)'
+const DEFAULT_OUTLINE = '2px solid var(--primary)'
+const DEFAULT_OUTLINE_OFFSET = '2px'
 
 export const TourFocusManager = ({
   active,
@@ -337,7 +337,10 @@ export const TourFocusManager = ({
   const host = portalHost()
   if (!host) return null
 
-  const boxShadow = guardElementFocusRing?.boxShadow ?? DEFAULT_BOX_SHADOW
+  const customBoxShadow = guardElementFocusRing?.boxShadow
+  const focusRingStyle = customBoxShadow
+    ? { boxShadow: customBoxShadow }
+    : { outline: DEFAULT_OUTLINE, outlineOffset: DEFAULT_OUTLINE_OFFSET }
 
   const showTargetRing = targetRingActive && highlightRect
   const showPopoverRing = popoverRingActive && popoverRect
@@ -355,7 +358,7 @@ export const TourFocusManager = ({
             width: highlightRect.width,
             height: highlightRect.height,
             borderRadius: highlightRect.radius,
-            boxShadow,
+            ...focusRingStyle,
             pointerEvents: 'none',
             zIndex: 2001,
           }}
@@ -371,7 +374,7 @@ export const TourFocusManager = ({
             width: popoverRect.width,
             height: popoverRect.height,
             borderRadius: 12,
-            boxShadow,
+            ...focusRingStyle,
             pointerEvents: 'none',
             zIndex: 2001,
           }}

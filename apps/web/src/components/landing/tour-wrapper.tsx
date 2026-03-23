@@ -66,10 +66,9 @@ export function TourWrapper({ children }: { children: React.ReactNode }) {
             overlay={{
               padding: 16,
               radius: 16,
-              blurAmount: 4,
               showRing: true,
               ringShadow:
-                '0 0 0 2px rgb(90 124 101), 0 0 30px rgb(90 124 101 / 0.25)',
+                '0 0 0 2px rgb(90 124 101), 0 0 16px 4px rgb(90 124 101 / 0.2)',
             }}
             popover={{
               maxWidth: 380,

@@ -1,5 +1,17 @@
 # @flowsterix/react
 
+## 1.7.0
+
+### Minor Changes
+
+- Resume tours on route mismatch after page reload. When stored state exists (resume), auto-start now bypasses the route check — the step's `onResume` hook handles navigation via `ensureOnRoute`. Fresh starts still respect route gating.
+
+- Replace radial-gradient faux glow with box-shadow on the highlight ring. The `uniform-glow` overlay layer is removed. The highlight ring now uses outward-bleeding `box-shadow` that follows the target rect shape and border-radius. Customizable via the `shadow` prop or the `--tour-overlay-ring-shadow` CSS variable.
+
+- Deprecate `blurAmount` prop on `OverlayBackdrop` (still accepted, ignored).
+
+- Switch default accessibility focus ring from `box-shadow` to `outline` with `outline-offset: 2px`. This prevents visual collision between the highlight glow and the focus indicator. Custom `guardElementFocusRing.boxShadow` values are still respected.
+
 ## 1.6.0
 
 ### Minor Changes

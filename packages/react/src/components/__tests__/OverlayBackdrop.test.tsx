@@ -40,14 +40,14 @@ describe('OverlayBackdrop', () => {
     cleanup()
   })
 
-  it('renders unified svg path and glow for highlight cutout', () => {
-    render(<OverlayBackdrop overlay={createOverlay()} blurAmount={8} />)
+  it('renders svg cutout and highlight ring for active target', () => {
+    render(<OverlayBackdrop overlay={createOverlay()} />)
 
     expect(
       document.querySelector('[data-tour-overlay-layer="svg"]'),
     ).toBeTruthy()
     expect(
-      document.querySelector('[data-tour-overlay-layer="uniform-glow"]'),
+      document.querySelector('[data-tour-overlay-layer="highlight-ring"]'),
     ).toBeTruthy()
   })
 

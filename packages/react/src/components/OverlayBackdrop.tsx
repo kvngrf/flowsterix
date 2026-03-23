@@ -27,11 +27,6 @@ const styles = {
     inset: 0,
     pointerEvents: 'none' as const,
   },
-  uniformGlow: {
-    position: 'absolute' as const,
-    inset: 0,
-    pointerEvents: 'none' as const,
-  },
   blockerContainer: {
     position: 'absolute' as const,
     inset: 0,
@@ -60,51 +55,6 @@ const DEFAULT_OVERLAY_TRANSITION: Transition = {
   ease: [0.25, 1, 0.5, 1],
 }
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value))
-
-const getFauxGlowBackground = ({
-  centerX,
-  centerY,
-  radiusPx,
-  blurPx,
-  overlayOpacity,
-}: {
-  centerX: number
-  centerY: number
-  radiusPx: number
-  blurPx: number
-  overlayOpacity: number
-}) => {
-  const safeRadius = Math.max(1, radiusPx)
-  const blurFactor = clamp(blurPx / 10, 0.55, 1.8)
-  const opacityFactor = clamp(overlayOpacity, 0.2, 1)
-
-  const midAlpha = clamp(0.12 * blurFactor * opacityFactor, 0.04, 0.22)
-  const ambientAlpha = clamp(0.09 * blurFactor * opacityFactor, 0.03, 0.18)
-
-  const innerDeadZone = safeRadius * 0.42
-  const midStop = safeRadius * 0.86
-  const outerStop = safeRadius * 1.22
-  const ambientStop = safeRadius * (1.75 + blurFactor * 0.32)
-
-  return [
-    `radial-gradient(circle at ${centerX}px ${centerY}px, rgba(255,255,255,0) 0px, rgba(255,255,255,0) ${Math.max(
-      0,
-      innerDeadZone,
-    )}px, rgba(255,255,255,${midAlpha.toFixed(3)}) ${Math.max(
-      0,
-      midStop,
-    )}px, rgba(255,255,255,0) ${Math.max(0, outerStop)}px)`,
-    `radial-gradient(circle at ${centerX}px ${centerY}px, rgba(255,255,255,0) ${Math.max(
-      0,
-      midStop * 0.72,
-    )}px, rgba(255,255,255,${ambientAlpha.toFixed(3)}) ${Math.max(
-      0,
-      outerStop,
-    )}px, rgba(255,255,255,0) ${Math.max(0, ambientStop)}px)`,
-  ].join(',')
-}
 
 export interface OverlayBackdropTransitionsOverride
   extends Partial<
@@ -121,6 +71,9 @@ export interface OverlayBackdropProps {
   colorClassName?: string
   opacity?: number
   shadow?: string
+  /**
+   * @deprecated No longer used. The radial glow has been replaced by a box-shadow on the highlight ring.
+   */
   blurAmount?: number
   ariaHidden?: boolean
   rootClassName?: string
@@ -138,7 +91,7 @@ export const OverlayBackdrop = ({
   colorClassName: _colorClassName,
   opacity = 1,
   shadow,
-  blurAmount,
+  blurAmount: _blurAmount,
   ariaHidden,
   rootClassName,
   overlayClassName,
@@ -165,7 +118,7 @@ export const OverlayBackdrop = ({
   const highlightKeySuffix = highlightStepIdRef.current ?? 'default'
 
   const defaultInsetShadow =
-    'inset 0 0 0 2px rgba(56,189,248,0.4), inset 0 0 0 8px rgba(15,23,42,0.3)'
+    '0 0 0 2px rgba(56,189,248,0.4), 0 0 16px 4px rgba(56,189,248,0.15)'
 
   const highlightAppearance = shadow
     ? { boxShadow: shadow }
@@ -211,22 +164,6 @@ export const OverlayBackdrop = ({
       })
     : null
 
-  const resolvedBlurPx =
-    typeof blurAmount === 'number' ? Math.max(0, blurAmount) : 6
-  const uniformGlowRadius = highlight.rect
-    ? Math.max(highlight.rect.width, highlight.rect.height) * 1.35
-    : 0
-  const uniformGlowBackground =
-    hasCutout
-      ? getFauxGlowBackground({
-          centerX: highlight.centerX,
-          centerY: highlight.centerY,
-          radiusPx: uniformGlowRadius,
-          blurPx: resolvedBlurPx,
-          overlayOpacity: opacity,
-        })
-      : null
-
   return createPortal(
     <MotionDiv
       className={rootClassName}
@@ -249,23 +186,6 @@ export const OverlayBackdrop = ({
               opacity: 0,
               transition: overlayTransition,
             }}
-            animate={{ opacity }}
-            exit={{ opacity: 0 }}
-            transition={overlayTransition}
-          />
-        ) : null}
-      </AnimatePresence>
-      <AnimatePresence mode="popLayout">
-        {uniformGlowBackground ? (
-          <MotionDiv
-            key={`tour-overlay-uniform-glow-${highlightKeySuffix}`}
-            style={{
-              ...styles.uniformGlow,
-              zIndex,
-              backgroundImage: uniformGlowBackground,
-            }}
-            data-tour-overlay-layer="uniform-glow"
-            initial={{ opacity: 0 }}
             animate={{ opacity }}
             exit={{ opacity: 0 }}
             transition={overlayTransition}

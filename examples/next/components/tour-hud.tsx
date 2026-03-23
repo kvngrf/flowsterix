@@ -44,13 +44,13 @@ export interface TourHUDProps {
     radius?: number
     /** Background color of the overlay */
     backdropColor?: string
-    /** Backdrop blur amount in pixels (default: 6) */
+    /** @deprecated No longer used. Glow is now controlled via `ringShadow`. */
     blurAmount?: number
     /** Opacity of the backdrop (default: 1) */
     opacity?: number
     /** Whether to show the highlight ring (default: true) */
     showRing?: boolean
-    /** Custom box-shadow for the highlight ring */
+    /** Custom box-shadow for the highlight ring. Defaults to `var(--tour-overlay-ring-shadow)` CSS variable. */
     ringShadow?: string
     /** Z-index for the overlay (default: 2000) */
     zIndex?: number
@@ -178,7 +178,7 @@ function useIsMobile(breakpoint: number = MOBILE_BREAKPOINT) {
  *   return (
  *     <TourProvider flows={[myFlow]}>
  *       <TourHUD
- *         overlay={{ padding: 12, showRing: true, blurAmount: 6 }}
+ *         overlay={{ padding: 12, showRing: true }}
  *         popover={{ maxWidth: 360 }}
  *         progress={{ show: true, variant: "dots" }}
  *       />
@@ -192,7 +192,6 @@ export function TourHUD({
   className,
   overlay = {
     showRing: true,
-    blurAmount: 6,
     zIndex: 2000,
     opacity: 1,
   },
@@ -264,12 +263,11 @@ export function TourHUD({
   const overlayRadius = overlay.radius ?? overlayConfig.radius ?? 12
   const overlayZIndex = overlay.zIndex
   const overlayColor = overlay.backdropColor ?? 'rgba(0, 0, 0, 0.5)'
-  const overlayBlur = overlay.blurAmount
   const overlayOpacity = overlay.opacity
   const showRing = overlay.showRing
   const ringShadow =
     overlay.ringShadow ??
-    '0 0 0 2px hsl(var(--primary)), 0 0 20px hsl(var(--primary) / 0.5)'
+    'var(--tour-overlay-ring-shadow, 0 0 0 2px rgba(56,189,248,0.4), 0 0 16px 4px rgba(56,189,248,0.15))'
 
   // Step transition phase for coordinated overlay/popover promotion
   const { phase: transitionPhase } = hud.transitionPhase
@@ -319,7 +317,6 @@ export function TourHUD({
         zIndex={overlayZIndex}
         color={overlayColor}
         opacity={overlayOpacity}
-        blurAmount={overlayBlur}
         shadow={showRing ? ringShadow : undefined}
         transitionsOverride={{
           overlayHighlight: highlightTransition,

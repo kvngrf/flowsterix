@@ -166,10 +166,9 @@ import { TourHUD } from '@flowsterix/react'
     padding: 12,              // Padding around highlight
     radius: 12,               // Border radius of cutout
     backdropColor: 'rgba(0,0,0,0.5)',
-    blurAmount: 6,            // Backdrop blur pixels
     opacity: 1,
-    showRing: true,           // Glow effect around target
-    ringShadow: '0 0 0 2px hsl(var(--primary))',
+    showRing: true,           // Box-shadow glow around target
+    ringShadow: '0 0 0 2px rgba(56,189,248,0.4), 0 0 16px 4px rgba(56,189,248,0.15)',
     zIndex: 2000,
   }}
 

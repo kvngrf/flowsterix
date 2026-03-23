@@ -208,8 +208,8 @@ const handleLogoUpload = async (file: File) => {
   overlay={{
     padding: 12, // Padding around highlight
     radius: 12, // Border radius of cutout
-    showRing: true, // Glow effect around target
-    blurAmount: 6, // Controls unified faux-glow intensity
+    showRing: true, // Box-shadow glow around target
+    ringShadow: '0 0 0 2px rgba(56,189,248,0.4), 0 0 16px 4px rgba(56,189,248,0.15)', // Custom shadow
   }}
   popover={{
     maxWidth: 360,
@@ -233,7 +233,7 @@ const handleLogoUpload = async (file: File) => {
 />
 ```
 
-**Overlay rendering model:** Flowsterix now uses a unified SVG-based overlay path across desktop and mobile. Avoid browser-specific mask toggles and optimize visuals through `padding`, `radius`, `showRing`, and `blurAmount`.
+**Overlay rendering model:** Flowsterix uses a unified SVG-based overlay path across desktop and mobile with a box-shadow glow on the highlight ring. Customize visuals through `padding`, `radius`, `showRing`, and `ringShadow`. The `ringShadow` prop accepts any CSS `box-shadow` value. Theme via the `--tour-overlay-ring-shadow` CSS variable, which the TourHUD uses as its default.
 
 ### Mobile Drawer
 
