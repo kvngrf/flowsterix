@@ -97,7 +97,7 @@ describe('useTourOverlay', () => {
     expect(latestSyncResult?.showBaseOverlay).toBe(true)
   })
 
-  it('suppresses highlight during step transition even when new target intersects viewport', () => {
+  it('promotes highlight immediately when new in-viewport target is ready (no phase coordinator)', () => {
     const onUpdate = vi.fn()
     const initialTarget = createTarget({
       stepId: 'step-a',
@@ -139,10 +139,51 @@ describe('useTourOverlay', () => {
     const result = onUpdate.mock.calls.at(-1)?.[0] as
       | ReturnType<typeof useTourOverlay>
       | undefined
-    // Even though the new target intersects the viewport, the highlight is
-    // suppressed during the step transition (isTransitioningBetweenSteps).
-    expect(result?.highlight.rect).toBeNull()
-    expect(result?.isStepTransitionActive).toBe(true)
+    // Without a phase coordinator, the new target is promoted immediately
+    // when it intersects the viewport. The highlight jumps to the new position.
+    expect(result?.highlight.rect).not.toBeNull()
+    expect(result?.isStepTransitionActive).toBe(false)
+  })
+
+  it('suppresses highlight during step transition when phase coordinator gates promotion', () => {
+    const initialTarget = createTarget({
+      stepId: 'step-a',
+      rect: {
+        top: 120,
+        left: 100,
+        width: 220,
+        height: 120,
+        right: 320,
+        bottom: 240,
+      },
+    })
+
+    const { rerender } = render(
+      <SyncHarness target={initialTarget} phase="ready" />,
+    )
+
+    const partiallyVisibleTarget = createTarget({
+      stepId: 'step-b',
+      rect: {
+        top: 340,
+        left: 80,
+        width: 320,
+        height: 1000,
+        right: 400,
+        bottom: 1340,
+      },
+    })
+
+    act(() => {
+      rerender(
+        <SyncHarness target={partiallyVisibleTarget} phase="scrolling" />,
+      )
+    })
+
+    // With phase coordinator in 'scrolling', promotion is blocked and
+    // the highlight is suppressed during the step transition.
+    expect(latestSyncResult?.highlight.rect).toBeNull()
+    expect(latestSyncResult?.isStepTransitionActive).toBe(true)
   })
 
   it('returns unified overlay payload with blocker segments', () => {

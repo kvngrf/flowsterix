@@ -47,13 +47,6 @@ export const useTargetPromotion = ({
   const lastReadyTargetRef = useRef<CachedTarget | null>(null)
   const previousCachedTarget = lastReadyTargetRef.current
 
-  const isTransitioningBetweenSteps = Boolean(
-    previousCachedTarget &&
-      target.stepId &&
-      previousCachedTarget.stepId &&
-      previousCachedTarget.stepId !== target.stepId,
-  )
-
   const liveRectCanPromote = Boolean(
     target.isScreen ||
       (target.rect &&
@@ -79,6 +72,18 @@ export const useTargetPromotion = ({
   }
 
   const cachedTarget = promotedTarget ?? previousCachedTarget
+
+  // Compute after promotion so it reflects the current render's state.
+  // Using `cachedTarget` (not `previousCachedTarget`) avoids a stale-by-one-render
+  // bug: if the fade-hold timer expires before the coordinator reaches 'ready',
+  // nothing would trigger the extra re-render needed to clear the old ref snapshot,
+  // leaving `isTransitioningBetweenSteps` stuck true and the highlight permanently hidden.
+  const isTransitioningBetweenSteps = Boolean(
+    cachedTarget &&
+      target.stepId &&
+      cachedTarget.stepId &&
+      cachedTarget.stepId !== target.stepId,
+  )
 
   useEffect(() => {
     if (!isBrowser) return

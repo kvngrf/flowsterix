@@ -1,5 +1,15 @@
 # @flowsterix/react
 
+## 1.9.0
+
+### Minor Changes
+
+- a2ed141: Ship agent skills via TanStack Intent. Eight focused skills (getting-started, flow-definitions, react-api, lifecycle-hooks, routing, dialog-integration, mobile-and-accessibility, storage-and-versioning) are now bundled in the npm package under `skills/`. End users can run `npx @tanstack/intent install` to wire them into their AI coding assistant. Re-run after updating to pick up new and updated skills.
+
+### Patch Changes
+
+- Fix highlight rectangle permanently disappearing when switching between tour steps. A stale-by-one-render race condition in `useTargetPromotion` caused `isTransitioningBetweenSteps` to remain `true` forever when the fade-hold timer expired before the step transition coordinator reached the `ready` phase, leaving no mechanism to trigger the re-render needed to clear the flag.
+
 ## 1.8.0
 
 ### Minor Changes
