@@ -510,6 +510,41 @@ When changing behavior:
 - prefer fake timers for time-gated transitions
 - validate both overlay and popover when changing handoff policy
 
+## AI Agent Skills (TanStack Intent)
+
+This package ships [Agent Skills](https://agentskills.io) via `@tanstack/intent`, so AI coding assistants (Claude Code, Cursor, Copilot, etc.) automatically understand how to use Flowsterix.
+
+### For End Users
+
+After installing `@flowsterix/react`, run:
+
+```bash
+npx @tanstack/intent install
+```
+
+This discovers the skills bundled in the package and wires them into your agent config (CLAUDE.md, .cursorrules, etc.). Re-run after `npm update` to pick up new and updated skills.
+
+### For Maintainers
+
+Skills live in `packages/react/skills/` and are included in the npm tarball via the `files` field.
+
+- **Validate skills**: `pnpm intent:validate`
+- **Check staleness**: `pnpm intent:stale`
+- **Update skills** when docs in `docs/guides/` change — each skill's `metadata.sources` tracks which docs it was derived from.
+
+### Skill Index
+
+| Skill | Description |
+|-------|-------------|
+| `getting-started` | Installation, first tour, CSS setup |
+| `flow-definitions` | Steps, targets, advance rules, waitFor |
+| `react-api` | TourProvider, hooks, TourHUD, DevTools |
+| `lifecycle-hooks` | onEnter/onResume/onExit patterns |
+| `routing` | Route gating, 4 router adapters |
+| `dialog-integration` | Radix dialog integration |
+| `mobile-and-accessibility` | Mobile drawer, i18n, a11y |
+| `storage-and-versioning` | Storage adapters, versions, migrations |
+
 ## Release and Maintenance Checklist
 
 1. Implement code changes and tests.

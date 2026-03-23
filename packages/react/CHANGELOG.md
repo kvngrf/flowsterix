@@ -1,5 +1,15 @@
 # @flowsterix/react
 
+## 1.8.0
+
+### Minor Changes
+
+- Ship agent skills via TanStack Intent. Eight focused skills (`getting-started`, `flow-definitions`, `react-api`, `lifecycle-hooks`, `routing`, `dialog-integration`, `mobile-and-accessibility`, `storage-and-versioning`) are now bundled in the npm package under `skills/`. End users can run `npx @tanstack/intent install` to wire them into their AI coding assistant (Claude Code, Cursor, Copilot, etc.). Re-run after updating to pick up new and updated skills.
+
+- Add `tanstack-intent` keyword and `skills/` to the published `files` array.
+
+- Add `@tanstack/intent` as a devDependency for skill validation (`npx @tanstack/intent validate`).
+
 ## 1.7.0
 
 ### Minor Changes

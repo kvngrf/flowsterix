@@ -143,7 +143,8 @@ export const landingTourFlow = createFlow<ReactNode>({
           <StepTitle>Quick Installation</StepTitle>
           <StepText>
             Three simple steps: install packages, add shadcn components, and
-            optionally add the AI skill for your coding assistant.
+            optionally run <code>npx @tanstack/intent install</code> to wire AI
+            skills into your coding assistant.
           </StepText>
         </StepContent>
       ),

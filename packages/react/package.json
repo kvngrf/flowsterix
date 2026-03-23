@@ -1,6 +1,6 @@
 {
   "name": "@flowsterix/react",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "React bindings for Flowsterix - guided tours and onboarding flows",
   "license": "MIT",
   "repository": {
@@ -14,7 +14,8 @@
     "walkthrough",
     "guide",
     "flow",
-    "react"
+    "react",
+    "tanstack-intent"
   ],
   "type": "module",
   "sideEffects": false,
@@ -66,7 +67,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "skills",
+    "!skills/_artifacts"
   ],
   "scripts": {
     "build": "tsup --config tsup.config.ts --format esm,cjs --clean && tsc --build tsconfig.json --force",
@@ -91,6 +94,7 @@
     "react-router-dom": ">=6"
   },
   "devDependencies": {
+    "@tanstack/intent": "^0.0.23",
     "motion": "^12.29.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

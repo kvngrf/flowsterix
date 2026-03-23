@@ -217,13 +217,13 @@ export function GettingStarted() {
             <div className="rounded-2xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-code)]">
               <div className="flex items-center justify-between p-4">
                 <code className="text-sm text-zinc-100 font-mono">
-                  <span className="text-zinc-500">$</span> npx skills add
-                  kvngrf/flowsterix --skill flowsterix-best-practices
+                  <span className="text-zinc-500">$</span> npx @tanstack/intent
+                  install
                 </code>
                 <button
                   onClick={() =>
                     copyToClipboard({
-                      text: 'npx skills add kvngrf/flowsterix --skill flowsterix-best-practices',
+                      text: 'npx @tanstack/intent install',
                       index: 2,
                     })
                   }
@@ -237,34 +237,15 @@ export function GettingStarted() {
                   )}
                 </button>
               </div>
-              <div className="border-t border-white/5 flex items-center justify-between p-4">
-                <code className="text-sm text-zinc-100 font-mono">
-                  <span className="text-zinc-500">$</span> npx skills add
-                  kvngrf/flowsterix --skill studio-sdk
-                </code>
-                <button
-                  onClick={() =>
-                    copyToClipboard({
-                      text: 'npx skills add kvngrf/flowsterix --skill studio-sdk',
-                      index: 3,
-                    })
-                  }
-                  className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
-                  aria-label="Copy command"
-                >
-                  {copiedIndex === 3 ? (
-                    <Check className="w-4 h-4 text-tertiary-400" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-zinc-400" />
-                  )}
-                </button>
-              </div>
               <div className="px-4 pb-4">
                 <p className="text-xs text-zinc-500">
-                  Works with Claude Code, Cursor, and other AI coding
-                  assistants. <span className="text-zinc-400">flowsterix-best-practices</span> covers
-                  tour patterns, advance rules, and lifecycle hooks. <span className="text-zinc-400">studio-sdk</span> covers
-                  Studio analytics integration, event serialization, and batched transport.
+                  Auto-discovers skills bundled in{' '}
+                  <span className="text-zinc-400">@flowsterix/react</span> and
+                  wires them into your agent config. Works with Claude Code,
+                  Cursor, Copilot, and other AI coding assistants. Run again
+                  after{' '}
+                  <span className="text-zinc-400">npm update</span> to pick up
+                  new and updated skills.
                 </p>
               </div>
             </div>
