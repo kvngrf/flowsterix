@@ -73,7 +73,8 @@ export const useTourControls = (): TourControlsState => {
     const showBackButton =
       backControlState !== 'hidden' &&
       !isFirst &&
-      !didPreviousAdvanceViaRoute(previousAdvanceRules)
+      (backControlState === 'visible' ||
+        !didPreviousAdvanceViaRoute(previousAdvanceRules))
 
     const backDisabled = backControlState === 'disabled'
 

@@ -1,5 +1,20 @@
 # @flowsterix/react
 
+## 1.6.0
+
+### Minor Changes
+
+- Fix route-mismatch race condition during route-advance step transitions. Replace `useState`/`useEffect` in `useRouteMismatch` with `useSyncExternalStore` so the current path is read synchronously during render. This eliminates a one-render lag where the step had already advanced (via `next()` in the `notifyRouteChange` callback) but `currentPath` still held the previous value, causing a spurious `isRouteMismatch → pause()` that could leave the tour stuck.
+
+- Clear `pausedForMissingTargetRef` synchronously during render on step change instead of in a `useEffect`. The previous effect ran after the route-resume effect in declaration order, allowing a stale ref from a previous step's missing-target pause to block route-based auto-resume.
+
+- Support `controls.back: 'visible'` (and `controls.next: 'visible'`) to force-show navigation buttons, overriding auto-hide heuristics like the route-advance back-button suppression.
+
+### Patch Changes
+
+- Updated dependencies
+  - @flowsterix/core@0.12.0
+
 ## 1.5.0
 
 ### Minor Changes

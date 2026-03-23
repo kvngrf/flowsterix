@@ -36,6 +36,7 @@ const controlStateSchema = z.union([
   z.literal('auto'),
   z.literal('hidden'),
   z.literal('disabled'),
+  z.literal('visible'),
 ])
 
 const advanceRuleSchema = z.union([

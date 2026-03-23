@@ -1,5 +1,11 @@
 # @flowsterix/core
 
+## 0.12.0
+
+### Minor Changes
+
+- Add `'visible'` to `StepControlState`. When set on `controls.back` or `controls.next`, the button is shown unconditionally — bypassing auto-hide heuristics such as the route-advance back-button suppression.
+
 ## 0.11.0
 
 ### Minor Changes

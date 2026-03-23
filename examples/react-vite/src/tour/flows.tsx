@@ -319,8 +319,10 @@ export const onboardingFlow: FlowDefinition<ReactNode> = createFlow<ReactNode>({
         timeout: 8000,
       },
       ...idempotent(() => ensureOnRoute({ path: '/demo/start/api-request' })),
+      onExit: () => ensureOnRoute({ path: '/' }),
       placement: 'bottom',
       advance: [{ type: 'manual' }],
+      controls: { back: 'visible' },
       content: (
         <StepContent>
           <StepTitle>Async Target Ready</StepTitle>

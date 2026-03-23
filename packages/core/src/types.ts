@@ -123,7 +123,7 @@ export type StepTarget =
       description?: string
     }
 
-export type StepControlState = 'auto' | 'hidden' | 'disabled'
+export type StepControlState = 'auto' | 'hidden' | 'disabled' | 'visible'
 
 export interface StepControls {
   back?: StepControlState

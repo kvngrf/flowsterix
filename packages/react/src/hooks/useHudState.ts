@@ -106,6 +106,14 @@ export const useHudState = (
 
   // Track if we paused due to missing target (not route mismatch)
   const pausedForMissingTargetRef = useRef<string | null>(null)
+  const prevStepIdForPauseRef = useRef<string | null>(activeStep?.id ?? null)
+
+  // Clear missing-target pause state synchronously on step change so the
+  // route-resume effect below doesn't see a stale ref from a previous step.
+  if (prevStepIdForPauseRef.current !== (activeStep?.id ?? null)) {
+    prevStepIdForPauseRef.current = activeStep?.id ?? null
+    pausedForMissingTargetRef.current = null
+  }
 
   // Pause flow when route doesn't match
   useEffect(() => {
@@ -172,11 +180,6 @@ export const useHudState = (
     pausedForMissingTargetRef.current = null
     resume()
   }, [currentPath, state, resume])
-
-  // Clear missing target pause state when step changes
-  useEffect(() => {
-    pausedForMissingTargetRef.current = null
-  }, [activeStep?.id])
 
   const canRenderStep = Boolean(runningStep && runningState)
   const focusTrapActive = canRenderStep
